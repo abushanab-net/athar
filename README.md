@@ -114,4 +114,6 @@ python tools/verify.py                     # the whole CI pipeline locally; --no
 
 Bug reports and ideas: open an issue with what you did, what you expected and what happened, plus the seed profile and the commit you ran.
 
-No open-source license has been chosen yet; ask before reusing the code outside this organization.
+## License
+
+Athar is source-available under the [Athar Small Business License 1.0](LICENSE.md). It is free to use, change and share for personal and noncommercial purposes, for charities, schools, public research and government bodies, and for companies with less than USD 200,000 revenue in the prior tax year. Any other commercial use needs a written license from the maintainer: open an issue to ask.
