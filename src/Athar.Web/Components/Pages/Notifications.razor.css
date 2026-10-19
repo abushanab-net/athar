@@ -1,0 +1,12 @@
+.notes { list-style: none; margin: 0; padding: 0; border: 1px solid var(--athar-rule); border-radius: var(--athar-radius); background: var(--mud-palette-surface) }
+.note { position: relative; display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 16px;
+    border-block-end: 1px solid var(--athar-rule); transition: background-color var(--athar-fast) var(--athar-ease) }
+.note:last-child { border-block-end: 0 }
+.note:has(.open):hover { background: var(--athar-fill) }
+.note.unread .dot { inline-size: 8px; block-size: 8px; border-radius: 50%; background: var(--athar-seal) }
+.note.unread .what { font-weight: 500 }
+.where { color: var(--mud-palette-text-secondary) }
+::deep .when { font-size: 0.75rem; color: var(--mud-palette-text-secondary); white-space: nowrap }
+/* The whole row is the link; the anchor covers it so the text stays selectable-looking but one tab stop per row. */
+.open { position: absolute; inset: 0; border-radius: inherit }
+.open:focus-visible { outline-offset: -2px }

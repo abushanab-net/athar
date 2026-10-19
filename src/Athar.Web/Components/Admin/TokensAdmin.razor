@@ -1,0 +1,73 @@
+@page "/admin/tokens"
+@attribute [Authorize]
+@inject TokenService Tokens
+@inject OrgAdminService Org
+@inject IDialogService Dialogs
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+
+<PageHeader Help="admin-tokens-and-agents" Title="@L["AllTokens"]" Description="@L["TrustedLocalHelp"]" />
+
+@if (!loaded)
+{
+    <LoadingState />
+}
+else if (rows is null)
+{
+    <AccessDenied Text="@L["AdminsOnly"]" />
+}
+else
+{
+    <TokenTable Rows="rows" ShowOwner="true" CanRevoke="true" OnRevoke="RevokeAsync" MoreActions="@AccessActions" />
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private Guid OrgId, ActorId;
+    private bool loaded, isOwner;
+    private List<TokenService.TokenRow>? rows;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await Auth).User;
+        (OrgId, ActorId) = (user.OrgId(), user.UserId());
+        isOwner = await Org.RoleOfAsync(OrgId, ActorId) == OrgRole.Owner;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        rows = await Tokens.AllAsync(OrgId, ActorId);
+        loaded = true;
+    }
+
+    // Owners only: switch a live token between external agent and trusted local, with a reason (audited).
+    private IEnumerable<RowAction?> AccessActions(TokenService.TokenRow t)
+    {
+        if (!isOwner || t.RevokedAt is not null) return [];
+        var target = t.Disclosure == DisclosureClass.TrustedLocal ? DisclosureClass.ExternalAgent : DisclosureClass.TrustedLocal;
+        return target == DisclosureClass.TrustedLocal
+            ? [new RowAction(L["MakeTrustedLocal"] + "…", Icons.Material.Outlined.Shield, () => ClassifyAsync(t, target))]
+            : [new RowAction(L["MakeExternal"] + "…", Icons.Material.Outlined.RemoveModerator, () => ClassifyAsync(t, target))];
+    }
+
+    private async Task ClassifyAsync(TokenService.TokenRow t, DisclosureClass target)
+    {
+        var trusted = target == DisclosureClass.TrustedLocal;
+        var label = L[trusted ? "MakeTrustedLocal" : "MakeExternal"];
+        var reason = await ReasonDialog.AskAsync(Dialogs, label, trusted ? L["TrustedLocalHelp"] : L["MakeExternalHelp", t.Name], label,
+            required: trusted, label: trusted ? L["ClassifyReason"].Value : null);
+        if (reason is null) return;
+        // Going back to external-agent is always safe; the reason is still recorded.
+        var decision = await Tokens.ClassifyAsync(OrgId, ActorId, t.Id, target, string.IsNullOrWhiteSpace(reason) ? L["MakeExternal"] : reason);
+        Snackbar.Add(decision == OrgDecision.Allow ? L["Saved"] : L["NotAllowed"], decision == OrgDecision.Allow ? Severity.Success : Severity.Warning);
+        await LoadAsync();
+    }
+
+    private async Task RevokeAsync(Guid id)
+    {
+        var decision = await Tokens.RevokeAsync(OrgId, ActorId, id);
+        Snackbar.Add(decision == OrgDecision.Allow ? L["Revoked"] : L["NotAllowed"], decision == OrgDecision.Allow ? Severity.Success : Severity.Warning);
+        await LoadAsync();
+    }
+}

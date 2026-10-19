@@ -1,0 +1,16 @@
+.proposals { display: grid; gap: 16px }
+.proposal { display: grid; gap: 8px; padding: 16px; background: var(--mud-palette-surface); border: 1px solid var(--athar-rule); border-radius: var(--athar-radius); min-inline-size: 0 }
+header { display: grid; gap: 6px; margin-block-end: 4px }
+h2 { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere }
+h3 { display: flex; align-items: center; gap: 4px; margin: 8px 0 0; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.02em; color: var(--athar-muted) }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--athar-muted) }
+.target { color: var(--mud-palette-primary); text-decoration: none }
+.target:hover { text-decoration: underline }
+.num { font-variant-numeric: tabular-nums }
+.evidence { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; min-inline-size: 0 }
+.evidence a { color: var(--mud-palette-primary); text-decoration: none }
+.evidence a:hover { text-decoration: underline }
+.note { margin: 8px 0 0; display: grid; gap: 4px }
+.note figcaption { font-size: 0.75rem; font-weight: 500; color: var(--athar-muted) }
+.note blockquote { margin: 0; padding: 8px 12px; background: var(--athar-fill); border-radius: var(--athar-radius); white-space: pre-wrap; overflow-wrap: anywhere }
+.decide { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-block-start: 8px }

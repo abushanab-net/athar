@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-04T17:00:00Z",
+  "title": "Design System: Athar",
+  "extensions": {
+    "colorMeta": {
+      "registry-ink": { "role": "neutral", "displayName": "Registry Ink", "canonical": "#14213d", "tonalRamp": ["#0a1020", "#0f182e", "#14213d", "#2a3654", "#4a556f", "#6f7a90", "#a3abbb", "#dfe3ea"] },
+      "ink-navy": { "role": "primary", "displayName": "Ink Navy", "canonical": "#1b2a4a", "tonalRamp": ["#0b1323", "#101a30", "#1b2a4a", "#2c3f66", "#4a5d86", "#7487ab", "#a9bde6", "#dfe7f6"] },
+      "cinnabar-seal": { "role": "secondary", "displayName": "Cinnabar Seal", "canonical": "#c2410c", "tonalRamp": ["#4a1804", "#7a2807", "#c2410c", "#d9581f", "#f07a45", "#f6a079", "#fbc9b0", "#fdebe1"] },
+      "cool-ground": { "role": "neutral", "displayName": "Cool Ground", "canonical": "#f6f7f9" },
+      "record-white": { "role": "neutral", "displayName": "Record White", "canonical": "#ffffff" },
+      "ledger-fill": { "role": "neutral", "displayName": "Ledger Fill", "canonical": "#eef1f5" },
+      "hairline": { "role": "neutral", "displayName": "Hairline", "canonical": "#dfe3ea" },
+      "field-stroke": { "role": "neutral", "displayName": "Field Stroke", "canonical": "#c6ccd6" },
+      "slate-muted": { "role": "neutral", "displayName": "Slate Muted", "canonical": "#5b6475" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The public page hero only." },
+      "headline": { "displayName": "Headline", "purpose": "The page title in every PageHeader; one per page." },
+      "title": { "displayName": "Title", "purpose": "Section and panel headings." },
+      "body": { "displayName": "Body", "purpose": "Everything else, including table cells; 15px inside the wiki editor." },
+      "label": { "displayName": "Label", "purpose": "Field labels, table headers, captions, seal text." }
+    },
+    "shadows": [
+      { "name": "floating", "value": "0 8px 24px rgb(20 33 61 / 0.14)", "purpose": "Menus, popovers, autocomplete lists, dialogs. Nothing in the page flow." }
+    ],
+    "motion": [
+      { "name": "standard", "value": "150ms ease-out", "purpose": "Hover fills and focus rings; reduced motion removes transitions." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "600px" },
+      { "name": "md", "value": "960px", "purpose": "The sidebar becomes a drawer below this width." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button", "kind": "button", "refersTo": "button-primary",
+      "description": "The one main action of a view.",
+      "html": "<button class=\"ds-btn-primary\">Publish</button>",
+      "css": ".ds-btn-primary { background: #1b2a4a; color: #fff; border: 0; border-radius: 6px; padding: 7px 14px; min-height: 32px; font: 500 14px/1.3 'Public Sans', 'Noto Sans Arabic', system-ui, sans-serif; cursor: pointer; transition: background 150ms ease-out; } .ds-btn-primary:hover { background: #101a30; } .ds-btn-primary:focus-visible { outline: 2px solid #1b2a4a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button", "kind": "button", "refersTo": "button-secondary",
+      "description": "Secondary actions next to the primary one.",
+      "html": "<button class=\"ds-btn-secondary\">Save draft</button>",
+      "css": ".ds-btn-secondary { background: #fff; color: #14213d; border: 1px solid #c6ccd6; border-radius: 6px; padding: 6px 14px; min-height: 32px; font: 500 14px/1.3 'Public Sans', system-ui, sans-serif; cursor: pointer; transition: background 150ms ease-out; } .ds-btn-secondary:hover { background: #eef1f5; } .ds-btn-secondary:focus-visible { outline: 2px solid #1b2a4a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Icon Action", "kind": "button", "refersTo": "icon-action",
+      "description": "Icon-only action with a tooltip and an accessible name; rows show up to two, the rest go in a ⋮ menu.",
+      "html": "<button class=\"ds-icon-action\" aria-label=\"Edit\" title=\"Edit\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4\"/></svg></button>",
+      "css": ".ds-icon-action { width: 30px; height: 30px; display: inline-grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: #5b6475; cursor: pointer; transition: background 150ms ease-out; } .ds-icon-action:hover { background: #eef1f5; color: #14213d; } .ds-icon-action:focus-visible { outline: 2px solid #1b2a4a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Seal", "kind": "chip", "refersTo": "seal-chip",
+      "description": "A stamped decision: cinnabar for decided (Approved), ink for proposed or pending.",
+      "html": "<span class=\"ds-seal\">Approved</span> <span class=\"ds-seal ds-seal-ink\">Proposed</span>",
+      "css": ".ds-seal { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border: 1.5px solid currentColor; border-radius: 999px; color: #c2410c; font: 600 12px/1 'Public Sans', system-ui, sans-serif; } .ds-seal-ink { color: #1b2a4a; }"
+    },
+    {
+      "name": "Input Field", "kind": "input", "refersTo": "input-field",
+      "description": "Outlined field with its label above (static forms) or in the top border (interactive forms).",
+      "html": "<label class=\"ds-field\"><span>Email</span><input type=\"email\" placeholder=\"name@company.com\"></label>",
+      "css": ".ds-field { display: grid; gap: 4px; font: 500 12px/1.4 'Public Sans', system-ui, sans-serif; color: #14213d; } .ds-field input { height: 38px; padding: 0 12px; border: 1px solid #c6ccd6; border-radius: 6px; font: 400 14px 'Public Sans', system-ui, sans-serif; color: #14213d; background: #fff; } .ds-field input:hover { border-color: #5b6475; } .ds-field input:focus-visible { outline: 2px solid #1b2a4a; outline-offset: 0; border-color: #1b2a4a; }"
+    },
+    {
+      "name": "Side Navigation Item", "kind": "nav", "refersTo": "nav-item-active",
+      "description": "Sidebar item; the active one gets the ledger fill, 600 weight and an ink icon.",
+      "html": "<nav class=\"ds-nav\"><a class=\"active\" href=\"#\">Home</a><a href=\"#\">Wiki</a><a href=\"#\">Memories <span class=\"count\">3</span></a></nav>",
+      "css": ".ds-nav { display: grid; gap: 2px; width: 220px; font: 400 14px 'Public Sans', system-ui, sans-serif; } .ds-nav a { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 6px; color: #14213d; text-decoration: none; } .ds-nav a:hover { background: #eef1f5; } .ds-nav a.active { background: #eef1f5; font-weight: 600; } .ds-nav .count { margin-inline-start: auto; min-width: 20px; padding: 0 6px; border-radius: 999px; background: #c2410c; color: #fff; font-size: 12px; font-weight: 700; line-height: 18px; text-align: center; }"
+    },
+    {
+      "name": "Ledger Table", "kind": "custom", "refersTo": "ledger-table",
+      "description": "Hairline rows, slate 12px sortable headers, tabular figures, row actions at the end.",
+      "html": "<table class=\"ds-ledger\"><thead><tr><th>Title ↑</th><th>Scope</th><th>Updated</th></tr></thead><tbody><tr><td>Production deploys need two approvals</td><td><span style=\"color:#c2410c;border:1.5px solid;border-radius:999px;padding:0 8px;font-size:12px;font-weight:600\">Company</span></td><td>3 d ago</td></tr><tr><td>Use pnpm for Node packages</td><td><span style=\"color:#1b2a4a;border:1.5px solid;border-radius:999px;padding:0 8px;font-size:12px;font-weight:600\">Project</span></td><td>5 d ago</td></tr></tbody></table>",
+      "css": ".ds-ledger { border-collapse: collapse; width: 100%; background: #fff; border: 1px solid #dfe3ea; border-radius: 6px; font: 400 14px 'Public Sans', system-ui, sans-serif; color: #14213d; font-variant-numeric: tabular-nums; } .ds-ledger th { text-align: start; padding: 8px 12px; font-size: 12px; font-weight: 600; color: #5b6475; border-bottom: 1px solid #dfe3ea; } .ds-ledger td { padding: 8px 12px; border-bottom: 1px solid #dfe3ea; } .ds-ledger tr:hover td { background: #eef1f5; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Public Record",
+    "overview": "Athar is where a company's knowledge is written down and its decisions are approved. The interface behaves like a well-run modern records office: calm ink on cool white, ruled ledgers that are easy to scan, plain forms with labels, and a small cinnabar seal wherever something has been approved, proposed or shadowed. The system is compact: 14px body, 20px page titles, dense rows, and icon actions with tooltips. Arabic and English are equal.",
+    "keyCharacteristics": [
+      "Ink navy and cool white, with cinnabar reserved for seals.",
+      "Ledger tables: hairline rules, sortable columns, icon row actions and a ⋮ menu.",
+      "A left sidebar for navigation; a quiet 56px top bar for search, notifications and the account.",
+      "14px body, 20px page titles, 4px spacing grid.",
+      "Flat surfaces separated by hairlines; shadows only on floating layers."
+    ],
+    "rules": [
+      { "name": "The Seal Rule", "body": "Cinnabar appears only on decision seals, counts and the mark, under 5% of any screen. A cinnabar button or scope label is a bug.", "section": "colors" },
+      { "name": "The Ink Rule", "body": "There is one action color. Primary, links and focus all use ink navy; nothing else competes.", "section": "colors" },
+      { "name": "The One Scale Rule", "body": "Only five sizes exist (plus 15px reading text inside the editor).", "section": "typography" },
+      { "name": "The No-Caps Rule", "body": "Buttons, tabs and navigation use sentence case.", "section": "typography" },
+      { "name": "The Flat Record Rule", "body": "Cards, tables and panels have no shadow; only floating layers get the floating shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do build every page from the shared controls: PageHeader, DataTable, RowActions, IconAction, ScopeChip, CommentItem, FormField, EmptyState.",
+      "Do keep page titles at 20px and body text at 14px.",
+      "Do give every icon-only control a tooltip and an accessible name.",
+      "Do make every table column sortable unless sorting is meaningless for it.",
+      "Do check every screen in Arabic (RTL) as well as English."
+    ],
+    "donts": [
+      "Don't use cinnabar for buttons, links or body text (The Seal Rule).",
+      "Don't put primary navigation in the top bar or use uppercase labels.",
+      "Don't put text buttons in table rows; use icon actions and the ⋮ menu.",
+      "Don't add shadows to cards, tables or panels.",
+      "Don't use underlined (Material \"text\" variant) inputs; fields are outlined.",
+      "Don't bring back the teal app bar or the Material heading sizes."
+    ]
+  }
+}

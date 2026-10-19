@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve">
+    <value>المهارات</value>
+  </data>
+  <data name="Intro" xml:space="preserve">
+    <value>تعلّم المهارات وكلاءك طريقة عمل فريقك. تصفّح المهارات المتاحة لك، وثبّت إحداها في Claude Code أو Codex، أو انشر مهارتك.</value>
+  </data>
+  <data name="Publish" xml:space="preserve">
+    <value>نشر مهارة</value>
+  </data>
+  <data name="PublishTitle" xml:space="preserve">
+    <value>نشر مهارة</value>
+  </data>
+  <data name="PublishHelp" xml:space="preserve">
+    <value>ارفع ملف SKILL.md، أو ملف zip لمجلد مهارة واحدة (SKILL.md وملفاته النصية، حتى 1 ميغابايت). نشر الاسم نفسه في المكان نفسه يستبدله.</value>
+  </data>
+  <data name="ChooseFile" xml:space="preserve">
+    <value>اختر SKILL.md أو ‎.zip</value>
+  </data>
+  <data name="Owner_team" xml:space="preserve">
+    <value>الفريق</value>
+  </data>
+  <data name="Owner_project" xml:space="preserve">
+    <value>المشروع</value>
+  </data>
+  <data name="FileCount" xml:space="preserve">
+    <value>{0} ملف</value>
+  </data>
+  <data name="CompanyNote" xml:space="preserve">
+    <value>تُرسل مهارة الشركة إلى مالك المعرفة للموافقة أولًا، إلا إذا كنت مالك معرفة.</value>
+  </data>
+  <data name="PublishNow" xml:space="preserve">
+    <value>نشر</value>
+  </data>
+  <data name="Published" xml:space="preserve">
+    <value>نُشرت {0}</value>
+  </data>
+  <data name="TooLarge" xml:space="preserve">
+    <value>حجم الملف أكبر من 1 ميغابايت.</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>ابحث في المهارات</value>
+  </data>
+  <data name="NoSkills" xml:space="preserve">
+    <value>لا توجد مهارات هنا بعد</value>
+  </data>
+  <data name="NoSkillsHelp" xml:space="preserve">
+    <value>انشر مهارة، أو امسح عوامل التصفية.</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>الوصف</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>هذه المهارة غير موجودة، أو لا يمكنك رؤيتها.</value>
+  </data>
+  <data name="DownloadZip" xml:space="preserve">
+    <value>تنزيل zip</value>
+  </data>
+  <data name="InstallTitle" xml:space="preserve">
+    <value>التثبيت</value>
+  </data>
+  <data name="InstallHelp" xml:space="preserve">
+    <value>نزّل ملف zip، ثم شغّل الأمر الخاص بنظامك. أعد تشغيل الوكيل ليحمّل المهارة.</value>
+  </data>
+  <data name="Client" xml:space="preserve">
+    <value>الوكيل</value>
+  </data>
+  <data name="Files" xml:space="preserve">
+    <value>الملفات</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>نسخ</value>
+  </data>
+  <data name="CopyFailed" xml:space="preserve">
+    <value>تعذّر النسخ. حدّد النص وانسخه بنفسك.</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>سجل الإصدارات</value>
+  </data>
+  <data name="HistoryHelp" xml:space="preserve">
+    <value>كل نشر هو مراجعة جديدة. افتح إحداها لقراءتها كما كانت.</value>
+  </data>
+  <data name="NoHistory" xml:space="preserve">
+    <value>يبدأ السجل مع النشر التالي.</value>
+  </data>
+  <data name="Revision" xml:space="preserve">
+    <value>المراجعة {0}</value>
+  </data>
+  <data name="Proposed" xml:space="preserve">
+    <value>{0} بانتظار موافقة مالك المعرفة</value>
+  </data>
+  <data name="SeeProposal" xml:space="preserve">
+    <value>عرض المقترح</value>
+  </data>
+</root>

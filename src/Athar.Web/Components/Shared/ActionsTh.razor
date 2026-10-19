@@ -1,0 +1,6 @@
+@* The last header of a DataTable with row actions: named for screen readers, empty on screen. *@
+<MudTh Class="actions-col"><span class="visually-hidden">@L["Actions"]</span></MudTh>
+
+@code {
+    [Inject] private IStringLocalizer<SharedResource> L { get; set; } = default!;
+}

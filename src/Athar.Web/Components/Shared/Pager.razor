@@ -1,0 +1,20 @@
+@* Paging for a server-paged list: "1–50 of 120" with previous/next chevrons that mirror in RTL. *@
+@if (Total > 0)
+{
+    <nav class="pager" aria-label="@L["Pagination"]">
+        <span class="range" aria-live="polite"><bdi>@L["PagerRange", Skip + 1, Math.Min(Skip + PageSize, Total), Total]</bdi></span>
+        <IconAction Icon="@Icons.Material.Filled.ChevronLeft" Label="@L["Previous"]" Class="flip-rtl" Disabled="@(Skip == 0)"
+                    OnClick="() => OnPage.InvokeAsync(Math.Max(0, Skip - PageSize))" />
+        <IconAction Icon="@Icons.Material.Filled.ChevronRight" Label="@L["Next"]" Class="flip-rtl" Disabled="@(Skip + PageSize >= Total)"
+                    OnClick="() => OnPage.InvokeAsync(Skip + PageSize)" />
+    </nav>
+}
+
+@code {
+    [Inject] private IStringLocalizer<SharedResource> L { get; set; } = default!;
+    [Parameter, EditorRequired] public int Skip { get; set; }
+    [Parameter, EditorRequired] public int PageSize { get; set; }
+    [Parameter, EditorRequired] public int Total { get; set; }
+    /// <summary>Called with the new skip.</summary>
+    [Parameter] public EventCallback<int> OnPage { get; set; }
+}

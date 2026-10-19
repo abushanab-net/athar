@@ -1,0 +1,53 @@
+/* One comment: avatar, name over the time, the ⋮ at the end; the text under them at the card's edge. The ⋮ is always
+   shown (a hover-revealed control jumps in and out under the pointer). */
+.comment {
+    display: grid;
+    gap: 6px;
+}
+
+.meta {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.who {
+    display: grid;
+    min-width: 0;
+    line-height: 1.3;
+}
+
+.name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.when-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--athar-muted);
+}
+
+.edited::before { content: "· " }
+
+.text {
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.text ::deep .user-mention {
+    color: var(--mud-palette-primary);
+    font-weight: 500;
+}
+
+.deleted {
+    margin: 0;
+    font-style: italic;
+    color: var(--athar-muted);
+}

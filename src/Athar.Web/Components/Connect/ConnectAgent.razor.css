@@ -1,0 +1,43 @@
+.connect { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; max-inline-size: 960px }
+.token-form { display: flex; flex-wrap: wrap; align-items: center; gap: 12px }
+.token-form ::deep .mud-input-control { flex: 1 1 16rem; max-inline-size: 22rem }
+.facts { margin: 0 0 16px; padding-inline-start: 20px; display: grid; gap: 4px }
+.inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 16px }
+.steps { margin: 0; padding-inline-start: 20px; display: grid; gap: 16px }
+.steps > li, .connect > * { min-width: 0 } /* long code lines scroll inside their snippet, not the page */
+.downloads { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 8px }
+.paths { display: block; color: var(--athar-muted) }
+.paths code, .snippet code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.875rem }
+.snippet { margin: 8px 0 0; border: 1px solid var(--athar-rule); border-radius: var(--athar-radius); background: var(--athar-fill); min-width: 0 }
+.snippet figcaption { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 4px 2px 12px;
+    border-block-end: 1px solid var(--athar-rule); font-size: 12px; font-weight: 500; color: var(--athar-muted); min-width: 0 }
+.snippet pre { margin: 0; padding: 12px; overflow-x: auto; text-align: left }
+.snippet code { white-space: pre; user-select: all }
+.status { display: grid; grid-template-columns: max-content 1fr; gap: 6px 24px; margin: 0 }
+.status dt { font-weight: 500 }
+.status dd { margin: 0; color: var(--athar-muted); min-width: 0 }
+/* Status beside the server address; stacked on narrow screens. */
+.conn { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px 32px; align-items: start }
+.server .snippet { margin-block-start: 0 }
+.server p { margin: 6px 0 0; font-size: 0.75rem }
+@media (max-width: 719.98px) { .conn { grid-template-columns: minmax(0, 1fr) } }
+
+/* Folded panels (quick setup, what capture sends). */
+.fold > summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; font-weight: 600 }
+.fold > summary::-webkit-details-marker { display: none }
+.fold > summary::after { content: ""; inline-size: 7px; block-size: 7px; margin-inline-start: auto; border: solid var(--athar-muted); border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg); transition: transform var(--athar-fast) var(--athar-ease) }
+.fold[open] > summary::after { transform: rotate(-135deg) }
+.fold > summary:focus-visible { outline: 2px solid var(--mud-palette-primary); outline-offset: 2px; border-radius: var(--athar-radius) }
+.section-like { padding: 14px 16px; border: 1px solid var(--athar-rule); border-radius: var(--athar-radius); background: var(--mud-palette-surface) }
+.section-like > summary ::deep .mud-icon-root { color: var(--mud-palette-primary) }
+.fold-body { display: grid; gap: 8px; margin-block-start: 12px }
+.fold-body p { margin: 0 }
+.fold:not(.section-like) { margin-block-end: 16px }
+.fold:not(.section-like) > summary { font-weight: 500; color: var(--mud-palette-primary) }
+.fold:not(.section-like) > summary::after { margin-inline-start: 4px; border-color: currentColor }
+.fold .facts { margin-block-start: 8px }
+
+/* The client tabs never widen the page on phones: the strip scrolls inside itself. */
+.connect ::deep .mud-tabs-tabbar-inner { overflow-x: auto; scrollbar-width: none }
+.connect ::deep .mud-tab { padding-inline: 16px }

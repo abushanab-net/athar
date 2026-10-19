@@ -1,0 +1,82 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+
+# A new push to a pull request cancels its older run (it would only queue for a runner); develop and main always finish.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-test:
+    # Pinned: ubuntu-latest moves to Ubuntu 26 on 2026-10-19 (Docker and .NET images change under us).
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      # Trust the ASP.NET dev certificate (web serves https://localhost:7100) for OpenSSL.
+      SSL_CERT_DIR: /home/runner/.aspnet/dev-certs/trust:/usr/lib/ssl/certs
+    steps:
+      - uses: actions/checkout@v4
+      # Leftover merge-conflict markers . Not "=======", which Markdown uses.
+      - name: no conflict markers
+        run: |
+          if git grep -nE '^(<<<<<<<|>>>>>>>)( |$)' -- .; then
+            echo "::error::Merge-conflict markers are committed. Resolve them before merging."; exit 1
+          fi
+      # AT-55: the EF model owns the schema. No hand-written SQL in migrations, no .sql files.
+      - name: no hand-written SQL
+        run: |
+          fail=0
+          if git grep -nE '\bSql\(' -- src/Athar.Data/Migrations; then
+            echo "::error::Migrations must not call migrationBuilder.Sql. Change the EF model and run dotnet ef migrations add."; fail=1
+          fi
+          if git ls-files '*.sql' | grep .; then
+            echo "::error::.sql files are not allowed. Schema and data come from the EF model and the seed profiles."; fail=1
+          fi
+          exit $fail
+      # AT-56 / FR-AU-04: audit rows are append-only. Only AuditRetention may ExecuteDelete them; nothing may ExecuteUpdate them.
+      - name: audit rows change only through AuditRetention
+        run: |
+          python3 - <<'EOF'
+          import pathlib, re, sys
+          pattern = re.compile(r'(AuditEvents|Set<AuditEvent>)[^;]*?\.Execute(Update|Delete)', re.S)
+          bad = [str(p) for p in pathlib.Path('src').rglob('*.cs')
+                 if p.as_posix() != 'src/Athar.Data/AuditRetention.cs' and pattern.search(p.read_text(encoding='utf-8'))]
+          for path in bad:
+              print(f"::error file={path}::Audit events are append-only. Only AuditRetention may delete them (FR-AU-04).")
+          sys.exit(1 if bad else 0)
+          EOF
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: dotnet dev-certs https --trust
+      - name: npm build (editor, collab)
+        run: |
+          for d in src/editor src/collab; do
+            if [ -f "$d/package.json" ]; then (cd "$d" && npm ci && npm run build); fi
+          done
+      - run: dotnet build
+      # The AppHost's container images (src/Athar.AppHost/AppHost.cs), pulled with retries: a registry hiccup used to
+      # surface as "'mailpit' did not become healthy" and fail every test.
+      - name: pre-pull container images
+        run: |
+          for image in pgvector/pgvector:pg17 axllent/mailpit:v1.31.2 ollama/ollama:0.34.4; do
+            for attempt in 1 2 3; do docker pull -q "$image" && break; echo "::warning::pull $image failed (attempt $attempt)"; sleep 15; done
+          done
+      # One retry, only for infrastructure failures (a container that didn't start or get healthy); a test failure fails.
+      - name: integration tests
+        run: |
+          set -o pipefail
+          if dotnet test tests/Athar.IntegrationTests --no-build 2>&1 | tee test.log; then exit 0; fi
+          if grep -qE "did not become healthy|FailedToStart|Error response from daemon" test.log; then
+            echo "::warning::Container start failure (infrastructure), retrying the tests once"
+            dotnet test tests/Athar.IntegrationTests --no-build
+          else
+            exit 1
+          fi

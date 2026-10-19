@@ -1,0 +1,487 @@
+@page "/admin/ai-models"
+@attribute [Authorize]
+@using Athar.Domain.Memory
+@using Athar.Web.Mcp
+@using Athar.Web.Services
+@implements IDisposable
+@inject IServiceScopeFactory Scopes
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+
+@* T167 (FR-AI-01..05): the org's model endpoint, its key and the embedding, query and vision assignments. Owners and admins
+   only; every call re-checks the role on the server. The key is write-only here: the page never receives it. *@
+<PageHeader Help="admin-ai-models" Title="@L["AiModels"]" Description="@L["AiModelsIntro"]" />
+
+@if (!loaded)
+{
+    <LoadingState />
+}
+else if (denied)
+{
+    <AccessDenied Text="@L["AdminsOnly"]" />
+}
+else if (view is { } v)
+{
+    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">@L["AiApplyNote"]</MudAlert>
+
+    @if (v.KeyUnreadable)
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">@L["AiKeyUnreadable"]</MudAlert>
+    }
+
+    <Section Title="@L["AiProvider"]" Description="@(v.UsesEnvironment ? L["AiUsingDeployment"] : L["AiUsingSaved"])">
+        <MudRadioGroup T="bool" Value="custom" ValueChanged="SetCustom" Disabled="busy" aria-label="@L["AiProvider"]">
+            <MudRadio T="bool" Value="false" Color="Color.Primary">@L["AiDeploymentDefaults"]</MudRadio>
+            <MudRadio T="bool" Value="true" Color="Color.Primary">@L["AiCustomEndpoint"]</MudRadio>
+        </MudRadioGroup>
+
+        @if (!custom)
+        {
+            <dl class="defaults">
+                <dt>@L["AiEndpoint"]</dt>
+                <dd><bdi dir="ltr">@(v.UsesEnvironment ? v.BaseUrl ?? L["AiLocalOllama"] : L["AiDeploymentAfterReset"])</bdi></dd>
+                @if (v.UsesEnvironment)
+                {
+                    <dt>@L["AiEmbeddingModel"]</dt>
+                    <dd><bdi dir="ltr">@v.EmbeddingModel</bdi></dd>
+                    <dt>@L["AiQueryModel"]</dt>
+                    <dd><bdi dir="ltr">@v.QueryModel</bdi></dd>
+                    <dt>@L["AiVisionModel"]</dt>
+                    <dd>@if (v.VisionModel is { } vm) { <bdi dir="ltr">@vm</bdi> } else { <span class="athar-muted">@L["AiOff"]</span> }</dd>
+                }
+            </dl>
+            @if (!v.UsesEnvironment)
+            {
+                <p class="athar-muted">@L["AiResetExplain"]</p>
+                <MudButton Variant="Variant.Outlined" Color="Color.Warning" Disabled="busy" OnClick="() => confirming = Confirm.Reset">@L["AiResetToDeployment"]</MudButton>
+            }
+        }
+        else
+        {
+            <MudGrid Spacing="3">
+                <MudItem xs="12">
+                    <MudTextField T="string" @bind-Value="baseUrl" @bind-Value:after="DraftChanged" Label="@L["AiEndpoint"]" Placeholder="http://192.168.1.10:8080/v1"
+                                  HelperText="@L["AiEndpointHelp"]" InputType="InputType.Url" Immediate="true" Disabled="busy" Required="true"
+                                  UserAttributes="@(new Dictionary<string, object> { ["dir"] = "ltr", ["autocomplete"] = "off", ["spellcheck"] = "false" })" />
+                </MudItem>
+                <MudItem xs="12">
+                    <fieldset class="key" disabled="@busy">
+                        <legend>@L["AiApiKey"]</legend>
+                        <p class="athar-muted state" role="status">@(v.KeyUnreadable ? L["AiKeyStateUnreadable"] : v.HasApiKey ? L["AiKeyStateStored"] : L["AiKeyStateNone"])</p>
+                        <MudRadioGroup T="ApiKeyChange" Value="keyChange" ValueChanged="SetKeyChange" aria-label="@L["AiApiKey"]">
+                            @if (CanKeep)
+                            {
+                                <MudRadio T="ApiKeyChange" Value="ApiKeyChange.Keep" Color="Color.Primary">@(v.HasApiKey ? L["AiKeyKeep"] : L["AiKeyKeepDeployment"])</MudRadio>
+                            }
+                            <MudRadio T="ApiKeyChange" Value="ApiKeyChange.Replace" Color="Color.Primary">@(v.HasApiKey || v.KeyUnreadable ? L["AiKeyReplace"] : L["AiKeySet"])</MudRadio>
+                            <MudRadio T="ApiKeyChange" Value="ApiKeyChange.Clear" Color="Color.Primary">@L["AiKeyClear"]</MudRadio>
+                        </MudRadioGroup>
+                        @if (keyChange == ApiKeyChange.Replace)
+                        {
+                            @* Never prefilled, and emptied after every save: the stored key doesn't come back to the browser. *@
+                            <MudTextField T="string" @bind-Value="newKey" @bind-Value:after="DraftChanged" Label="@L["AiNewKey"]" InputType="InputType.Password"
+                                          Immediate="true" Required="true"
+                                          UserAttributes="@(new Dictionary<string, object> { ["dir"] = "ltr", ["autocomplete"] = "new-password", ["spellcheck"] = "false" })" />
+                        }
+                        @if (EndpointChanged && keyChange == ApiKeyChange.Keep)
+                        {
+                            <p class="error" role="alert">@L["AiKeyEndpointChanged"]</p>
+                        }
+                    </fieldset>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudAutocomplete T="string" @bind-Value="embeddingModel" @bind-Value:after="DraftChanged" Label="@L["AiEmbeddingModel"]" HelperText="@L["AiEmbeddingHelp"]"
+                                     SearchFunc="Suggest" OpenOnFocus="false" CoerceText="true" CoerceValue="true" Clearable="true" Required="true" Disabled="busy" dir="ltr" />
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudAutocomplete T="string" @bind-Value="queryModel" @bind-Value:after="DraftChanged" Label="@L["AiQueryModel"]" HelperText="@L["AiQueryHelp"]"
+                                     SearchFunc="Suggest" OpenOnFocus="false" CoerceText="true" CoerceValue="true" Clearable="true" Required="true" Disabled="busy" dir="ltr" />
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudAutocomplete T="string" @bind-Value="visionModel" @bind-Value:after="DraftChanged" Label="@L["AiVisionModel"]" HelperText="@L["AiVisionHelp"]"
+                                     SearchFunc="Suggest" OpenOnFocus="false" CoerceText="true" CoerceValue="true" Clearable="true" Disabled="busy" dir="ltr" />
+                </MudItem>
+            </MudGrid>
+            <p class="athar-muted note">@L["AiDimensionsNote"]</p>
+
+            <div class="row">
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.List" Disabled="@(busy || !DraftComplete(requireModels: false))" OnClick="LoadModelsAsync">@L["AiLoadModels"]</MudButton>
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.NetworkCheck" Disabled="@(busy || !DraftComplete(requireModels: true))" OnClick="TestAsync">@L["AiTest"]</MudButton>
+                <span class="grow"></span>
+                @if (!v.UsesEnvironment)
+                {
+                    <MudButton Variant="Variant.Text" Color="Color.Warning" Disabled="busy" OnClick="() => confirming = Confirm.Reset">@L["AiResetToDeployment"]</MudButton>
+                }
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(busy || !DraftComplete(requireModels: true))" OnClick="SaveClicked">@L["Save"]</MudButton>
+            </div>
+
+            <div role="status" aria-live="polite" class="results">
+                @if (models is { } list)
+                {
+                    <p>@(list.Count == 0 ? L["AiNoModels"] : L["AiModelsFound", list.Count])</p>
+                }
+                @if (test is { } t)
+                {
+                    <ul class="tests" aria-label="@L["AiTestResults"]">
+                        @foreach (var role in t.Roles)
+                        {
+                            <li>
+                                <MudIcon Icon="@(role.Success ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error)" Color="@(role.Success ? Color.Success : Color.Error)" Size="Size.Small" aria-hidden="true" />
+                                <span>@RoleLabel(role.Role)</span>
+                                <span class="athar-muted">@(role.Success ? L["AiTestOk"] : TestCode(role.Code))</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        }
+        @if (error is not null)
+        {
+            <MudAlert Severity="Severity.Warning" Class="mt-3" role="alert"><span dir="auto">@error</span></MudAlert>
+        }
+    </Section>
+
+    <Section Title="@L["AiIndex"]" Description="@L["AiIndexHelp"]" Class="mt-6">
+        <Actions>
+            <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.Refresh" Disabled="@(busy || statusRefreshing)" OnClick="RefreshStatusAsync">@L["Refresh"]</MudButton>
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Autorenew" Disabled="busy" OnClick="() => confirming = Confirm.Rebuild">@L["AiRebuild"]</MudButton>
+        </Actions>
+        <ChildContent>
+            @if (status is { } s)
+            {
+                <dl class="defaults">
+                    <dt>@L["AiEmbeddingIdentity"]</dt>
+                    <dd><code dir="ltr">@s.EmbeddingIdentity</code></dd>
+                </dl>
+                <p role="status" aria-live="polite">@IndexState(s)</p>
+                <MudProgressLinear Color="Color.Primary" Value="@Percent(s)" Indeterminate="@(s.TotalChunks > s.EmbeddedChunks && s.EmbeddedChunks == 0 && s.ReadyJobs + s.RunningJobs + s.FailedJobs == 0)" Rounded="true" Size="Size.Medium"
+                                   aria-label="@L["AiCoverage", s.EmbeddedChunks, s.TotalChunks]" Class="my-2" />
+                <p>@L["AiIndexPercent", Percent(s)]</p>
+                <p role="status">
+                    @(s.TotalChunks > 0 && s.EmbeddedChunks >= s.TotalChunks ? L["AiCoverageComplete", s.TotalChunks] : L["AiCoverage", s.EmbeddedChunks, s.TotalChunks])
+                </p>
+                <p class="athar-muted">@L["AiJobs", s.ReadyJobs, s.RunningJobs, s.FailedJobs]</p>
+                @if (statusAt is { } at)
+                {
+                    <p class="athar-muted">@L["AiCheckedAt"] <Timestamp Value="at" Relative="true" /></p>
+                }
+            }
+            else
+            {
+                <p class="athar-muted">@L["AiStatusUnavailable"]</p>
+            }
+        </ChildContent>
+    </Section>
+}
+
+<MudDialog Visible="@(confirming is not null)" VisibleChanged="v => { if (!v) confirming = null; }" Options="dialogOptions">
+    <TitleContent>@ConfirmTitle</TitleContent>
+    <DialogContent><p>@ConfirmText</p></DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => confirming = null">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="@(confirming == Confirm.Save ? Color.Primary : Color.Warning)" OnClick="ConfirmAsync">@ConfirmTitle</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private enum Confirm { Save, Reset, Rebuild }
+
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private static readonly DialogOptions dialogOptions = new() { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+    private readonly CancellationTokenSource disposed = new();
+    private Actor actor = default!;
+    private bool loaded, denied, busy, custom, statusRefreshing;
+    private AiSettingsView? view;
+    private AiIndexStatus? status;
+    private DateTimeOffset? statusAt;
+    private string? baseUrl, embeddingModel, queryModel, visionModel, newKey, error;
+    private ApiKeyChange keyChange;
+    private IReadOnlyList<string>? models;
+    private AiTestResult? test;
+    private Confirm? confirming;
+    // Each draft edit bumps this: a probe answer for an older draft is dropped instead of shown against new values.
+    private int draftVersion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        actor = Actor.ForUser((await Auth).User);
+        await LoadAsync();
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) _ = PollStatusAsync();
+        return Task.CompletedTask;
+    }
+
+    private async Task PollStatusAsync()
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(3));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(disposed.Token))
+                await InvokeAsync(async () =>
+                {
+                    if (busy || denied || view is null) return;
+                    await RefreshStatusAsync();
+                    StateHasChanged();
+                });
+        }
+        catch (OperationCanceledException) when (disposed.IsCancellationRequested) { }
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            view = await Use(s => s.ReadAsync(actor, disposed.Token));
+            status = await StatusOrNull();
+            Fill(view);
+        }
+        catch (AtharError e) when (e.Code == "forbidden") { denied = true; }
+        catch (AtharError e) { error = Describe(e); }
+        catch (OperationCanceledException) when (disposed.IsCancellationRequested) { return; }
+        loaded = true;
+    }
+
+    private void Fill(AiSettingsView v)
+    {
+        custom = !v.UsesEnvironment;
+        (baseUrl, embeddingModel, queryModel, visionModel) = (v.BaseUrl, v.EmbeddingModel, v.QueryModel, v.VisionModel);
+        newKey = null;
+        keyChange = CanKeep ? ApiKeyChange.Keep : !v.UsesEnvironment && !v.KeyUnreadable ? ApiKeyChange.Clear : ApiKeyChange.Replace;
+        DraftChanged();
+    }
+
+    private async Task<AiIndexStatus?> StatusOrNull()
+    {
+        try
+        {
+            var s = await Use(x => x.IndexStatusAsync(actor, disposed.Token));
+            statusAt = DateTimeOffset.UtcNow;
+            return s;
+        }
+        catch (AtharError e)
+        {
+            if (e.Code == "forbidden") denied = true;
+            return null;
+        }
+        catch (Exception e) when (e is System.Data.Common.DbException or TimeoutException) { return null; }
+    }
+
+    /// <summary>Keep means the stored key, or on a first save the deployment's key for the unchanged deployment endpoint.</summary>
+    private bool CanKeep => view is { } v && !v.KeyUnreadable && (v.HasApiKey || v.UsesEnvironment && v.BaseUrl is not null);
+
+    private bool EndpointChanged => view is { } v && !string.Equals(Endpoint(baseUrl), Endpoint(v.BaseUrl), StringComparison.Ordinal);
+
+    /// <summary>The server's own normalization (scheme and host case, default port, trailing slash); the path stays case-sensitive.</summary>
+    private static string Endpoint(string? url)
+    {
+        try { return Athar.Data.AiGatewayClient.NormalizeEndpoint(url ?? ""); }
+        catch (Athar.Data.AiProviderException) { return (url ?? "").Trim(); } // invalid: Save shows why
+    }
+
+    private bool DraftComplete(bool requireModels) =>
+        !string.IsNullOrWhiteSpace(baseUrl)
+        && !(keyChange == ApiKeyChange.Replace && string.IsNullOrWhiteSpace(newKey))
+        && !(keyChange == ApiKeyChange.Keep && (EndpointChanged || !CanKeep))
+        && (!requireModels || !string.IsNullOrWhiteSpace(embeddingModel) && !string.IsNullOrWhiteSpace(queryModel));
+
+    private AiSettingsWrite Draft() => new(view!.Revision, baseUrl?.Trim() ?? "", embeddingModel?.Trim() ?? "", queryModel?.Trim() ?? "",
+        string.IsNullOrWhiteSpace(visionModel) ? null : visionModel.Trim(), keyChange, keyChange == ApiKeyChange.Replace ? newKey : null);
+
+    private void DraftChanged()
+    {
+        draftVersion++;
+        test = null;
+        error = null;
+    }
+
+    private void SetCustom(bool value)
+    {
+        if (value && view is { UsesEnvironment: true } v) Fill(v); // start from the deployment's values
+        custom = value;
+        DraftChanged();
+    }
+
+    private void SetKeyChange(ApiKeyChange value)
+    {
+        keyChange = value;
+        if (value != ApiKeyChange.Replace) newKey = null;
+        DraftChanged();
+    }
+
+    private Task<IEnumerable<string>> Suggest(string? text, CancellationToken _) =>
+        Task.FromResult<IEnumerable<string>>(models is null ? []
+            : string.IsNullOrWhiteSpace(text) ? models : models.Where(m => m.Contains(text, StringComparison.OrdinalIgnoreCase)));
+
+    private async Task LoadModelsAsync()
+    {
+        var at = draftVersion;
+        var draft = Draft();
+        await Run(async () =>
+        {
+            var found = await Use(s => s.ListModelsAsync(actor, draft, disposed.Token));
+            if (at == draftVersion) models = found;
+        }, at);
+    }
+
+    private async Task TestAsync()
+    {
+        var at = draftVersion;
+        var draft = Draft();
+        await Run(async () =>
+        {
+            var result = await Use(s => s.TestAsync(actor, draft, disposed.Token));
+            if (at == draftVersion) test = result;
+        }, at);
+    }
+
+    private async Task SaveClicked()
+    {
+        // The embedding endpoint or model changing starts a re-index: say so first. Other changes save at once.
+        if (view is { } v && (v.UsesEnvironment || EndpointChanged || !string.Equals(embeddingModel?.Trim(), v.EmbeddingModel, StringComparison.Ordinal)))
+            confirming = Confirm.Save;
+        else await SaveAsync();
+    }
+
+    private async Task SaveAsync()
+    {
+        var draft = Draft();
+        await Run(async () =>
+        {
+            await Use(s => s.SaveAsync(actor, draft, disposed.Token));
+            Snackbar.Add(L["Saved"], Severity.Success);
+            await ReloadAsync();
+        });
+    }
+
+    private async Task ConfirmAsync()
+    {
+        var what = confirming;
+        confirming = null;
+        var revision = view!.Revision;
+        switch (what)
+        {
+            case Confirm.Save: await SaveAsync(); break;
+            case Confirm.Reset:
+                await Run(async () =>
+                {
+                    await Use(s => s.ResetAsync(actor, revision, disposed.Token));
+                    Snackbar.Add(L["AiResetDone"], Severity.Success);
+                    await ReloadAsync();
+                });
+                break;
+            case Confirm.Rebuild:
+                await Run(async () =>
+                {
+                    await Use(s => s.ReindexAsync(actor, revision, disposed.Token));
+                    Snackbar.Add(L["AiRebuildStarted"], Severity.Success);
+                    await ReloadAsync();
+                });
+                break;
+        }
+    }
+
+    private async Task RefreshStatusAsync()
+    {
+        if (statusRefreshing || disposed.IsCancellationRequested) return;
+        statusRefreshing = true;
+        var revision = view?.Revision;
+        try
+        {
+            var current = await StatusOrNull();
+            // A save or reset can finish while this read is in flight. Keep its newer status and the form's draft.
+            if (!busy && revision == view?.Revision && !disposed.IsCancellationRequested) status = current;
+        }
+        catch (OperationCanceledException) when (disposed.IsCancellationRequested) { }
+        finally { statusRefreshing = false; }
+    }
+
+    private async Task ReloadAsync()
+    {
+        view = await Use(s => s.ReadAsync(actor, disposed.Token));
+        status = await StatusOrNull();
+        Fill(view);
+        models = null;
+    }
+
+    /// <summary>One action at a time; errors become a localized message. <paramref name="draftAt"/>: drop a stale probe's error too.</summary>
+    private async Task Run(Func<Task> action, int? draftAt = null)
+    {
+        busy = true;
+        error = null;
+        try { await action(); }
+        catch (OperationCanceledException) when (disposed.IsCancellationRequested) { return; }
+        catch (AtharError e) when (draftAt is null || draftAt == draftVersion)
+        {
+            error = Describe(e);
+            if (e.Code is "conflict" or "conflict_revision")
+            {
+                Snackbar.Add(L["AiErrorConflict"], Severity.Warning);
+                try { await ReloadAsync(); } catch (AtharError) { }
+                error = L["AiErrorConflict"];
+            }
+            if (e.Code == "forbidden") denied = true;
+        }
+        catch (AtharError) { } // an answer for a draft that has since changed
+        finally { busy = false; }
+    }
+
+    private async Task<T> Use<T>(Func<AiSettingsService, Task<T>> call)
+    {
+        await using var scope = Scopes.CreateAsyncScope();
+        return await call(scope.ServiceProvider.GetRequiredService<AiSettingsService>());
+    }
+
+    private async Task Use(Func<AiSettingsService, Task> call)
+    {
+        await using var scope = Scopes.CreateAsyncScope();
+        await call(scope.ServiceProvider.GetRequiredService<AiSettingsService>());
+    }
+
+    private string Describe(AtharError e) => e.Code switch
+    {
+        "forbidden" => L["AdminsOnly"],
+        "conflict" or "conflict_revision" => L["AiErrorConflict"],
+        // The server's validation text is English only, so the page states the rules in the reader's language instead.
+        "invalid_input" => L["AiErrorInvalid"],
+        _ => L["AiErrorProvider"],
+    };
+
+    private string RoleLabel(string role) => role switch
+    {
+        "embedding" => L["AiEmbeddingModel"],
+        "query" => L["AiQueryModel"],
+        "vision" => L["AiVisionModel"],
+        _ => role,
+    };
+
+    private string TestCode(string code) => L[$"AiTestCode_{code}"] is { ResourceNotFound: false } s ? s : L["AiTestFailed", code];
+
+    private static double Percent(AiIndexStatus s) => s.TotalChunks == 0 ? 100 : Math.Min(100, 100.0 * s.EmbeddedChunks / s.TotalChunks);
+
+    private string IndexState(AiIndexStatus s) => L[s.TotalChunks == 0 ? "AiIndexEmpty"
+        : s.EmbeddedChunks >= s.TotalChunks ? "AiIndexComplete"
+        : s.RunningJobs > 0 ? "AiIndexWorking"
+        : s.ReadyJobs > 0 ? "AiIndexQueued"
+        : s.FailedJobs > 0 ? "AiIndexFailed"
+        : "AiIndexWaiting"];
+
+    private string ConfirmTitle => confirming switch
+    {
+        Confirm.Save => L["Save"],
+        Confirm.Reset => L["AiResetToDeployment"],
+        _ => L["AiRebuild"],
+    };
+
+    private string ConfirmText => confirming switch
+    {
+        Confirm.Save => L["AiConfirmSave"],
+        Confirm.Reset => L["AiConfirmReset"],
+        _ => L["AiConfirmRebuild"],
+    };
+
+    // ponytail: cancel only, never Dispose: a continuation still running after the circuit ends may read the token.
+    public void Dispose() => disposed.Cancel();
+}

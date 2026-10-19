@@ -1,0 +1,77 @@
+@page "/notifications"
+@page "/notifications/unread"
+@attribute [Authorize]
+@using Athar.Web.Services
+@inject WikiSession Session
+@inject NotificationService Service
+@inject ShellCounts Counts
+@inject NavigationManager Nav
+
+@* All notifications (T150, FR-NT-01): the bell shows the latest ten; this is the full list with an unread filter. *@
+<PageHeader Help="notifications" Title="@T("Notifications")" Description="@T("NotificationsHelp")">
+    <Actions>
+        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.DoneAll" Disabled="@(items?.Any(n => !n.Read) != true)" OnClick="MarkAllReadAsync">@T("MarkAllRead")</MudButton>
+    </Actions>
+</PageHeader>
+
+<LinkTabs Label="@T("Notifications")" Tabs="@([new(T("AllNotifications"), "/notifications", Count: 0), new(T("UnreadNotifications"), "/notifications/unread", Count: items?.Count(n => !n.Read) ?? 0)])" />
+
+@if (items is null)
+{
+    <LoadingState Rows="8" />
+}
+else if (Shown.Count == 0)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.NotificationsNone" Title="@T(Unread ? "NoUnreadNotifications" : "NoNotifications")" Text="@T("NotificationsEmptyHelp")" />
+}
+else
+{
+    <ul class="notes">
+        @foreach (var n in Shown)
+        {
+            <li @key="n.Id" class="@(n.Read ? "note" : "note unread")">
+                <span class="dot" aria-hidden="true"></span>
+                <span class="what" dir="auto">
+                    @if (n.Who is { } who) { <b><bdi>@who</bdi></b><text> </text>@T($"Kind_{n.Kind}") } else { @Capitalized(T($"Kind_{n.Kind}")) }
+                    @if (n.Where is { } where) { <text> </text><span class="where">@T("OnPage") <bdi>@where</bdi></span> }
+                    @if (!n.Read) { <span class="visually-hidden">(@T("Unread"))</span> }
+                </span>
+                <Timestamp Value="n.CreatedAt" Relative="true" Class="when" />
+                @if (n.Href is not null)
+                {
+                    <a class="open" href="@n.Href" @onclick="() => OpenAsync(n)" @onclick:preventDefault="true" aria-label="@($"{T("Open")}: {T($"Kind_{n.Kind}")}")"></a>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    // NavLink ignores the query string, so the filter is a path segment and each tab its own URL.
+    private bool Unread => Nav.ToBaseRelativePath(Nav.Uri).StartsWith("notifications/unread", StringComparison.OrdinalIgnoreCase);
+    private List<NotificationView>? items;
+
+    private List<NotificationView> Shown => Unread ? [.. items!.Where(n => !n.Read)] : items!;
+    private string T(string key) => Session.T(key);
+    private static string Capitalized(string s) => s.Length == 0 ? s : char.ToUpper(s[0], CultureInfo.CurrentCulture) + s[1..];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Session.ResolveAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync() => items = await Service.ListAsync(Session.Actor!.UserId, Session.Actor.OrgId, 200);
+
+    private async Task OpenAsync(NotificationView n)
+    {
+        if (!n.Read) await Service.MarkReadAsync(Session.Actor!.UserId, Session.Actor.OrgId, n.Id);
+        Nav.NavigateTo(n.Href!);
+    }
+
+    private async Task MarkAllReadAsync()
+    {
+        await Service.MarkReadAsync(Session.Actor!.UserId, Session.Actor.OrgId);
+        await LoadAsync();
+    }
+}

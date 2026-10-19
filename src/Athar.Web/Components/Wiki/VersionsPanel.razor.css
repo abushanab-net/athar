@@ -1,0 +1,91 @@
+.list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-block-end: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--athar-muted);
+}
+
+.rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 4px 6px 8px;
+    border-radius: var(--athar-radius);
+}
+
+.row + .row { border-block-start: 1px solid var(--athar-rule) }
+.row:hover, .row.selected { background: var(--athar-fill) }
+
+.what {
+    display: grid;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rev {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    color: var(--athar-muted);
+}
+
+.preview {
+    margin-block-start: 12px;
+    border: 1px solid var(--athar-rule);
+    border-radius: var(--athar-radius);
+}
+
+.preview-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 4px 4px 12px;
+    border-block-end: 1px solid var(--athar-rule);
+}
+
+.preview-head h3 {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.version-preview {
+    margin: 0;
+    padding: 12px;
+    max-block-size: 40vh;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: inherit;
+    font-size: 0.875rem;
+}
+
+/* T103: "Show more" under long lists. */
+.list-more { display: block; margin: 8px auto 0; padding: 4px 10px; border: 0; border-radius: var(--athar-radius);
+    background: none; color: var(--mud-palette-primary); font: inherit; font-size: 12px; cursor: pointer }
+.list-more:hover { background: var(--athar-fill) }

@@ -1,0 +1,25 @@
+{
+  "name": "@athar/collab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsc && node dist/server.js"
+  },
+  "dependencies": {
+    "@hocuspocus/server": "^4.7.0",
+    "markdown-it": "^14.3.2",
+    "yjs": "^13.6.33"
+  },
+  "devDependencies": {
+    "@hocuspocus/provider": "^4.7.0",
+    "@types/markdown-it": "^14.2.0",
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3"
+  }
+}

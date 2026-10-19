@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.Testing" />
+    <PackageReference Include="coverlet.collector" />
+    <!-- Same EF Core as Athar.Web (via EntityFrameworkCore.Design); the Npgsql provider alone resolves an older one. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="ModelContextProtocol.Core" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <!-- T080 smoke tests (Playwright for .NET); Chromium is installed on first use. -->
+    <PackageReference Include="Microsoft.Playwright" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System.Net" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="Aspire.Hosting.ApplicationModel" />
+    <Using Include="Aspire.Hosting.Testing" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Athar.AppHost\Athar.AppHost.csproj" />
+    <ProjectReference Include="..\..\src\Athar.Data\Athar.Data.csproj" />
+    <ProjectReference Include="..\..\src\Athar.Web\Athar.Web.csproj" />
+    <ProjectReference Include="..\..\src\Athar.Worker\Athar.Worker.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Eval/athar-eval.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

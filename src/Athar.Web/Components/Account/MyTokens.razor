@@ -1,0 +1,162 @@
+@page "/account/tokens"
+@attribute [Authorize]
+@inject TokenService Tokens
+@inject OrgAdminService Org
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+
+<PageHeader Help="tokens" Title="@L["Tokens"]" Description="@L["TokensHelp"]">
+    <Actions>
+        @if (isAdmin)
+        {
+            <MudButton Variant="Variant.Outlined" Href="/admin/tokens">@L["AllTokens"]</MudButton>
+        }
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenNew">@L["NewToken"]</MudButton>
+    </Actions>
+</PageHeader>
+
+@if (!loaded)
+{
+    <LoadingState />
+}
+else
+{
+    <TokenTable Rows="mine" CanRevoke="true" OnRevoke="RevokeAsync" EmptyText="@L["NoTokensHelp"]" />
+
+    <div class="apps">
+    <Section Title="@L["ConnectedApps"]" Flush="true">
+        <DataTable T="TokenService.GrantRow" Items="@grants" EmptyIcon="@Icons.Material.Outlined.Apps" EmptyTitle="@L["NoConnectedApps"]">
+            <HeaderContent>
+                <SortTh T="TokenService.GrantRow" By="g => g.Client" Initial="SortDirection.Ascending">@L["App"]</SortTh>
+                <MudTh>@L["Scopes"]</MudTh>
+                <SortTh T="TokenService.GrantRow" By="g => g.CreatedAt ?? DateTimeOffset.MinValue">@L["ConnectedOn"]</SortTh>
+                <ActionsTh />
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd><bdi class="athar-truncate cell" title="@context.Client">@context.Client</bdi></MudTd>
+                <MudTd>@TokenTable.ScopeSeals(L, context.Scopes)</MudTd>
+                <MudTd><Timestamp Value="@context.CreatedAt" DateOnly="true" Empty="–" /></MudTd>
+                <MudTd Class="actions-col">
+                    <RowActions Done="StateHasChanged" Actions="@([new RowAction(L["Disconnect"], Icons.Material.Outlined.LinkOff, () => RevokeGrantAsync(context.Id), Danger: true,
+                                            Confirm: L["DisconnectConfirm", context.Client])])" />
+                </MudTd>
+            </RowTemplate>
+        </DataTable>
+    </Section>
+    </div>
+}
+
+<MudDialog @bind-Visible="creating" Options="dialogOptions">
+    <TitleContent>@L["NewToken"]</TitleContent>
+    <DialogContent>
+        @if (created is null)
+        {
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="name" Immediate="true" Label="@L["TokenName"]" HelperText="@L["TokenNameHelp"]" AutoFocus="true" dir="auto" />
+                <fieldset class="scopes">
+                    <legend>@L["Scopes"]</legend>
+                    @foreach (var scope in TokenService.AllScopes)
+                    {
+                        var key = scope.Replace(':', '_');
+                        <MudCheckBox T="bool" Value="scopes.Contains(scope)" ValueChanged="on => Toggle(scope, on)" Color="Color.Primary" Dense="true">
+                            <span class="scope"><span class="label">@L["ScopeShort_" + key]</span><span class="help">@L["Scope_" + key]</span></span>
+                        </MudCheckBox>
+                    }
+                </fieldset>
+                <MudSelect T="int" @bind-Value="days" Label="@L["Expires"]">
+                    <MudSelectItem Value="30">@L["Days", 30]</MudSelectItem>
+                    <MudSelectItem Value="90">@L["Days", 90]</MudSelectItem>
+                    <MudSelectItem Value="365">@L["Days", 365]</MudSelectItem>
+                    <MudSelectItem Value="0">@L["Never"]</MudSelectItem>
+                </MudSelect>
+            </MudStack>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-3"><span role="status">@L["CopyTokenNow"]</span></MudAlert>
+            <div class="secret">
+                <code aria-label="@L["NewToken"]">@created</code>
+                <IconAction Icon="@Icons.Material.Outlined.ContentCopy" Label="@L["CopyToken"]" OnClick="CopyAsync" />
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        @if (created is null)
+        {
+            <MudButton OnClick="() => creating = false">@L["Cancel"]</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="string.IsNullOrWhiteSpace(name) || scopes.Count == 0" OnClick="CreateAsync">@L["CreateToken"]</MudButton>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => creating = false">@L["Done"]</MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    // The secret is shown once: the dialog only closes through Done or Cancel, never by a stray click outside.
+    private static readonly DialogOptions dialogOptions = new() { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };
+    private Guid OrgId, UserId;
+    private bool loaded, isAdmin, creating;
+    private List<TokenService.TokenRow> mine = [];
+    private List<TokenService.GrantRow> grants = [];
+    private string name = "";
+    private readonly HashSet<string> scopes = ["read"];
+    private int days = TokenService.DefaultDays;
+    private string? created;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await Auth).User;
+        (OrgId, UserId) = (user.OrgId(), user.UserId());
+        isAdmin = OrgRules.IsAdmin(await Org.RoleOfAsync(OrgId, UserId));
+        mine = await Tokens.MineAsync(OrgId, UserId);
+        grants = await Tokens.GrantsAsync(OrgId, UserId);
+        loaded = true;
+    }
+
+    private void OpenNew() => (created, creating) = (null, true);
+
+    private async Task RevokeGrantAsync(Guid id)
+    {
+        var decision = await Tokens.RevokeGrantAsync(OrgId, UserId, id);
+        Snackbar.Add(decision == OrgDecision.Allow ? L["Revoked"] : L["NotAllowed"], decision == OrgDecision.Allow ? Severity.Success : Severity.Warning);
+        grants = await Tokens.GrantsAsync(OrgId, UserId);
+    }
+
+    private void Toggle(string scope, bool on)
+    {
+        if (on) scopes.Add(scope); else scopes.Remove(scope);
+    }
+
+    private async Task CreateAsync()
+    {
+        var (decision, token) = await Tokens.CreateAsync(OrgId, UserId, name, scopes, days);
+        if (decision != OrgDecision.Allow) { Snackbar.Add(L["InvalidInput"], Severity.Warning); return; }
+        created = token!.Token;
+        name = "";
+        mine = await Tokens.MineAsync(OrgId, UserId);
+    }
+
+    private async Task CopyAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", created);
+            Snackbar.Add(L["Copied"], Severity.Success);
+        }
+        catch (JSException)
+        {
+            Snackbar.Add(L["CopyFailed"], Severity.Warning); // e.g. no clipboard permission; the token stays selectable on screen
+        }
+    }
+
+    private async Task RevokeAsync(Guid id)
+    {
+        var decision = await Tokens.RevokeAsync(OrgId, UserId, id);
+        Snackbar.Add(decision == OrgDecision.Allow ? L["Revoked"] : L["NotAllowed"], decision == OrgDecision.Allow ? Severity.Success : Severity.Warning);
+        mine = await Tokens.MineAsync(OrgId, UserId);
+    }
+}

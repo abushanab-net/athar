@@ -1,0 +1,195 @@
+@page "/review/proposals"
+@attribute [Authorize]
+@inject MemoryService Memories
+@inject PageService Pages
+@inject WikiSession Session
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject ShellCounts Counts
+@inject IDialogService Dialogs
+@inject IStringLocalizer<SharedResource> L
+
+<PageHeader Help="review" Title="@L["Review"]" TabTitle="@L["Proposals"]" Description="@(queue is null ? null : canReview ? L["ProposalsHelpOwner"].Value : L["ProposalsHelpMember"].Value)" />
+<ReviewTabs />
+
+@* FR-MM-04, FR-MM-09: knowledge owners review every open proposal; everyone else follows their own. *@
+@if (queue is null)
+{
+    <LoadingState Rows="6" />
+}
+else if (queue.Count == 0)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.FactCheck" Title="@L["NoProposals"]" />
+}
+else
+{
+    <div class="proposals">
+        @foreach (var p in queue)
+        {
+            var moved = p.Status == "needs_rereview" || (p.Current is { } c && c.Revision != p.BaseRevision);
+            <article class="proposal @(flashed == p.Id ? "athar-flash" : null)" @key="p.Id" aria-labelledby="@($"p-{p.Id:N}")">
+                <header>
+                    <h2 id="@($"p-{p.Id:N}")" dir="auto">@p.Proposed.Title</h2>
+                    <div class="meta">
+                        <Seal Kind="Seal.Kinds.Quiet">@L["Kind_" + p.Kind]</Seal>
+                        <Seal Kind="@StatusKind(p.Status)">@L["Proposal_" + p.Status]</Seal>
+                        <span class="by"><bdi>@(p.ProposedByName ?? p.ProposedBy.ToString())</bdi> · <Timestamp Value="p.CreatedAt" Relative="true" /></span>
+                        @if (p.TargetMemoryId is { } target)
+                        {
+                            <a href="@($"/memories/{target}")" class="target">@L["Revision"] <bdi class="num">@p.BaseRevision</bdi></a>
+                        }
+                    </div>
+                </header>
+
+                @if (moved)
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true">@L["TargetMovedUpdate"]</MudAlert>
+                }
+                <h3>@L["ProposedChanges"]</h3>
+                <DiffView Before="@(p.Base?.BodyMd ?? "")" After="@p.Proposed.BodyMd" Label="@L["ProposedChanges"]" />
+                @if (p.Current is { } now && p.Base is { } was && now.BodyMd != was.BodyMd)
+                {
+                    <h3>
+                        @L["Revision"] <bdi class="num">@now.Revision</bdi>
+                        <MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" Class="flip-rtl arrow" />
+                        @L["ProposedChanges"]
+                    </h3>
+                    <DiffView Before="@now.BodyMd" After="@p.Proposed.BodyMd" />
+                }
+
+                @if (p.Evidence.Count > 0)
+                {
+                    <h3>@L["Evidence"]</h3>
+                    <ul class="evidence">
+                        @foreach (var e in p.Evidence)
+                        {
+                            <li>
+                                @switch (e.Kind)
+                                {
+                                    case "url":
+                                        <a href="@e.Id" target="_blank" rel="noopener noreferrer" class="athar-truncate" title="@e.Id"><bdi>@e.Id</bdi></a>
+                                        break;
+                                    case "page":
+                                        <a href="@($"/wiki/p/{e.Id}")" title="@e.Id" dir="auto">@(Guid.TryParse(e.Id, out var pid) && pages.TryGetValue(pid, out var pb) ? pb.Title : L["EvidencePage"])</a>
+                                        break;
+                                    case "memory":
+                                        <a href="@($"/memories/{e.Id}")" title="@e.Id" dir="auto">@(Guid.TryParse(e.Id, out var mid) && memories.TryGetValue(mid, out var mb) ? mb.Title : e.Id)</a>
+                                        break;
+                                    case "session" or "conflict":
+                                        <span title="@e.Id">@L["Evidence_" + e.Kind]</span>
+                                        break;
+                                    default:
+                                        <bdi>@e.Kind: @e.Id</bdi>
+                                        break;
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+                @if (p.Note is { } note)
+                {
+                    <figure class="note">
+                        <figcaption>@L["Note"]</figcaption>
+                        <blockquote dir="auto">@note</blockquote>
+                    </figure>
+                }
+
+                @{ var canDecide = canReview && p.Status == "pending"; var canUpdate = p.Status == "needs_rereview" && (canReview || p.ProposedBy == actor.UserId); }
+                @if (canDecide || canUpdate)
+                {
+                    <div class="decide">
+                        @if (canDecide)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => ApproveAsync(p)">@L["Approve"]</MudButton>
+                            <MudButton Variant="Variant.Outlined" OnClick="() => RejectAsync(p)">@L["Reject"]</MudButton>
+                        }
+                        @if (canUpdate)
+                        {
+                            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Sync" OnClick="() => RebaseAsync(p)">@L["UpdateToLatest"]</MudButton>
+                        }
+                    </div>
+                }
+            </article>
+        }
+    </div>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private Actor actor = default!;
+    private bool canReview;
+    private IReadOnlyList<ProposalView>? queue;
+    private Dictionary<Guid, PageBrief> pages = [];
+    private Dictionary<Guid, MemoryBrief> memories = [];
+    private Guid? flashed;
+
+    private static Seal.Kinds StatusKind(string status) => status switch
+    {
+        "approved" => Seal.Kinds.Seal,
+        "pending" => Seal.Kinds.Ink,
+        "needs_rereview" => Seal.Kinds.Warn,
+        _ => Seal.Kinds.Quiet,
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        actor = Actor.ForUser((await Auth).User);
+        canReview = await Memories.CanReviewAsync(actor, default);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        queue = await Memories.ProposalsAsync(actor, null, default);
+        // Evidence carries kind and id; titles only for what this person can read.
+        Guid[] Ids(string kind) => [.. queue.SelectMany(p => p.Evidence).Where(e => e.Kind == kind).Select(e => Guid.TryParse(e.Id, out var g) ? g : Guid.Empty).Where(g => g != Guid.Empty)];
+        pages = await Pages.BriefsAsync(await Session.ResolveAsync(), Ids("page"));
+        memories = await Memories.BriefsAsync(actor, Ids("memory"), default);
+    }
+
+    // The reviewer approves against the base they saw; if it moved meanwhile, the server sends it to re-review.
+    // T152: the snackbar links to the memory the approval wrote.
+    private Task ApproveAsync(ProposalView p) => Run(p, async () =>
+    {
+        var d = await Memories.ApproveAsync(actor, p.Id, p.BaseRevision, default);
+        return d.Status == "approved"
+            ? (L["Proposal_approved"].Value, d.SkillId is { } skill ? $"/skills/{skill}" : d.MemoryId is { } id ? $"/memories/{id}" : null)
+            : (L["Proposal_needs_rereview"].Value, null);
+    });
+
+    // A rejection always carries a note for the proposer.
+    private async Task RejectAsync(ProposalView p)
+    {
+        if (await ReasonDialog.AskAsync(Dialogs, L["RejectWithNote"], L["RejectHelp"], L["Reject"], label: L["Note"]) is not { } note) return;
+        await Run(p, async () =>
+        {
+            await Memories.RejectAsync(actor, p.Id, note, default);
+            return (L["Proposal_rejected"].Value, null);
+        });
+    }
+
+    private Task RebaseAsync(ProposalView p) => Run(p, async () =>
+    {
+        await Memories.RebaseAsync(actor, p.Id, null, null, default);
+        return (L["Proposal_pending"].Value, null);
+    });
+
+    // The decided card flashes once in place (its new status seal is the result), and the counts follow at once.
+    private async Task Run(ProposalView p, Func<Task<(string Message, string? Href)>> action)
+    {
+        try
+        {
+            var (message, href) = await action();
+            Snackbar.Add(message, Severity.Success, o =>
+            {
+                if (href is null) return;
+                o.Action = L["ViewMemory"];
+                o.OnClick = _ => { Nav.NavigateTo(href); return Task.CompletedTask; };
+            });
+            flashed = p.Id;
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+        await LoadAsync();
+        await Counts.RefreshAsync();
+    }
+}

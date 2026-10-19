@@ -1,0 +1,14 @@
+.defaults { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 16px; margin: 8px 0 12px }
+.defaults dt { color: var(--athar-muted) }
+.defaults dd { margin: 0; overflow-wrap: anywhere }
+.key { border: 1px solid var(--athar-rule); border-radius: var(--athar-radius); padding: 8px 16px 12px; margin: 0; min-inline-size: 0 }
+.key legend { padding-inline: 4px; font-size: 0.875rem }
+.key .state { margin: 0 }
+.error { margin: 4px 0 0; color: var(--mud-palette-error) }
+.note { margin: 12px 0 0; font-size: 0.875rem }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block-start: 16px }
+.grow { flex: 1 1 auto }
+.results p { margin: 12px 0 0 }
+.tests { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 4px }
+.tests li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap }
+@media (max-width: 600px) { .grow { display: none } .defaults { grid-template-columns: minmax(0, 1fr) } }

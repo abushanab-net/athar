@@ -1,0 +1,125 @@
+@using Athar.Web.Services.Import
+@using Microsoft.AspNetCore.Components.Forms
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject IServiceScopeFactory Scopes
+@inject IStringLocalizer<SharedResource> L
+@inject AntiforgeryStateProvider Antiforgery
+
+@* T164: choose a file, upload it over HTTP with progress, then follow the background import until it's done. *@
+<div class="import-upload">
+    <input type="file" class="visually-hidden" accept=".zip,.md,.markdown,.html,.htm" @ref="input" @onchange="UploadAsync" aria-label="@L["ChooseFile"]" />
+    @if (status is null && percent is null)
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.FileUpload" OnClick="PickAsync">@L["ChooseFile"]</MudButton>
+    }
+    else if (status is null)
+    {
+        <p role="status">@string.Format(L["ImportUploading"], percent)</p>
+        <MudProgressLinear Value="@(percent ?? 0)" Color="Color.Primary" aria-label="@L["ImportUploading"]" />
+    }
+    else if (status.State is "queued" or "running")
+    {
+        <p role="status">@(status.Total > 0 ? string.Format(L["ImportRunning"], status.Done, status.Total) : L["ImportQueued"])</p>
+        <MudProgressLinear Value="@(status.Total > 0 ? status.Done * 100.0 / status.Total : 0)" Indeterminate="@(status.Total == 0)" Color="Color.Primary" aria-label="@L["Importing"]" />
+        <p class="import-note">@L["ImportBackground"]</p>
+    }
+    else if (status.State == "failed")
+    {
+        <p role="alert" class="import-error">@string.Format(L["ImportFailed"], status.Error)</p>
+    }
+    else if (status.Result is { } r)
+    {
+        <p role="status">@(r.Spaces > 1 ? string.Format(L["ImportedSpaces"], r.Spaces, r.Pages, r.Files) : string.Format(L["ImportedPagesFiles"], r.Pages, r.Files))</p>
+        @if (r.Skipped.Count > 0)
+        {
+            <p>@L["ImportSkipped"]</p>
+            <ul class="import-skipped">
+                @foreach (var s in r.Skipped)
+                {
+                    <li dir="auto">@s</li>
+                }
+            </ul>
+        }
+    }
+</div>
+
+@code {
+    /// <summary>"space" (into <see cref="TargetId"/>, under <see cref="ParentId"/>) or "workspace" (new spaces).</summary>
+    [Parameter, EditorRequired] public string Mode { get; set; } = "space";
+    [Parameter, EditorRequired] public Guid TargetId { get; set; }
+    [Parameter] public Guid? ParentId { get; set; }
+    /// <summary>Busy while uploading or importing: the dialog keeps its Cancel off until the upload is in.</summary>
+    [Parameter] public EventCallback<bool> BusyChanged { get; set; }
+    [Parameter] public EventCallback<ImportResult> OnDone { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+
+    private ElementReference input;
+    private IJSObjectReference? module;
+    private DotNetObjectReference<ImportUpload>? self;
+    private int? percent;
+    private ImportStatus? status;
+    private readonly CancellationTokenSource gone = new();
+
+    private async Task<IJSObjectReference> Module() =>
+        module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Shared/ImportUpload.razor.js");
+
+    private async Task PickAsync() => await (await Module()).InvokeVoidAsync("pick", input);
+
+    private async Task UploadAsync(ChangeEventArgs changed)
+    {
+        var js = await Module();
+        if (await js.InvokeAsync<long>("size", input) > WikiImport.MaxBytes)
+        {
+            status = new("failed", 0, 0, null, L["ImportTooLarge"]);
+            return;
+        }
+        percent = 0;
+        await BusyChanged.InvokeAsync(true);
+        self ??= DotNetObjectReference.Create(this);
+        var url = $"/wiki/import?mode={Mode}&target={TargetId}" + (ParentId is { } p ? $"&parent={p}" : "");
+        try
+        {
+            // An explicit token turns off the default interop timeout: a 4 GB upload takes a while.
+            var job = await js.InvokeAsync<Guid>("upload", gone.Token, input, url, Antiforgery.GetAntiforgeryToken()?.Value ?? "", self);
+            await BusyChanged.InvokeAsync(false);
+            _ = FollowAsync(job);
+        }
+        catch (JSException e)
+        {
+            percent = null;
+            status = new("failed", 0, 0, null, e.Message.Split('\n')[0]);
+            await BusyChanged.InvokeAsync(false);
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    [JSInvokable]
+    public Task Progress(int value) => InvokeAsync(() => { percent = value; StateHasChanged(); });
+
+    /// <summary>Polls the job every two seconds until it's done or failed (or the dialog closes).</summary>
+    private async Task FollowAsync(Guid job)
+    {
+        var actor = Athar.Web.Mcp.Actor.ForUser((await Auth).User);
+        try
+        {
+            while (!gone.IsCancellationRequested)
+            {
+                await using (var scope = Scopes.CreateAsyncScope())
+                    status = await scope.ServiceProvider.GetRequiredService<WikiImportQueue>().StatusAsync(actor, job, gone.Token);
+                await InvokeAsync(StateHasChanged);
+                if (status?.State == "done" && status.Result is { } r) { await InvokeAsync(() => OnDone.InvokeAsync(r)); return; }
+                if (status is null or { State: "failed" }) return;
+                await Task.Delay(TimeSpan.FromSeconds(2), gone.Token);
+            }
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        gone.Cancel();
+        self?.Dispose();
+        if (module is not null) try { await module.DisposeAsync(); } catch (JSDisconnectedException) { }
+    }
+}

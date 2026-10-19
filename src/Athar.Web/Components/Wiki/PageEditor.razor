@@ -1,0 +1,172 @@
+@using Athar.Web.CollabBridge
+@using Athar.Web.Services
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject CollabTickets Tickets
+@inject IConfiguration Config
+@inject IServiceScopeFactory Scopes
+
+@* Editor island (docs/03 §8). Render with @key="PageId": a new page mounts a new island. *@
+<div @ref="host" class="page-editor"></div>
+
+@code {
+    /// <summary>
+    /// Caret colors. The caret extension takes only #rrggbb, so these mirror the --wiki-presence-* tokens in WikiPage.razor.css
+    /// (same order): mid tones that carry white text and still stand out on the dark theme's surface.
+    /// </summary>
+    public static readonly string[] Colors = ["#3b6fc4", "#0f7c78", "#b45309", "#7c4ddf", "#c8325a"];
+
+    [Parameter, EditorRequired] public Guid PageId { get; set; }
+    [Parameter, EditorRequired] public WikiActor Actor { get; set; } = null!;
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+    /// <summary>`view`, `comment` or `edit`. Collab enforces it (FR-RT-03).</summary>
+    [Parameter] public string Level { get; set; } = "view";
+    /// <summary>`unsynced`, `synced` or `saved` (FR-RT-05), with the saved revision.</summary>
+    [Parameter] public EventCallback<(string State, int? Revision)> OnSaveState { get; set; }
+    /// <summary>The editor's accessible name.</summary>
+    [Parameter] public string Label { get; set; } = "Page content";
+    /// <summary>Page-link target; `{id}` is replaced with the page id.</summary>
+    [Parameter] public string PageHref { get; set; } = "/wiki/p/{id}";
+    /// <summary>Everyone on the page (FR-RT-02).</summary>
+    [Parameter] public EventCallback<IReadOnlyList<PresenceInfo>> OnPresence { get; set; }
+
+    public sealed record PresenceInfo(string Name, string Color, bool Self);
+
+    /// <summary>One `/` command (src/editor `slashActions` ids); labels in the page's language, the icon as Material SVG markup.</summary>
+    public sealed record SlashItem(string Id, string Title, string Description, string Icon, string Group, string Keywords);
+
+    /// <summary>The `/` command menu; none for people who can't edit.</summary>
+    [Parameter] public IReadOnlyList<SlashItem> SlashItems { get; set; } = [];
+    /// <summary>A `/` command the page carries out (image: its URL dialog).</summary>
+    [Parameter] public EventCallback<string> OnTool { get; set; }
+
+    private ElementReference host;
+    private IJSObjectReference? island;
+    private DotNetObjectReference<PageEditor>? self;
+    /// <summary>Resolved threads, kept until the island mounts (the comments can load first).</summary>
+    private string[] resolved = [];
+    /// <summary>Read mode, kept until the island mounts (the page sets it from the browser's last choice).</summary>
+    private bool readMode;
+
+    protected override bool ShouldRender() => false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        self = DotNetObjectReference.Create(this);
+        await using var module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Wiki/PageEditor.razor.js");
+        island = await module.InvokeAsync<IJSObjectReference>("create", host, self, new
+        {
+            url = CollabUrl(),
+            page = PageId.ToString(),
+            pageHref = PageHref,
+            label = Label,
+            slashItems = SlashItems.Select(i => new { id = i.Id, title = i.Title, description = i.Description, icon = i.Icon, group = i.Group, keywords = i.Keywords }),
+            user = new { name = Name, color = Colors[(int)((uint)Actor.UserId.GetHashCode() % Colors.Length)] },
+        });
+        if (resolved.Length > 0) await island.InvokeVoidAsync("setResolvedThreads", (object)resolved);
+        if (readMode) await island.InvokeVoidAsync("setReadMode", true);
+    }
+
+    /// <summary>Runs a toolbar command (see `commands` in src/editor).</summary>
+    public async Task RunAsync(string command, string? arg = null)
+    {
+        if (island is not null) await island.InvokeVoidAsync("run", command, arg);
+    }
+
+    /// <summary>The selection for an inline comment, or why there isn't one (`empty`, `multi_block`).</summary>
+    public sealed record CommentSelection(string? From, string? To, string? Quote, string? Error);
+
+    public async Task<CommentSelection?> CommentSelectionAsync() =>
+        island is null ? null : await island.InvokeAsync<CommentSelection>("commentSelection");
+
+    /// <summary>Drops the selection kept for a comment once the comment is made.</summary>
+    public async Task ClearCommentSelectionAsync()
+    {
+        if (island is not null) await island.InvokeVoidAsync("clearCommentSelection");
+    }
+
+    /// <summary>Hides the highlight of resolved threads (FR-CM-05); reopening shows it again.</summary>
+    public async Task SetResolvedThreadsAsync(IReadOnlyList<Guid> threadIds)
+    {
+        resolved = [.. threadIds.Select(id => id.ToString())];
+        if (island is not null) await island.InvokeVoidAsync("setResolvedThreads", (object)resolved);
+    }
+
+    /// <summary>Read mode (T115): read-only for an editor too, until switched back. Collab still decides write access.</summary>
+    public async Task SetReadModeAsync(bool on)
+    {
+        readMode = on;
+        if (island is not null) await island.InvokeVoidAsync("setReadMode", on);
+    }
+
+    public sealed record Heading(int Level, string Text, int Pos);
+
+    /// <summary>The page's headings, for the outline.</summary>
+    public async Task<Heading[]> OutlineAsync() => island is null ? [] : await island.InvokeAsync<Heading[]>("outline");
+
+    public async Task ScrollToHeadingAsync(int pos)
+    {
+        if (island is not null) await island.InvokeVoidAsync("scrollToHeading", pos);
+    }
+
+    public async Task<int> WordCountAsync() => island is null ? 0 : await island.InvokeAsync<int>("wordCount");
+
+    public async Task FocusThreadAsync(Guid threadId)
+    {
+        if (island is not null) await island.InvokeVoidAsync("focusThread", threadId.ToString());
+    }
+
+    /// <summary>A fresh single-use ticket for each (re)connect.</summary>
+    [JSInvokable]
+    public string Ticket() => Tickets.Issue(new(Actor.UserId, null, Actor.OrgId, PageId, Level));
+
+    [JSInvokable]
+    public Task Tool(string command) => OnTool.InvokeAsync(command);
+
+    [JSInvokable]
+    public Task SaveState(string state, int? revision) => OnSaveState.InvokeAsync((state, revision));
+
+    [JSInvokable]
+    public Task Presence(PresenceInfo[] people) => OnPresence.InvokeAsync(people);
+
+    [JSInvokable]
+    public async Task<object[]> SearchPages(string query)
+    {
+        // Own scope: the picker can fire while the page is busy with another query.
+        await using var scope = Scopes.CreateAsyncScope();
+        var found = await scope.ServiceProvider.GetRequiredService<PageService>().SearchAsync(Actor, query);
+        return [.. found.Where(p => p.Id != PageId).Select(p => new { id = p.Id, title = p.Title })];
+    }
+
+    [JSInvokable]
+    public async Task<object[]> SearchPeople(string query)
+    {
+        await using var scope = Scopes.CreateAsyncScope();
+        var people = await scope.ServiceProvider.GetRequiredService<NotificationService>().CandidatesAsync(Actor.OrgId, PageId, query);
+        return [.. people.Select(p => new { id = p.Id, title = p.Name })];
+    }
+
+    /// <summary>
+    /// The browser's collab address (T096): <c>Collab:PublicUrl</c> behind the proxy (the internal host's <c>/collab</c>, docs/03 §2),
+    /// otherwise collab's own endpoint as Aspire publishes it in development.
+    /// </summary>
+    private string CollabUrl() =>
+        (Config["Collab:PublicUrl"] is { Length: > 0 } proxied ? proxied : Config["services:collab:http:0"] ?? "http://localhost:1234")
+            .Replace("http://", "ws://").Replace("https://", "wss://");
+
+    public async ValueTask DisposeAsync()
+    {
+        // Best effort: the JS module also destroys itself when its element leaves the DOM or the page hides.
+        try
+        {
+            if (island is not null)
+            {
+                await island.InvokeVoidAsync("destroy");
+                await island.DisposeAsync();
+            }
+        }
+        catch (JSDisconnectedException) { }
+        self?.Dispose();
+    }
+}

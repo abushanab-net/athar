@@ -1,0 +1,6 @@
+.memories ::deep .title-cell { min-inline-size: 16rem }
+.memories ::deep .title-line { display: flex; align-items: center; gap: 8px; min-inline-size: 0; max-inline-size: 48ch }
+.memories ::deep .title-line a { color: var(--mud-palette-primary); font-weight: 500; text-decoration: none }
+.memories ::deep .title-line a:hover { text-decoration: underline }
+.memories ::deep .num { text-align: end }
+.memories ::deep .actions-col { inline-size: 1%; text-align: end; white-space: nowrap }

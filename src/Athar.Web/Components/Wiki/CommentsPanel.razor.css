@@ -1,0 +1,118 @@
+/* The comments tab: Open / Resolved with count pills, thread cards on the cool ground, and the composer pinned to the
+   bottom of the panel (it scrolls with the page when the panel sits under it on narrow screens). */
+.comments-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+/* FR-CM-05: Open by default. */
+.filters {
+    display: flex;
+    margin-block-end: 12px;
+    border-block-end: 1px solid var(--athar-rule);
+}
+
+.filter {
+    display: inline-flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-block-end: -1px;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    background: none;
+    color: var(--athar-muted);
+    font: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.filter:hover { color: var(--mud-palette-text-primary) }
+
+.filter[aria-selected=true] {
+    color: var(--mud-palette-text-primary);
+    font-weight: 600;
+    border-block-end-color: var(--mud-palette-primary);
+}
+
+.filter:focus-visible { outline: 2px solid var(--mud-palette-primary); outline-offset: -2px }
+
+.pill {
+    min-inline-size: 20px;
+    padding: 0 7px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 20px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.filter.open .pill { background: color-mix(in srgb, var(--mud-palette-primary) 12%, transparent); color: var(--mud-palette-primary) }
+.filter.resolved .pill { background: color-mix(in srgb, var(--mud-palette-success) 14%, transparent); color: var(--mud-palette-success) }
+
+.thread-list {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    flex: 1 1 auto;
+    padding-block-end: 16px;
+}
+
+.composer {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 1;
+    display: grid;
+    gap: 8px;
+    margin-inline: -16px;
+    padding: 12px 16px;
+    border-block-start: 1px solid var(--athar-rule);
+    background: var(--mud-palette-surface);
+}
+
+.composer-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+}
+
+.composer-row ::deep .person-avatar { margin-block-start: 3px }
+
+.composer ::deep .mention-picker { flex: 1 1 100%; margin: 0 }
+
+.composer-actions {
+    flex: 1 1 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px 8px;
+}
+
+.composer-actions ::deep .anchor { margin-inline-end: auto }
+
+/* What a new comment will be attached to, while the editor keeps it highlighted. */
+.pending-quote {
+    margin: 0;
+    padding: 2px 8px;
+    border-inline-start: 2px solid var(--wiki-anchor-rule);
+    background: var(--wiki-anchor-tint);
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+/* T103: "Show more" under long lists. */
+.list-more { display: block; margin: 0 auto; padding: 4px 10px; border: 0; border-radius: var(--athar-radius);
+    background: none; color: var(--mud-palette-primary); font: inherit; font-size: 12px; cursor: pointer }
+.list-more:hover { background: var(--athar-fill) }
+/* T152: the wrapper that flashes when a thread has new activity from someone else. */
+.thread-wrap { border-radius: var(--athar-radius) }

@@ -1,0 +1,74 @@
+@page "/account/accept-invite"
+@layout AuthLayout
+@attribute [ExcludeFromInteractiveRouting]
+@inject AccountService Accounts
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>@L["AcceptInvite"] · Athar</PageTitle>
+
+<AccountCard Title="@L["JoinAthar"]" Error="@error">
+    @if (invitation is null)
+    {
+        <p class="auth-lead">@L["InviteInvalid"]</p>
+        <div class="links"><a href="/account/login">@L["BackToSignIn"]</a></div>
+    }
+    else if (invitation.Value.Expired)
+    {
+        <p class="auth-lead">@L["InviteExpired"]</p>
+        <div class="links"><a href="/account/login">@L["BackToSignIn"]</a></div>
+    }
+    else
+    {
+        <p class="auth-lead">@L["InviteFor", invitation.Value.Email]</p>
+        <EditForm Model="Input" FormName="accept-invite" OnValidSubmit="AcceptAsync" method="post">
+            <div class="athar-field">
+                <label for="name">@L["DisplayName"]</label>
+                <InputText id="name" @bind-Value="Input.DisplayName" autocomplete="name" required class="athar-input" dir="auto" />
+            </div>
+            <div class="athar-field">
+                <label for="password">@L["NewPassword"]</label>
+                <InputText id="password" @bind-Value="Input.Password" type="password" autocomplete="new-password" required minlength="12" class="athar-input" dir="ltr" aria-describedby="password-help" />
+            </div>
+            <p class="help" id="password-help">@L["PasswordRule"]</p>
+            <div class="athar-field">
+                <label for="confirm">@L["ConfirmPassword"]</label>
+                <InputText id="confirm" @bind-Value="Input.Confirm" type="password" autocomplete="new-password" required minlength="12" class="athar-input" dir="ltr" />
+            </div>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large">@L["AcceptInvite"]</MudButton>
+        </EditForm>
+    }
+</AccountCard>
+
+@code {
+    [SupplyParameterFromQuery] private string? Token { get; set; }
+    [SupplyParameterFromForm] private Acceptance Input { get; set; } = default!;
+    private (string Email, bool Expired)? invitation;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+        invitation = Token is null ? null : await Accounts.InvitationAsync(Token);
+    }
+
+    private async Task AcceptAsync()
+    {
+        if (Input.Password != Input.Confirm) { error = L["PasswordsDontMatch"]; return; }
+        var (outcome, problems) = await Accounts.RedeemInvitationAsync(Token!, Input.DisplayName, Input.Password, CancellationToken.None);
+        if (outcome == AccountService.InviteOutcome.Ok) { Nav.NavigateTo("/", forceLoad: true); return; }
+        error = outcome switch
+        {
+            AccountService.InviteOutcome.Expired => L["InviteExpired"],
+            AccountService.InviteOutcome.PasswordRejected => string.Join(" ", problems),
+            _ => L["InviteInvalid"],
+        };
+    }
+
+    private sealed class Acceptance
+    {
+        public string DisplayName { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string Confirm { get; set; } = "";
+    }
+}

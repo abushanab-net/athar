@@ -1,0 +1,18 @@
+@* A stamped status (DESIGN.md Chips and seals). Seal = decided (cinnabar), Ink = proposed or pending, Quiet = a neutral label,
+   Warn = needs attention. Text always carries the meaning; color never does alone. *@
+<span class="athar-seal @KindClass @Class" title="@Tooltip" @attributes="Attributes">
+    @if (Icon is not null) { <MudIcon Icon="@Icon" /> }
+    <bdi>@ChildContent</bdi>
+</span>
+
+@code {
+    public enum Kinds { Seal, Ink, Quiet, Warn }
+    [Parameter] public Kinds Kind { get; set; } = Kinds.Seal;
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string? Tooltip { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attributes { get; set; }
+
+    private string? KindClass => Kind switch { Kinds.Ink => "ink", Kinds.Quiet => "quiet", Kinds.Warn => "warn", _ => null };
+}

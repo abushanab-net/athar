@@ -1,0 +1,14 @@
+shared	SignInTitle	Sign in to Athar	تسجيل الدخول إلى أثر
+shared	SignInLead	Your team's wiki and the memory your agents share.	ويكي فريقك والذاكرة التي يتشاركها وكلاؤك.
+shared	AuthTagline	Write knowledge together. Agents remember it by scope, with sources, and the people who own it approve what binds.	اكتبوا المعرفة معًا. يتذكّرها الوكلاء حسب النطاق ومع مصادرها، ويعتمد أصحابها ما يُلزِم الجميع.
+shared	ResetYourPassword	Reset your password	إعادة تعيين كلمة المرور
+shared	ForgotPasswordLead	Enter your email and we'll send you a link to choose a new password.	أدخل بريدك الإلكتروني وسنرسل إليك رابطًا لاختيار كلمة مرور جديدة.
+shared	BackToSignIn	Back to sign in	العودة إلى تسجيل الدخول
+shared	ChooseNewPassword	Choose a new password	اختر كلمة مرور جديدة
+shared	ResetLinkInvalid	This reset link is incomplete or has expired.	رابط إعادة التعيين هذا غير مكتمل أو انتهت صلاحيته.
+shared	RequestNewLink	Request a new link	اطلب رابطًا جديدًا
+shared	PasswordRule	At least 12 characters.	12 حرفًا على الأقل.
+shared	ConfirmPassword	Confirm password	تأكيد كلمة المرور
+shared	PasswordsDontMatch	The two passwords don't match.	كلمتا المرور غير متطابقتين.
+shared	JoinAthar	Join Athar	الانضمام إلى أثر
+shared	OAuthRequestedBy	{0} is asking to connect to Athar.	يطلب {0} الاتصال بأثر.

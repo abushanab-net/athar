@@ -1,0 +1,21 @@
+.delegate/
+node_modules/
+dist/
+bin/
+obj/
+TestResults/
+*.user
+src/Athar.Web/wwwroot/editor/
+
+# impeccable: local direction picker and live-mode state
+.impeccable/directions/
+.impeccable/live/
+
+# Phase P: server secrets
+deploy/.env
+deploy/.env.local
+
+# Intro video project: derived files (clip_frames.py output, pre-mix render)
+videos/athar-intro/clips/frames/
+videos/athar-intro/renders/*.mp4
+__pycache__/

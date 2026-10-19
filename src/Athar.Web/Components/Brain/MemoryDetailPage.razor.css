@@ -1,0 +1,20 @@
+.facts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: -8px 24px }
+.shadow-of { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 500; color: var(--mud-palette-primary); text-decoration: none }
+.shadow-of:hover { text-decoration: underline }
+.meta { margin-inline-start: auto; font-size: 0.75rem; color: var(--athar-muted) }
+.num { font-variant-numeric: tabular-nums }
+/* Prose keeps a reading measure; tables and code use the card's full width. */
+::deep .memory-text > :not(table, pre) { max-inline-size: 75ch }
+.form-actions { display: flex; gap: 8px; margin-block-start: 16px }
+.links { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 4px }
+.links li { min-inline-size: 0 }
+.links a { color: var(--mud-palette-primary); text-decoration: none }
+.links a:hover { text-decoration: underline }
+.add-link { display: flex; align-items: flex-end; gap: 4px; max-inline-size: 32rem }
+.add-link ::deep .mud-input-control { flex: 1 1 auto; margin: 0 }
+.memory ::deep td.num, .memory ::deep th.num { text-align: end; inline-size: 1% }
+.memory ::deep .cell-text { max-inline-size: 40ch }
+.body-wrap.folded { max-block-size: 60vh; overflow: hidden; mask-image: linear-gradient(to bottom, #000 80%, transparent) }
+::deep .fold-toggle { margin-block-start: 8px }
+::deep .pending { margin-block-end: 24px }
+::deep .pending a { color: inherit; font-weight: 600; margin-inline-start: 4px }

@@ -1,0 +1,47 @@
+@* Add someone to a team, workspace or space: pick a person (or team), choose a role when the place has roles, then Add. *@
+@using Principal = Athar.Web.Auth.WorkspaceAdminService.Principal
+@inject IStringLocalizer<SharedResource> L
+
+<div class="picker">
+    <MudAutocomplete T="Principal" @bind-Value="selected" SearchFunc="SearchAsync" ToStringFunc="Text" Label="@Label"
+                     Clearable="true" ResetValueOnEmptyText="true" MaxItems="null" Class="who" dir="auto" />
+    @if (Roles is { Count: > 0 })
+    {
+        <MudSelect T="string" @bind-Value="role" Label="@L["Role"]" Class="role">
+            @foreach (var r in Roles)
+            {
+                <MudSelectItem Value="r">@L[r]</MudSelectItem>
+            }
+        </MudSelect>
+    }
+    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" Disabled="@(selected is null || busy)" OnClick="AddAsync">@L["Add"]</MudButton>
+</div>
+
+@code {
+    /// <summary>Who may be added (already filtered to people who aren't members).</summary>
+    [Parameter, EditorRequired] public IEnumerable<Principal> Options { get; set; } = [];
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    /// <summary>Role names (resource keys); null when the place has no roles.</summary>
+    [Parameter] public IReadOnlyList<string>? Roles { get; set; }
+    [Parameter] public string? DefaultRole { get; set; }
+    [Parameter, EditorRequired] public Func<Principal, string?, Task> OnAdd { get; set; } = default!;
+
+    private Principal? selected;
+    private string? role;
+    private bool busy;
+
+    protected override void OnParametersSet() => role ??= DefaultRole ?? Roles?.FirstOrDefault();
+
+    private Task<IEnumerable<Principal>> SearchAsync(string? text, CancellationToken _) =>
+        Task.FromResult(Options.Where(p => string.IsNullOrWhiteSpace(text) || p.Name.Contains(text, StringComparison.CurrentCultureIgnoreCase)));
+
+    private string Text(Principal? p) => p is null ? "" : p.IsTeam ? $"{p.Name} ({L["Team"]})" : p.Name;
+
+    private async Task AddAsync()
+    {
+        if (selected is null) return;
+        busy = true;
+        try { await OnAdd(selected, Roles is { Count: > 0 } ? role : null); selected = null; }
+        finally { busy = false; }
+    }
+}

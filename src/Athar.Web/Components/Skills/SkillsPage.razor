@@ -1,0 +1,152 @@
+@page "/skills"
+@attribute [Authorize]
+@inject IServiceScopeFactory Scopes
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> Shared
+@inject IStringLocalizer<SkillsPage> L
+
+@* T140 (FR-SK-02): browse the skills you can see, read and install one, and publish your own by upload. *@
+<PageHeader Help="skills" Title="@L["Title"]" Description="@L["Intro"]">
+    <Actions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Upload" OnClick="() => publishing = true">@L["Publish"]</MudButton>
+    </Actions>
+</PageHeader>
+
+@if (publishing)
+{
+    <Section Title="@L["PublishTitle"]" Description="@L["PublishHelp"]" Class="mb-6">
+        <div class="publish">
+            <MudFileUpload T="IBrowserFile" FilesChanged="ReadAsync" Accept=".md,.zip">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.AttachFile">@(fileName ?? L["ChooseFile"])</MudButton>
+                </ActivatorContent>
+            </MudFileUpload>
+            <MudSelect T="string" @bind-Value="scope" Label="@Shared["Scope"]" ToStringFunc="@(s => s is null ? null : Shared["Scope_" + s].Value)">
+                @foreach (var s in PublishScopes) { <MudSelectItem Value="s">@Shared["Scope_" + s]</MudSelectItem> }
+            </MudSelect>
+            @if (scope is "team" or "project")
+            {
+                <MudSelect T="Guid?" @bind-Value="owner" Label="@L["Owner_" + scope]" ToStringFunc="@(id => targets.FirstOrDefault(t => t.Id == id)?.Name)">
+                    @foreach (var t in targets.Where(t => t.Scope == scope)) { <MudSelectItem T="Guid?" Value="t.Id"><bdi>@t.Name</bdi></MudSelectItem> }
+                </MudSelect>
+            }
+        </div>
+        @if (upload is not null)
+        {
+            <p class="preview"><strong dir="ltr">@upload.Name</strong> · <span dir="auto">@upload.Description</span> · @L["FileCount", upload.Files.Count + 1]</p>
+        }
+        <MudText Typo="Typo.body2" Class="athar-muted mt-2">@L["CompanyNote"]</MudText>
+        <div class="mt-3">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(upload is null || scope is "team" or "project" && owner is null || busy)" OnClick="PublishAsync">@L["PublishNow"]</MudButton>
+        </div>
+    </Section>
+}
+
+<FilterBar Label="@Shared["Filters"]">
+    <MudTextField T="string" Value="query" ValueChanged="v => FilterAsync(() => query = v)" DebounceInterval="300" Label="@L["Search"]"
+                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search" Clearable="true" dir="auto" />
+    <MudSelect T="string" Value="scopeFilter" ValueChanged="v => FilterAsync(() => scopeFilter = v)" Label="@Shared["Scope"]" Clearable="true"
+               ToStringFunc="@(s => s is null ? null : Shared["Scope_" + s].Value)">
+        @foreach (var s in ScopeValues) { <MudSelectItem Value="s">@Shared["Scope_" + s]</MudSelectItem> }
+    </MudSelect>
+</FilterBar>
+
+@if (items is null)
+{
+    <LoadingState Rows="4" />
+}
+else
+{
+    <DataTable T="SkillSummary" Items="items" EmptyIcon="@Icons.Material.Outlined.Extension" EmptyTitle="@L["NoSkills"]" EmptyText="@L["NoSkillsHelp"]">
+        <HeaderContent>
+            <MudTh>@L["Name"]</MudTh>
+            <MudTh>@L["Description"]</MudTh>
+            <MudTh>@Shared["Scope"]</MudTh>
+            <MudTh>@Shared["Updated"]</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd><a href="@($"/skills/{context.SkillId}")" dir="ltr">@context.Name</a></MudTd>
+            <MudTd><span class="athar-truncate" title="@context.Description" dir="auto">@context.Description</span></MudTd>
+            <MudTd><ScopeChip Scope="@context.Scope" /></MudTd>
+            <MudTd><Timestamp Value="context.UpdatedAt" Relative="true" /></MudTd>
+        </RowTemplate>
+    </DataTable>
+}
+
+@code {
+    private static readonly string[] ScopeValues = ["personal", "team", "project", "company"];
+    // T141: a company skill from anyone but a knowledge owner goes to the review queue as a proposal.
+    private static readonly string[] PublishScopes = ["personal", "team", "project", "company"];
+
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private Actor actor = default!;
+    private IReadOnlyList<SkillSummary>? items;
+    private IReadOnlyList<SkillService.Target> targets = [];
+    // The filters can come from the URL (/skills?q=review&scope=company), so a search is linkable and applies on first render.
+    [SupplyParameterFromQuery(Name = "q")] private string? query { get; set; }
+    [SupplyParameterFromQuery(Name = "scope")] private string? scopeFilter { get; set; }
+    private string? fileName;
+    private bool publishing, busy;
+    private string scope = "personal";
+    private Guid? owner;
+    private SkillUpload? upload;
+
+    protected override async Task OnInitializedAsync()
+    {
+        actor = Actor.ForUser((await Auth).User);
+        targets = await Use(s => s.TargetsAsync(actor, default));
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync() => items = (await Use(s => s.ListAsync(actor, query, scopeFilter, default))).Skills;
+
+    private async Task FilterAsync(Action set)
+    {
+        set();
+        await LoadAsync();
+    }
+
+    private async Task ReadAsync(IBrowserFile? file)
+    {
+        if (file is null) return;
+        (upload, fileName) = (null, file.Name);
+        try
+        {
+            if (file.Size > SkillPackage.MaxUploadBytes) throw new AtharError("invalid_input", L["TooLarge"]);
+            using var m = new MemoryStream();
+            await file.OpenReadStream(SkillPackage.MaxUploadBytes).CopyToAsync(m);
+            upload = SkillPackage.Read(file.Name, m.ToArray());
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+    }
+
+    private async Task PublishAsync()
+    {
+        if (upload is null) return;
+        busy = true;
+        try
+        {
+            var s = await Use(svc => svc.PublishOrProposeAsync(actor, new(upload.Name, upload.Description, upload.BodyMd, scope,
+                scope is "team" or "project" ? owner : null, upload.Files), propose: true, default));
+            if (s.SkillId is { } id)
+            {
+                Snackbar.Add(L["Published", s.Name], Severity.Success);
+                Nav.NavigateTo($"/skills/{id}");
+                return;
+            }
+            Snackbar.Add(L["Proposed", s.Name], Severity.Info, o => { o.Action = L["SeeProposal"]; o.OnClick = _ => { Nav.NavigateTo("/review/proposals"); return Task.CompletedTask; }; });
+            (publishing, upload, fileName) = (false, null, null);
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+        finally { busy = false; }
+    }
+
+    // Each load gets its own unit of work: the circuit's scoped DbContext can't serve a debounced list load and the next
+    // page's load at once ("a second operation was started on this context").
+    private async Task<T> Use<T>(Func<SkillService, Task<T>> call)
+    {
+        await using var scope = Scopes.CreateAsyncScope();
+        return await call(scope.ServiceProvider.GetRequiredService<SkillService>());
+    }
+}

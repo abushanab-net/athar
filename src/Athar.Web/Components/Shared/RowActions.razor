@@ -1,0 +1,57 @@
+@* Row actions (DESIGN.md): up to two icons inline, anything more in a ⋮ menu; destructive actions live in the menu and confirm. *@
+@inject IDialogService Dialogs
+@inject IStringLocalizer<SharedResource> L
+
+<span class="row-actions" @onclick:stopPropagation="true">
+    @foreach (var a in inline)
+    {
+        <IconAction Icon="@a.Icon" Label="@(a.Tooltip is null ? a.Label : $"{a.Label} ({a.Tooltip})")" Href="@a.Href" Disabled="@a.Disabled" OnClick="() => RunAsync(a)" />
+    }
+    @if (menu.Count > 0)
+    {
+        <MenuButton Icon="@Icons.Material.Filled.MoreVert" Label="@(MenuLabel ?? L["MoreActions"])" Placement="Placement.Start" Class="row-menu">
+            @foreach (var a in menu)
+            {
+                <MudMenuItem Icon="@a.Icon" IconColor="@(a.Danger ? Color.Error : Color.Default)" Href="@a.Href" Disabled="@a.Disabled"
+                             OnClick="() => RunAsync(a)" Class="@(a.Danger ? "danger" : null)" title="@a.Tooltip">@a.Label</MudMenuItem>
+            }
+        </MenuButton>
+    }
+</span>
+
+@code {
+    [Parameter, EditorRequired] public IEnumerable<RowAction?> Actions { get; set; } = [];
+    /// <summary>How many actions may show as icons before the rest move into the menu.</summary>
+    [Parameter] public int Inline { get; set; } = 2;
+    [Parameter] public string? MenuLabel { get; set; }
+    /// <summary>
+    /// Runs after each action. An action's OnClick is a plain delegate, so the event re-renders this component only; pass
+    /// the owner's <c>StateHasChanged</c> here and the page that owns the dialog or rows re-renders too.
+    /// </summary>
+    [Parameter] public EventCallback Done { get; set; }
+
+    private List<RowAction> inline = [];
+    private List<RowAction> menu = [];
+
+    protected override void OnParametersSet()
+    {
+        var all = Actions.OfType<RowAction>().ToList();
+        var safe = all.Where(a => !a.Danger).ToList();
+        // All fit inline only when nothing is destructive; otherwise keep one slot for the menu button.
+        var room = all.Count <= Inline && safe.Count == all.Count ? Inline : Math.Max(0, Inline - 1);
+        inline = [.. safe.Take(room)];
+        menu = [.. all.Except(inline)];
+    }
+
+    private async Task RunAsync(RowAction a)
+    {
+        if (a.OnClick is null) return;
+        if (a.Confirm is not null)
+        {
+            var ok = await Dialogs.ShowMessageBox(a.Label, a.Confirm, yesText: a.Label, cancelText: L["Cancel"]);
+            if (ok != true) return;
+        }
+        await a.OnClick();
+        await Done.InvokeAsync();
+    }
+}

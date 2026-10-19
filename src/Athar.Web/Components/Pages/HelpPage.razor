@@ -1,0 +1,224 @@
+@page "/help"
+@attribute [Authorize]
+@using Athar.Web.Services
+@using System.Text.RegularExpressions
+@inject HelpService Handbook
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@inject IJSRuntime JS
+@implements IDisposable
+
+@* FR-AG-10 (T144, AT-66): the handbook from docs/handbook, one section per "##" heading. Section ids are the headings'
+   GitHub slugs (/help#agents, /help#capture, /help#admin-…) so inline help and tours can deep-link here; keep them stable. *@
+<PageHeader Title="@L["Help"]" Description="@L["HelpLead"]" />
+
+<div class="help">
+    <aside class="help-index" aria-label="@L["HelpContents"]">
+        <label class="visually-hidden" for="help-filter">@L["HelpFilter"]</label>
+        <div class="filter-box">
+            <MudIcon Icon="@Icons.Material.Outlined.Search" Size="Size.Small" />
+            <input id="help-filter" type="search" placeholder="@L["HelpFilter"]" @bind="query" @bind:event="oninput" autocomplete="off" />
+        </div>
+        <nav aria-label="@L["HelpContents"]">
+            @foreach (var g in Guides.Where(g => Filtering || g.Id == guide))
+            {
+                <p class="index-group">@L[g.Label]</p>
+                <ul>
+                    @foreach (var s in g.Sections.Where(Matches))
+                    {
+                        <li><a href="/help#@s.Id" data-spy="@s.Id">@s.Title</a></li>
+                    }
+                </ul>
+            }
+        </nav>
+    </aside>
+
+    <div class="help-body">
+        @if (string.IsNullOrWhiteSpace(query))
+        {
+            <section class="start" aria-labelledby="start-title">
+                <h2 id="start-title">@L["HelpStartHere"]</h2>
+                <ul>
+                    @foreach (var (anchor, icon, title, line) in Tasks)
+                    {
+                        <li>
+                            <a href="/help#@anchor">
+                                <MudIcon Icon="@icon" />
+                                <span><strong>@L[title]</strong><span>@L[line]</span></span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+
+        @* One guide at a time (the page was 6,000 px with both); a filter searches both. Both stay in the HTML, so every
+           /help#… anchor exists, and a link into the other guide switches to it. *@
+        <div class="guide-switch" role="group" aria-label="@L["HelpContents"]" hidden="@Filtering">
+            @foreach (var g in Guides)
+            {
+                <button type="button" aria-pressed="@(g.Id == guide ? "true" : "false")" @onclick="() => guide = g.Id">@L[g.Label]</button>
+            }
+        </div>
+        @foreach (var g in Guides)
+        {
+            var shown = g.Sections.Where(Matches).ToList();
+            if (shown.Count == 0) continue;
+            <div class="guide" id="@g.Id" hidden="@(!Filtering && g.Id != guide)">
+                <h2 class="guide-title">@L[g.Label]</h2>
+                @if (string.IsNullOrWhiteSpace(query))
+                {
+                    <MarkdownView Text="@g.Intro" Class="guide-intro" />
+                }
+                @foreach (var s in shown)
+                {
+                    <section class="help-section" data-spy="@s.Id">
+                        <h3 id="@s.Id">@s.Title</h3>
+                        <MarkdownView Text="@s.Body" />
+                        @if (isAdmin && s.Id == "admin-the-getting-started-with-agents-page")
+                        {
+                            @* The production server gets the getting-started page from here, never from a seed (OD-5). *@
+                            <div class="action">
+                                @if (spaces.Count == 0)
+                                {
+                                    <p class="athar-muted">@L["AddGettingStartedNoSpace"]</p>
+                                }
+                                else
+                                {
+                                    <MudSelect T="Guid?" @bind-Value="space" Label="@L["Space"]" ToStringFunc="@(id => spaces.FirstOrDefault(s => s.Id == id).Name)">
+                                        @foreach (var sp in spaces) { <MudSelectItem T="Guid?" Value="@sp.Id">@sp.Name</MudSelectItem> }
+                                    </MudSelect>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(busy || space is null)" OnClick="AddAsync">@L["AddGettingStarted"]</MudButton>
+                                }
+                            </div>
+                        }
+                    </section>
+                }
+            </div>
+        }
+        @if (Guides.All(g => !g.Sections.Any(Matches)))
+        {
+            <EmptyState Icon="@Icons.Material.Outlined.SearchOff" Title="@L["HelpNoMatch"]" />
+        }
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    private sealed record HelpSection(string Id, string Title, string Body);
+    private sealed record Guide(string Id, string Label, string Intro, IReadOnlyList<HelpSection> Sections);
+
+    // Both languages, split once. Arabic headings carry their English anchor ({#agents}), so deep links work in either.
+    private static readonly Dictionary<string, Guide[]> ByLanguage = new[] { "en", "ar" }.ToDictionary(lang => lang, lang => new[]
+    {
+        Split("user", "UserGuide", HelpService.Guide("user-guide", lang), ""),
+        Split("admin", "AdminGuide", HelpService.Guide("admin-guide", lang), "admin-"),
+    });
+
+    private static Guide[] Guides => ByLanguage[System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar" ? "ar" : "en"];
+
+    private static readonly (string Anchor, string Icon, string Title, string Line)[] Tasks =
+    [
+        ("wiki", Icons.Material.Outlined.Article, "HelpTaskWrite", "HelpTaskWriteLine"),
+        ("agents", Icons.Material.Outlined.SmartToy, "HelpTaskConnect", "HelpTaskConnectLine"),
+        ("review", Icons.Material.Outlined.Inbox, "HelpTaskReview", "HelpTaskReviewLine"),
+        ("memories", Icons.Material.Outlined.Psychology, "HelpTaskMemories", "HelpTaskMemoriesLine"),
+    ];
+
+    private System.Security.Claims.ClaimsPrincipal user = default!;
+    private bool isAdmin, busy;
+    private IReadOnlyList<(Guid Id, string Name)> spaces = [];
+    private Guid? space;
+    private string query = "";
+    private string guide = "user";
+
+    private bool Filtering => !string.IsNullOrWhiteSpace(query);
+
+    /// <summary>A guide's intro (before the first "##", without its "#" title) and its sections.</summary>
+    private static Guide Split(string id, string label, string markdown, string prefix)
+    {
+        var parts = Regex.Split(markdown.Replace("\r\n", "\n"), @"^## ", RegexOptions.Multiline);
+        var intro = Regex.Replace(parts[0], @"^# .*\n", "").Trim();
+        var sections = parts.Skip(1).Select(p =>
+        {
+            var nl = p.IndexOf('\n');
+            var title = (nl < 0 ? p : p[..nl]).Trim();
+            // "## الوكلاء {#agents}": an explicit anchor, else GitHub's slug of the title.
+            var anchor = Regex.Match(title, @"\s*\{#([a-z0-9-]+)\}$");
+            if (anchor.Success) title = title[..anchor.Index];
+            return new HelpSection(prefix + (anchor.Success ? anchor.Groups[1].Value : Slug(title)), title, nl < 0 ? "" : p[(nl + 1)..].Trim());
+        }).ToList();
+        return new Guide(id, label, intro, sections);
+    }
+
+    /// <summary>GitHub's heading slug (what Markdig's AutoIdentifiers made before): lower case, punctuation dropped, spaces to dashes.</summary>
+    private static string Slug(string title) =>
+        Regex.Replace(Regex.Replace(title.ToLowerInvariant(), @"[^\p{L}\p{Nd}\s_-]", ""), @"\s", "-");
+
+    private bool Matches(HelpSection s) => string.IsNullOrWhiteSpace(query)
+        || s.Title.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase) || s.Body.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase);
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = (await Auth).User;
+        isAdmin = await Handbook.IsAdminAsync(user);
+        if (isAdmin) spaces = await Handbook.TargetSpacesAsync(user);
+    }
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+
+    /// <summary>A link to #admin-… (or #admin) opens the admin guide, any other section the user guide.</summary>
+    private static string GuideFor(string? fragment) => fragment is { } f && f.StartsWith("admin") ? "admin" : "user";
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        var at = e.Location.IndexOf('#');
+        if (at < 0 || !e.Location.Contains("/help")) return;
+        var next = GuideFor(e.Location[(at + 1)..]);
+        if (next == guide) return;
+        guide = next;
+        _ = InvokeAsync(async () => { StateHasChanged(); await JS.InvokeVoidAsync("athar.scrollToHash"); });
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var hash = await JS.InvokeAsync<string>("athar.hash");
+                if (GuideFor(hash.TrimStart('#')) is var g && g != guide)
+                {
+                    guide = g;
+                    StateHasChanged();
+                    await Task.Yield();
+                    await JS.InvokeVoidAsync("athar.scrollToHash");
+                }
+            }
+            catch (JSDisconnectedException) { }
+        }
+        // The index marks the section being read (scroll spy); re-armed after a filter changes the sections.
+        try { await JS.InvokeVoidAsync("athar.spy", ".help-section", ".help-index a[data-spy]"); }
+        catch (JSDisconnectedException) { }
+    }
+
+    private async Task AddAsync()
+    {
+        busy = true;
+        try
+        {
+            var ids = await Handbook.AddGettingStartedAsync(user, space!.Value);
+            Snackbar.Add(L["GettingStartedAdded"], Severity.Success, o =>
+            {
+                o.Action = L["OpenPage"];
+                o.ActionColor = Color.Primary;
+                o.OnClick = _ => { Nav.NavigateTo($"/wiki/p/{ids[0]}"); return Task.CompletedTask; };
+            });
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Error); }
+        finally { busy = false; }
+    }
+}

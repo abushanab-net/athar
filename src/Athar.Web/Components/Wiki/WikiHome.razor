@@ -1,0 +1,98 @@
+@page "/wiki"
+@attribute [Authorize]
+@using Athar.Domain.Model
+@using Athar.Web.Services
+@inject WikiSession Session
+@inject IServiceScopeFactory Scopes
+
+<PageHeader Help="wiki" Title="@T("Wiki")" Description="@T("WikiIntro")">
+    <Actions>
+        @* Workspace and space admins manage spaces here (T150); org admins also reach it from Admin in the sidebar. *@
+        @if (canManage)
+        {
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Workspaces" Href="/workspaces">@T("ManageWorkspaces")</MudButton>
+        }
+    </Actions>
+</PageHeader>
+
+@if (!ready)
+{
+    <LoadingState />
+}
+else if (spaces.Count == 0)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.MenuBook" Title="@T("NoSpaces")" Text="@T("NoSpacesHelp")" />
+}
+else
+{
+    @foreach (var ws in spaces.GroupBy(s => s.Workspace))
+    {
+        @* The anchor a favorited workspace links to (FavoriteService). *@
+        <div id="@($"ws-{ws.First().Space.WorkspaceId}")" class="ws-anchor"></div>
+        <Section Title="@ws.Key" Flush="true">
+            <DataTable T="Row" Items="ws" Class="spaces">
+                <HeaderContent>
+                    <SortTh T="Row" By="r => r.Space.Name" Initial="SortDirection.Ascending">@T("Space")</SortTh>
+                    <SortTh T="Row" By="r => r.Role" Width="160px">@T("YourRole")</SortTh>
+                    <SortTh T="Row" By="r => AiRank(r.Space.AiPolicy)" Width="140px">@T("AiAccess")</SortTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <span class="space">
+                            <SpaceBadge Name="@context.Space.Name" Id="context.Space.Id" Color="@context.Space.Color" Icon="@context.Space.Icon" />
+                            <a href="@($"/wiki/s/{context.Space.Id}")" class="athar-truncate" title="@context.Space.Name" dir="auto">@context.Space.Name</a>
+                            @if (context.Space.IsConfidential)
+                            {
+                                <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.Lock">@T("Confidential")</Seal>
+                            }
+                        </span>
+                    </MudTd>
+                    <MudTd>
+                        @if (context.Role is { } role)
+                        {
+                            <Seal Kind="Seal.Kinds.Quiet">@T($"Role_{role}")</Seal>
+                        }
+                    </MudTd>
+                    <MudTd>
+                        <span class="ai">
+                            @foreach (var (icon, label) in AiIcons(context.Space.AiPolicy))
+                            {
+                                <MudTooltip Text="@label" Arrow="false"><MudIcon Icon="@icon" Size="Size.Small" aria-hidden="true" /></MudTooltip>
+                                <span class="visually-hidden">@label</span>
+                            }
+                        </span>
+                    </MudTd>
+                </RowTemplate>
+            </DataTable>
+        </Section>
+    }
+}
+
+@code {
+    private sealed record Row(Space Space, string Workspace, SpaceRole? Role);
+    private static int AiRank(AiPolicy p) => (p.Read ? 1 : 0) + (p.Write ? 1 : 0) + (p.DeleteToTrash ? 1 : 0);
+
+    private bool ready, canManage;
+    private List<Row> spaces = [];
+
+    private string T(string key) => Session.T(key);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var actor = await Session.ResolveAsync();
+        await using var scope = Scopes.CreateAsyncScope();
+        spaces = [.. (await scope.ServiceProvider.GetRequiredService<PageService>().SpacesAsync(actor)).Select(s => new Row(s.Space, s.Workspace, s.Role))];
+        canManage = (await scope.ServiceProvider.GetRequiredService<WorkspaceAdminService>().WorkspacesAsync(actor.OrgId, actor.UserId))
+            .Any(w => w.CanManage || w.Spaces.Any(s => s.CanManage));
+        ready = true;
+    }
+
+    /// <summary>What agents may do in the space (FR-WS-03), as icons with tooltips.</summary>
+    private IEnumerable<(string Icon, string Label)> AiIcons(AiPolicy p)
+    {
+        if (!p.Read && !p.Write && !p.DeleteToTrash) yield return (Icons.Material.Outlined.Block, T("AiNone"));
+        if (p.Read) yield return (Icons.Material.Outlined.Visibility, T("AiRead"));
+        if (p.Write) yield return (Icons.Material.Outlined.Edit, T("AiWrite"));
+        if (p.DeleteToTrash) yield return (Icons.Material.Outlined.Delete, T("AiDelete"));
+    }
+}

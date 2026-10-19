@@ -1,0 +1,53 @@
+.appearance { display: grid; gap: 8px }
+
+.preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-block-end: 4px;
+}
+
+.preview .name { font-weight: 600 }
+
+.label {
+    margin: 4px 0 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--athar-muted);
+}
+
+.choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.swatch, .glyph {
+    display: inline-grid;
+    place-items: center;
+    inline-size: 32px;
+    block-size: 32px;
+    padding: 0;
+    border: 1px solid var(--athar-rule);
+    border-radius: 50%;
+    background: var(--mud-palette-surface);
+    color: var(--mud-palette-text-primary);
+    cursor: pointer;
+}
+
+.glyph { border-radius: 8px }
+
+.glyph.initials { font-size: 0.75rem; font-weight: 700 }
+
+/* The chosen one: a ring in the text color, offset from the swatch so it shows on every color. */
+.swatch.on, .glyph.on {
+    outline: 2px solid var(--mud-palette-text-primary);
+    outline-offset: 2px;
+}
+
+.swatch:focus-visible, .glyph:focus-visible {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+.swatch:disabled, .glyph:disabled { cursor: default; opacity: 0.6 }

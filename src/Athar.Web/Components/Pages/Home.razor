@@ -1,0 +1,170 @@
+@page "/"
+@attribute [Authorize]
+@using Athar.Web.Services
+@using Athar.Web.Mcp
+@inject WikiSession Session
+@inject PageService Pages
+@inject MemoryService Memories
+@inject ShellCounts Counts
+@inject TokenService Tokens
+@implements IDisposable
+@inject IStringLocalizer<SharedResource> L
+
+@* The signed-in home: what is waiting for this person, then where they left off. *@
+<PageHeader Help="getting-started" Title="@Greeting" TabTitle="@L["Home"]" Description="@L["HomeLead"]" />
+@* T152: the first-visit tour of the shell. Sidebar steps are skipped on phones, where the sidebar is a closed drawer. *@
+<PageTour Id="home" Help="getting-started" AutoStart="true" Steps="@([
+    new(".side-nav", L["TourNavTitle"], L["TourNavText"]),
+    new("#athar-search", L["TourSearchTitle"], L["TourSearchText"]),
+    new(".side-nav a[href='/review']", L["TourReviewTitle"], L["TourReviewText"]),
+    new(".side-nav a[href='/agents']", L["TourAgentsTitle"], L["TourAgentsText"]),
+    new("#tour-help", L["TourHelpTitle"], L["TourHelpText"]),
+])" />
+
+@if (!ready)
+{
+    <LoadingState Rows="6" />
+}
+else
+{
+    @if (noAgentYet)
+    {
+        @* First value (T152): until an agent has connected, the home page says how, once, above everything else. *@
+        <section class="get-started athar-arrive" aria-labelledby="get-started">
+            <MudIcon Icon="@Icons.Material.Outlined.SmartToy" Class="mark" />
+            <div class="text">
+                <h2 id="get-started">@L["GetStartedTitle"]</h2>
+                <p>@L["GetStartedText"]</p>
+            </div>
+            <MudButton Variant="Variant.Text" Href="/help#agents">@L["HowAgentsWork"]</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/agents">@L["ConnectAgent"]</MudButton>
+        </section>
+    }
+    <Section Title="@L["WaitingForYou"]" Flush="true">
+        @if (waiting.Count == 0)
+        {
+            <EmptyState Icon="@Icons.Material.Outlined.TaskAlt" Title="@L["NothingWaiting"]" Text="@L["NothingWaitingText"]" Compact="true" />
+        }
+        else
+        {
+            <ul class="waiting">
+                @foreach (var w in waiting)
+                {
+                    <li class="athar-arrive" @key="w.Href">
+                        <MudIcon Icon="@w.Icon" Class="icon" />
+                        <span class="what">@w.Text</span>
+                        <MudButton Href="@w.Href" Variant="Variant.Outlined" Size="Size.Small">@w.Action</MudButton>
+                    </li>
+                }
+            </ul>
+        }
+    </Section>
+
+    <div class="home-grid">
+        <Section Title="@L["RecentlyEdited"]" Flush="true">
+            <DataTable Items="recent" EmptyTitle="@L["NoRecentPages"]" EmptyIcon="@Icons.Material.Outlined.Article">
+                <HeaderContent>
+                    <SortTh T="RecentPage" By="p => p.Title">@L["Title"]</SortTh>
+                    <SortTh T="RecentPage" By="p => p.Space">@L["Space"]</SortTh>
+                    <SortTh T="RecentPage" By="p => p.UpdatedAt" Initial="SortDirection.Descending">@L["Updated"]</SortTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd><a class="athar-truncate athar-row-link" href="/wiki/p/@context.Id" title="@context.Title" dir="auto">@context.Title</a></MudTd>
+                    <MudTd><span class="athar-truncate athar-muted" title="@context.Space" dir="auto">@context.Space</span></MudTd>
+                    <MudTd><Timestamp Value="context.UpdatedAt" Relative="true" Class="athar-muted" /></MudTd>
+                </RowTemplate>
+            </DataTable>
+        </Section>
+
+        <Section Title="@L["YourSpaces"]" Flush="true">
+            <Actions><MudButton Href="/wiki" Size="Size.Small">@L["AllSpaces"]</MudButton></Actions>
+            <ChildContent>
+                @if (spaces.Count == 0)
+                {
+                    <EmptyState Icon="@Icons.Material.Outlined.FolderOff" Title="@L["NoSpaces"]" Compact="true" />
+                }
+                else
+                {
+                    <ul class="spaces">
+                        @foreach (var s in spaces.Take(8))
+                        {
+                            <li>
+                                <a href="/wiki/s/@s.Space.Id">
+                                    <MudIcon Icon="@Icons.Material.Outlined.Folder" Class="icon" />
+                                    <span class="athar-truncate" dir="auto" title="@s.Space.Name">@s.Space.Name</span>
+                                    <span class="athar-muted athar-truncate ws" dir="auto">@s.Workspace</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </ChildContent>
+        </Section>
+    </div>
+
+    <Section Title="@L["RecentMemories"]" Flush="true">
+        <Actions><MudButton Href="/memories" Size="Size.Small">@L["AllMemories"]</MudButton></Actions>
+        <ChildContent>
+            <DataTable Items="memories" EmptyTitle="@L["NoMemories"]" EmptyIcon="@Icons.Material.Outlined.Hub">
+                <HeaderContent>
+                    <SortTh T="MemoryListItem" By="m => m.Title">@L["Title"]</SortTh>
+                    <SortTh T="MemoryListItem" By="m => m.Scope">@L["Scope"]</SortTh>
+                    <SortTh T="MemoryListItem" By="m => m.Type">@L["Type"]</SortTh>
+                    <SortTh T="MemoryListItem" By="m => m.UpdatedAt">@L["Updated"]</SortTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd><a class="athar-truncate athar-row-link" href="/memories/@context.Id" title="@context.Title" dir="auto">@context.Title</a></MudTd>
+                    <MudTd><ScopeChip Scope="@context.Scope" /></MudTd>
+                    <MudTd><Seal Kind="Seal.Kinds.Quiet">@L["Type_" + context.Type]</Seal></MudTd>
+                    <MudTd><Timestamp Value="context.UpdatedAt" Relative="true" Class="athar-muted" /></MudTd>
+                </RowTemplate>
+            </DataTable>
+        </ChildContent>
+    </Section>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private sealed record Waiting(string Icon, string Text, string Action, string Href);
+
+    private bool ready, noAgentYet;
+    private int stale;
+    private string name = "";
+    private List<Waiting> waiting = [];
+    private List<RecentPage> recent = [];
+    private List<(Athar.Domain.Model.Space Space, string Workspace, Athar.Domain.Model.SpaceRole? Role)> spaces = [];
+    private IReadOnlyList<MemoryListItem> memories = [];
+
+    private string Greeting => (DateTime.Now.Hour switch { < 12 => L["GoodMorning", name], < 18 => L["GoodAfternoon", name], _ => L["GoodEvening", name] }).Value;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var wiki = await Session.ResolveAsync();
+        name = Session.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? Session.Name;
+        var actor = Actor.ForUser((await Auth).User);
+        // One query at a time: these services share the circuit's DbContext.
+        recent = await Pages.RecentAsync(wiki);
+        spaces = await Pages.SpacesAsync(wiki);
+        memories = (await Memories.ListAsync(actor, new(null, null, "active", null, null, 0, 6), default)).Items;
+        stale = (await Memories.ListAsync(actor, new(null, null, "active", null, true, 0, 1), default)).Total;
+        noAgentYet = (await Tokens.MineAsync(wiki.OrgId, wiki.UserId)).Count == 0 && (await Tokens.GrantsAsync(wiki.OrgId, wiki.UserId)).Count == 0;
+        await Counts.RefreshAsync(actor);
+        BuildWaiting();
+        // "Waiting for you" follows the shell counts: an agent's capture or another owner's decision shows up here too.
+        Counts.Changed += OnCountsChanged;
+        ready = true;
+    }
+
+    private void BuildWaiting()
+    {
+        waiting = [];
+        if (Counts.Inbox > 0) waiting.Add(new(Icons.Material.Outlined.MoveToInbox, L["WaitingInbox", Counts.Inbox], L["Review"], "/review/inbox"));
+        if (Counts.Proposals > 0) waiting.Add(new(Icons.Material.Outlined.Approval, L["WaitingProposals", Counts.Proposals], L["Review"], "/review/proposals"));
+        if (Counts.Conflicts > 0) waiting.Add(new(Icons.Material.Outlined.CompareArrows, L["WaitingConflicts", Counts.Conflicts], L["Review"], "/review/conflicts"));
+        if (stale > 0) waiting.Add(new(Icons.Material.Outlined.SyncProblem, L["WaitingStale", stale], L["Review"], "/memories?stale=true"));
+    }
+
+    private void OnCountsChanged() => _ = InvokeAsync(() => { BuildWaiting(); StateHasChanged(); });
+
+    public void Dispose() => Counts.Changed -= OnCountsChanged;
+}

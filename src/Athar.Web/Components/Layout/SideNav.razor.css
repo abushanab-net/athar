@@ -1,0 +1,46 @@
+.side-nav { display: flex; flex-direction: column; min-block-size: 100% }
+.brand { display: flex; align-items: center; gap: 10px; block-size: 56px; padding-inline: 18px; text-decoration: none; color: var(--mud-palette-text-primary);
+    border-block-end: 1px solid var(--athar-rule); flex: none }
+.brand .name { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em }
+.brand:focus-visible { outline-offset: -4px }
+.group { margin: 16px 0 4px; padding-inline: 18px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; color: var(--mud-palette-text-secondary) }
+::deep .items { padding: 8px }
+::deep .mud-nav-link { border-radius: var(--athar-radius); padding: 6px 10px; min-block-size: 36px; font-size: 0.875rem; color: var(--mud-palette-text-primary) }
+::deep .mud-nav-link .mud-nav-link-icon { font-size: 1.25rem; color: var(--mud-palette-text-secondary) }
+::deep .mud-nav-link .mud-nav-link-text { display: flex; align-items: center; gap: 8px; margin-inline-start: 12px; min-width: 0 }
+::deep .mud-nav-link:hover { background: var(--athar-fill) }
+/* The active item: the ledger fill, 600 weight and an ink icon (no colored edge bar). */
+::deep .mud-nav-link.active { background: var(--athar-fill); font-weight: 600; color: var(--mud-palette-text-primary) }
+::deep .mud-nav-link.active .mud-nav-link-icon { color: var(--mud-palette-primary) }
+.label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.count { margin-inline-start: auto; min-inline-size: 20px; padding: 0 6px; border-radius: 999px; background: var(--athar-seal); color: var(--mud-palette-secondary-text);
+    font-size: 0.75rem; font-weight: 700; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums;
+    animation: athar-tick var(--athar-base) var(--athar-ease) }
+
+/* Favorites: the badge stands where the line icons are. */
+.fav {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    margin-inline-start: 1px;
+}
+
+.fav .label { min-width: 0 }
+
+/* Help at the foot of the sidebar. */
+::deep .items.foot { margin-block-start: auto; border-block-start: 1px solid var(--athar-rule) }
+.group span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis }
+
+/* The 64px rail (desktop, collapsed): icons only, each with its label as a tooltip; group names become hairlines;
+   a count becomes a dot on its icon. Labels stay in the accessibility tree (clipped, not removed). */
+.rail .brand { justify-content: center; padding-inline: 0 }
+.rail .brand .name,
+.rail ::deep .mud-nav-link-text .label { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap }
+.rail .group { block-size: 1px; margin: 10px 14px; padding: 0; background: var(--athar-rule) }
+.rail .group span { display: none }
+.rail ::deep .mud-nav-link { justify-content: center; padding-inline: 0 }
+.rail ::deep .mud-nav-link .mud-nav-link-text { inline-size: 0; margin: 0; flex: 0 0 0; overflow: hidden }
+.rail ::deep .mud-nav-link { position: relative }
+.rail .count { position: absolute; inset-block-start: 5px; inset-inline-end: 12px; min-inline-size: 0; inline-size: 8px; block-size: 8px; padding: 0; overflow: hidden; color: transparent }
+.rail .fav { margin: 0 }

@@ -1,0 +1,32 @@
+shared	Breadcrumb	Breadcrumb	مسار التنقل
+shared	MoreActions	More actions	إجراءات أخرى
+shared	Actions	Actions	الإجراءات
+shared	NothingHereYet	Nothing here yet	لا يوجد شيء هنا بعد
+shared	JustNow	Just now	الآن
+shared	MinutesAgo	{0} min ago	قبل {0} د
+shared	HoursAgo	{0} h ago	قبل {0} س
+shared	DaysAgo	{0} d ago	قبل {0} يوم
+shared	Reason	Reason	السبب
+shared	NoAccessTitle	You don't have access to this page	ليس لديك صلاحية الوصول إلى هذه الصفحة
+shared	NoAccessText	Ask an organization admin if you need it.	اطلب ذلك من أحد مسؤولي المؤسسة إن كنت بحاجة إليها.
+shared	BackHome	Back to home	العودة إلى الرئيسية
+shared	MainNavigation	Main navigation	التنقل الرئيسي
+shared	Home	Home	الرئيسية
+shared	Athar	Athar	أثر
+shared	NavBrain	Brain	الذاكرة المشتركة
+shared	NavManage	Manage	الإدارة
+shared	AllTokens	All tokens	كل الرموز
+shared	InboxCount	{0} waiting in the capture inbox	{0} بانتظار المراجعة في صندوق الالتقاط
+shared	ProposalCount	{0} proposals waiting	{0} مقترحات بانتظار القرار
+shared	SkipToContent	Skip to content	تخطَّ إلى المحتوى
+shared	SearchPlaceholder	Search pages, memories and sources	ابحث في الصفحات والذاكرات والمصادر
+shared	AccountMenu	Account menu	قائمة الحساب
+shared	Language	Language	اللغة
+shared	Theme	Theme	المظهر
+shared	ThemeSystem	Match system	حسب النظام
+shared	ThemeLight	Light	فاتح
+shared	ThemeDark	Dark	داكن
+shared	UnhandledError	Something went wrong and this page stopped working.	حدث خطأ وتوقفت هذه الصفحة عن العمل.
+shared	Reload	Reload	إعادة التحميل
+shared	Dismiss	Dismiss	إغلاق
+wiki	OnPage	on	في

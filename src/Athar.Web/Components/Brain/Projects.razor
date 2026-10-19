@@ -1,0 +1,100 @@
+@page "/projects"
+@attribute [Authorize]
+@inject ProjectService Service
+@inject OrgAdminService Org
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+
+@* T151, FR-PJ-01: projects tie a team's repositories to its memories, sources and agents. Members see theirs; org owners and
+   admins see every project and create new ones. *@
+<PageHeader Help="projects" Title="@L["Projects"]" Description="@L["ProjectsHelp"]">
+    <Actions>
+        @if (canCreate)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="() => creating = true">@L["NewProject"]</MudButton>
+        }
+    </Actions>
+</PageHeader>
+
+@if (projects is null)
+{
+    <LoadingState Rows="5" />
+}
+else
+{
+    <DataTable T="ProjectView" Items="@projects" EmptyIcon="@Icons.Material.Outlined.AccountTree" EmptyTitle="@L["NoProjects"]" EmptyText="@L["NoProjectsHelp"]">
+        <HeaderContent>
+            <SortTh T="ProjectView" By="p => p.Name" Initial="SortDirection.Ascending">@L["Project"]</SortTh>
+            <SortTh T="ProjectView" By="@(p => p.Role ?? string.Empty)" Width="160px">@L["YourRole"]</SortTh>
+            <SortTh T="ProjectView" By="p => p.RepoRemotes.Count" Width="320px">@L["Repositories"]</SortTh>
+            <ActionsTh />
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <span class="name">
+                    <MudIcon Icon="@Icons.Material.Outlined.AccountTree" Size="Size.Small" Class="athar-muted" />
+                    <a href="@($"/projects/{context.Id}")" class="athar-truncate" title="@context.Name" dir="auto">@context.Name</a>
+                    <code class="slug">@context.Slug</code>
+                </span>
+            </MudTd>
+            <MudTd>
+                @if (context.Role is { } role) { <Seal Kind="Seal.Kinds.Quiet">@L[role == "admin" ? "Admin" : "Member"]</Seal> }
+                else { <span class="athar-muted">@L["NotAMember"]</span> }
+            </MudTd>
+            <MudTd>
+                @if (context.RepoRemotes.Count == 0) { <span class="athar-muted">—</span> }
+                else { <span class="athar-truncate repos" dir="ltr" title="@string.Join(", ", context.RepoRemotes)">@string.Join(", ", context.RepoRemotes)</span> }
+            </MudTd>
+            <MudTd Class="actions-col"><RowActions Done="StateHasChanged" Actions="@([new RowAction(L["Open"], Icons.Material.Outlined.ArrowForward, Href: $"/projects/{context.Id}")])" /></MudTd>
+        </RowTemplate>
+    </DataTable>
+}
+
+<MudDialog @bind-Visible="creating" Options="dialogOptions">
+    <TitleContent>@L["NewProject"]</TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="name" Immediate="true" Label="@L["Name"]" AutoFocus="true" dir="auto" OnBlur="SuggestSlug" />
+        <MudTextField @bind-Value="slug" Immediate="true" Label="@L["UrlName"]" HelperText="@L["ProjectSlugHelp"]" dir="ltr" Class="mt-3" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => creating = false">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(busy || string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(slug))" OnClick="CreateAsync">@L["Create"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private static readonly DialogOptions dialogOptions = new() { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+    private Actor actor = default!;
+    private List<ProjectView>? projects;
+    private bool canCreate, creating, busy;
+    private string name = "", slug = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await Auth).User;
+        actor = Actor.ForUser(user);
+        canCreate = OrgRules.IsAdmin(await Org.RoleOfAsync(user.OrgId(), user.UserId()));
+        projects = [.. await Service.ListAsync(actor, default, allForManagers: true)];
+    }
+
+    // The URL name follows the name until someone edits it: lowercase letters, digits and dashes.
+    private void SuggestSlug()
+    {
+        if (!string.IsNullOrWhiteSpace(slug)) return;
+        slug = string.Join('-', System.Text.RegularExpressions.Regex.Split(name.ToLowerInvariant(), "[^a-z0-9]+").Where(p => p.Length > 0));
+    }
+
+    private async Task CreateAsync()
+    {
+        busy = true;
+        try
+        {
+            var p = await Service.CreateAsync(actor, name, slug, default);
+            Nav.NavigateTo($"/projects/{p.Id}");
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+        finally { busy = false; }
+    }
+}

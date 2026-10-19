@@ -1,0 +1,25 @@
+.person-avatar {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    overflow: hidden;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 600;
+    line-height: 1;
+    inline-size: 28px;
+    block-size: 28px;
+    font-size: 0.75rem;
+}
+
+.person-avatar img {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+}
+
+.person-avatar.small { inline-size: 24px; block-size: 24px; font-size: 0.75rem }
+.person-avatar.large { inline-size: 72px; block-size: 72px; font-size: 1.25rem }

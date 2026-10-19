@@ -1,0 +1,33 @@
+{
+  "name": "@athar/editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc && vite build"
+  },
+  "dependencies": {
+    "@hocuspocus/provider": "^4.7.0",
+    "@tiptap/core": "^3.31.4",
+    "@tiptap/extension-code-block": "^3.31.4",
+    "@tiptap/extension-collaboration": "^3.31.4",
+    "@tiptap/extension-collaboration-caret": "^3.31.4",
+    "@tiptap/extension-image": "^3.31.4",
+    "@tiptap/extension-list": "^3.31.4",
+    "@tiptap/extension-mention": "^3.31.4",
+    "@tiptap/extension-table": "^3.31.4",
+    "@tiptap/pm": "^3.31.4",
+    "@tiptap/starter-kit": "^3.31.4",
+    "@tiptap/suggestion": "^3.31.4",
+    "@tiptap/y-tiptap": "^3.0.9",
+    "mermaid": "^12.1.0",
+    "yjs": "^13.6.33"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^8.3.2"
+  }
+}

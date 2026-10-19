@@ -1,0 +1,88 @@
+@* Access tokens as a ledger: who and what, readable scopes, access class and status as seals, dates, and row actions
+   (Revoke confirms; pages may add their own, such as an owner's access change). *@
+@using TokenRow = Athar.Web.Auth.TokenService.TokenRow
+@inject IStringLocalizer<SharedResource> L
+
+<DataTable T="TokenRow" Items="@Rows" EmptyIcon="@Icons.Material.Outlined.Key" EmptyTitle="@L["NoTokens"]" EmptyText="@EmptyText">
+    <HeaderContent>
+        @if (ShowOwner)
+        {
+            <SortTh T="TokenRow" By="t => t.Owner" Initial="SortDirection.Ascending">@L["Owner"]</SortTh>
+        }
+        <SortTh T="TokenRow" By="t => t.Name" Initial="@(ShowOwner ? SortDirection.None : SortDirection.Ascending)">@L["TokenName"]</SortTh>
+        <MudTh>@L["Scopes"]</MudTh>
+        <SortTh T="TokenRow" By="t => t.Disclosure">@L["Access"]</SortTh>
+        <SortTh T="TokenRow" By="t => StatusOf(t)">@L["Status"]</SortTh>
+        <SortTh T="TokenRow" By="t => t.ExpiresAt ?? DateTimeOffset.MaxValue">@L["Expires"]</SortTh>
+        <SortTh T="TokenRow" By="t => t.LastUsedAt ?? DateTimeOffset.MinValue">@L["LastUsed"]</SortTh>
+        <ActionsTh />
+    </HeaderContent>
+    <RowTemplate>
+        @if (ShowOwner)
+        {
+            <MudTd><bdi class="athar-truncate cell" title="@context.Owner">@context.Owner</bdi></MudTd>
+        }
+        <MudTd><bdi class="athar-truncate cell" title="@context.Name">@context.Name</bdi></MudTd>
+        <MudTd>@ScopeSeals(L, context.Scopes)</MudTd>
+        <MudTd>
+            @if (context.Disclosure == DisclosureClass.TrustedLocal)
+            {
+                <Seal Kind="Seal.Kinds.Ink" Icon="@Icons.Material.Outlined.Shield" Tooltip="@context.ClassificationReason">@L["AccessTrustedLocal"]</Seal>
+            }
+            else
+            {
+                <Seal Kind="Seal.Kinds.Quiet">@L["AccessExternalAgent"]</Seal>
+            }
+        </MudTd>
+        <MudTd>
+            @switch (StatusOf(context))
+            {
+                case Status.Revoked:
+                    <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.Block">@L["Revoked"]</Seal>
+                    break;
+                case Status.Expired:
+                    <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.EventBusy">@L["Expired"]</Seal>
+                    break;
+                default:
+                    <span class="athar-muted">@L["Status_active"]</span>
+                    break;
+            }
+        </MudTd>
+        <MudTd><Timestamp Value="@context.ExpiresAt" DateOnly="true" Empty="@L["Never"]" /></MudTd>
+        <MudTd><Timestamp Value="@context.LastUsedAt" Relative="true" Empty="–" /></MudTd>
+        <MudTd Class="actions-col"><RowActions Done="StateHasChanged" Actions="@ActionsFor(context)" /></MudTd>
+    </RowTemplate>
+</DataTable>
+
+@code {
+    [Parameter, EditorRequired] public List<TokenRow> Rows { get; set; } = [];
+    [Parameter] public bool ShowOwner { get; set; }
+    [Parameter] public bool CanRevoke { get; set; }
+    [Parameter] public EventCallback<Guid> OnRevoke { get; set; }
+    /// <summary>More row actions from the page (they go before Revoke).</summary>
+    [Parameter] public Func<TokenRow, IEnumerable<RowAction?>>? MoreActions { get; set; }
+    [Parameter] public string? EmptyText { get; set; }
+
+    /// <summary>Scopes as quiet seals with short labels; the full meaning is the tooltip (also used for connected apps).</summary>
+    public static RenderFragment ScopeSeals(IStringLocalizer L, IEnumerable<string> scopes) =>
+        @<span class="scopes">
+            @foreach (var s in scopes)
+            {
+                var key = s.Replace(':', '_');
+                <Seal Kind="Seal.Kinds.Quiet" Tooltip="@L["Scope_" + key]">@L["ScopeShort_" + key]</Seal>
+            }
+        </span>;
+
+    private enum Status { Active, Expired, Revoked }
+
+    private static Status StatusOf(TokenRow t) =>
+        t.RevokedAt is not null ? Status.Revoked : t.ExpiresAt is { } e && e <= DateTimeOffset.UtcNow ? Status.Expired : Status.Active;
+
+    private IEnumerable<RowAction?> ActionsFor(TokenRow t) =>
+    [
+        .. (MoreActions?.Invoke(t) ?? []),
+        CanRevoke && t.RevokedAt is null
+            ? new RowAction(L["Revoke"], Icons.Material.Outlined.KeyOff, () => OnRevoke.InvokeAsync(t.Id), Danger: true, Confirm: L["RevokeTokenConfirm", t.Name])
+            : null,
+    ];
+}

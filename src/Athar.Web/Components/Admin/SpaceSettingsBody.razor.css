@@ -1,0 +1,5 @@
+.classification { display: grid; gap: 8px; justify-items: start }
+.classification p, .muted { margin: 0; max-width: 75ch }
+.muted { color: var(--mud-palette-text-secondary) }
+
+.member-search { padding: 8px 16px 0; max-inline-size: 22rem }

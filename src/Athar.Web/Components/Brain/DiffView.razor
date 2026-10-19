@@ -1,0 +1,12 @@
+@* A line diff of two bodies. Lines carry a +/− marker as well as colour, so the change reads without colour too. *@
+<pre class="athar-diff" dir="auto" aria-label="@Label">@foreach (var line in LineDiff.Compute(Before, After))
+{<span class="@Css(line.Op)">@Marker(line.Op) @line.Text</span>}</pre>
+
+@code {
+    [Parameter, EditorRequired] public string Before { get; set; } = "";
+    [Parameter, EditorRequired] public string After { get; set; } = "";
+    [Parameter] public string? Label { get; set; }
+
+    private static string Css(DiffOp op) => op switch { DiffOp.Added => "added", DiffOp.Removed => "removed", _ => "" };
+    private static string Marker(DiffOp op) => op switch { DiffOp.Added => "+", DiffOp.Removed => "−", _ => " " };
+}

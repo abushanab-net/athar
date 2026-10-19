@@ -1,0 +1,11 @@
+@page "/not-found"
+@layout MainLayout
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>@L["NotFoundTitle"] · Athar</PageTitle>
+<EmptyState Icon="@Icons.Material.Outlined.SearchOff" Title="@L["NotFoundTitle"]" Text="@L["NotFoundText"]">
+    <div class="d-flex gap-2 justify-center flex-wrap">
+        <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">@L["BackHome"]</MudButton>
+        <MudButton Href="/search" Variant="Variant.Outlined">@L["Search"]</MudButton>
+    </div>
+</EmptyState>

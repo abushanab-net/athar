@@ -1,0 +1,18 @@
+@using Athar.Domain.Wiki
+
+@* A person's avatar (T113): their profile photo over their initials in a stable color. Without a photo /avatars/{id} is a
+   404 and the image hides itself (hidden, not removed: Blazor still owns the element), so callers pass only the person. *@
+<span class="person-avatar @(Size)" style="background: @Appearance.Hex(null, UserId)" aria-hidden="true" title="@(Tooltip ? Name : null)">
+    @Appearance.Initials(Name)
+    <img src="@($"/avatars/{UserId}{(Version is null ? "" : $"?v={Version}")}")" alt="" loading="lazy" onerror="this.style.display='none'" />
+</span>
+
+@code {
+    [Parameter, EditorRequired] public Guid UserId { get; set; }
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+    /// <summary><c>small</c> (24px), <c>medium</c> (28px, default) or <c>large</c> (72px).</summary>
+    [Parameter] public string Size { get; set; } = "medium";
+    /// <summary>Changes after an upload, so the browser fetches the new photo instead of its cached one.</summary>
+    [Parameter] public string? Version { get; set; }
+    [Parameter] public bool Tooltip { get; set; }
+}

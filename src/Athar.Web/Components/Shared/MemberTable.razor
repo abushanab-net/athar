@@ -1,0 +1,85 @@
+@* Members of a team, workspace or space: name (with a team icon), the role as a quiet seal, and row actions:
+   Change role (a dialog, the only way a role changes) and Remove (confirms first). *@
+@using Grant = Athar.Web.Auth.WorkspaceAdminService.Grant
+@using Principal = Athar.Web.Auth.WorkspaceAdminService.Principal
+@inject IStringLocalizer<SharedResource> L
+
+<DataTable T="Grant" Items="@Items" EmptyIcon="@Icons.Material.Outlined.GroupOff" EmptyTitle="@L["NoMembers"]">
+    <HeaderContent>
+        <SortTh T="Grant" By="g => g.Principal.Name" Initial="SortDirection.Ascending">@L["Name"]</SortTh>
+        @if (Roles is not null)
+        {
+            <SortTh T="Grant" By="g => Rank(g.Role)">@L["Role"]</SortTh>
+        }
+        <ActionsTh />
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>
+            <span class="who">
+                @if (context.Principal.IsTeam)
+                {
+                    <MudIcon Icon="@Icons.Material.Outlined.Groups" Size="Size.Small" aria-label="@L["Team"]" />
+                }
+                else
+                {
+                    <Avatar UserId="context.Principal.Id" Name="@context.Principal.Name" Size="small" />
+                }
+                <bdi class="athar-truncate name" title="@context.Principal.Name">@context.Principal.Name</bdi>
+            </span>
+        </MudTd>
+        @if (Roles is not null)
+        {
+            <MudTd><Seal Kind="Seal.Kinds.Quiet">@L[context.Role]</Seal></MudTd>
+        }
+        <MudTd Class="actions-col"><RowActions Done="StateHasChanged" Actions="@ActionsFor(context)" /></MudTd>
+    </RowTemplate>
+</DataTable>
+
+<MudDialog Visible="@(editing is not null)" VisibleChanged="v => { if (!v) editing = null; }" Options="dialogOptions">
+    <TitleContent>@L["ChangeRole"]</TitleContent>
+    <DialogContent>
+        <p class="mb-3"><bdi>@editing?.Principal.Name</bdi></p>
+        <MudSelect T="string" @bind-Value="newRole" Label="@L["Role"]">
+            @foreach (var r in Roles ?? [])
+            {
+                <MudSelectItem Value="r">@L[r]</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => editing = null">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(busy || newRole == editing?.Role)" OnClick="SaveRoleAsync">@L["ChangeRole"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter, EditorRequired] public IEnumerable<Grant> Items { get; set; } = [];
+    /// <summary>Role names (resource keys) from least to most access; null when members have no roles (teams).</summary>
+    [Parameter] public IReadOnlyList<string>? Roles { get; set; }
+    [Parameter] public Func<Principal, string, Task>? OnChangeRole { get; set; }
+    [Parameter, EditorRequired] public Func<Principal, Task> OnRemove { get; set; } = default!;
+
+    private static readonly DialogOptions dialogOptions = new() { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+    private Grant? editing;
+    private string? newRole;
+    private bool busy;
+
+    private int Rank(string role) => Roles is null ? 0 : Roles.ToList().IndexOf(role);
+
+    private IEnumerable<RowAction?> ActionsFor(Grant g) =>
+    [
+        Roles is not null && OnChangeRole is not null
+            ? new RowAction(L["ChangeRole"] + "…", Icons.Material.Outlined.ManageAccounts, () => { (editing, newRole) = (g, g.Role); return Task.CompletedTask; })
+            : null,
+        new RowAction(L["Remove"], Icons.Material.Outlined.PersonRemove, () => OnRemove(g.Principal), Danger: true,
+            Confirm: L["RemoveMemberConfirm", g.Principal.Name]),
+    ];
+
+    private async Task SaveRoleAsync()
+    {
+        if (editing is null || newRole is null || OnChangeRole is null) return;
+        busy = true;
+        try { await OnChangeRole(editing.Principal, newRole); editing = null; }
+        finally { busy = false; }
+    }
+}

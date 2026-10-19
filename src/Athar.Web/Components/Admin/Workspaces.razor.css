@@ -1,0 +1,32 @@
+.cell { max-inline-size: 24rem }
+.muted { color: var(--mud-palette-text-secondary) }
+.policy { display: inline-flex; gap: 6px; color: var(--mud-palette-text-secondary) }
+.members-head { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-block-start: 1px solid var(--athar-rule); cursor: pointer; list-style: none }
+.members-head::-webkit-details-marker { display: none }
+.members-head::before { content: ""; inline-size: 6px; block-size: 6px; border: solid var(--athar-muted); border-width: 0 1.5px 1.5px 0; transform: rotate(-45deg);
+    transition: transform var(--athar-fast) var(--athar-ease) }
+[dir=rtl] .members-head::before { transform: rotate(135deg) }
+.members[open] > .members-head::before { transform: rotate(45deg) }
+.members-head:hover { background: var(--athar-fill) }
+.members-head:focus-visible { outline: 2px solid var(--mud-palette-primary); outline-offset: -2px }
+.members-head h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 0.875rem; font-weight: 600 }
+.members-head .count { min-inline-size: 20px; padding: 0 6px; border-radius: 999px; background: var(--athar-fill); font-size: 0.75rem; line-height: 20px; text-align: center;
+    font-variant-numeric: tabular-nums }
+.members-add { display: flex; justify-content: flex-end; padding: 0 16px 12px }
+
+/* A space's badge before its name; the workspace badge picker under the workspace's heading. */
+.space-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.styling {
+    padding: 12px 16px 16px;
+    border-block-end: 1px solid var(--athar-rule);
+}
+
+/* T161: the import dialog. */
+.import-help { margin: 0 0 16px }
+.import-skipped { margin: 0; padding-inline-start: 20px; max-height: 30vh; overflow: auto; font-size: .875rem; overflow-wrap: anywhere }

@@ -1,0 +1,877 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SignIn" xml:space="preserve"><value>تسجيل الدخول</value></data>
+  <data name="SignOut" xml:space="preserve"><value>تسجيل الخروج</value></data>
+  <data name="Users" xml:space="preserve"><value>المستخدمون</value></data>
+  <data name="Teams" xml:space="preserve"><value>الفرق</value></data>
+  <data name="Email" xml:space="preserve"><value>البريد الإلكتروني</value></data>
+  <data name="Password" xml:space="preserve"><value>كلمة المرور</value></data>
+  <data name="ForgotPassword" xml:space="preserve"><value>نسيت كلمة المرور؟</value></data>
+  <data name="LockedOut" xml:space="preserve"><value>محاولات فاشلة كثيرة. حاول مرة أخرى بعد 15 دقيقة.</value></data>
+  <data name="SignInFailed" xml:space="preserve"><value>البريد الإلكتروني أو كلمة المرور غير صحيحة.</value></data>
+  <data name="AcceptInvite" xml:space="preserve"><value>قبول الدعوة</value></data>
+  <data name="InviteInvalid" xml:space="preserve"><value>هذا الرابط غير صالح أو تم استخدامه من قبل.</value></data>
+  <data name="InviteFor" xml:space="preserve"><value>أنشئ حسابك للعنوان {0}.</value></data>
+  <data name="InviteExpired" xml:space="preserve"><value>انتهت صلاحية هذه الدعوة. اطلب دعوة جديدة من المسؤول.</value></data>
+  <data name="DisplayName" xml:space="preserve"><value>اسمك</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>كلمة مرور جديدة (12 حرفًا على الأقل)</value></data>
+  <data name="SendResetLink" xml:space="preserve"><value>إرسال رابط إعادة التعيين</value></data>
+  <data name="ResetLinkSent" xml:space="preserve"><value>إذا كان لهذا العنوان حساب، فقد أرسلنا إليه رابط إعادة التعيين.</value></data>
+  <data name="ResetPassword" xml:space="preserve"><value>إعادة تعيين كلمة المرور</value></data>
+  <data name="PasswordChanged" xml:space="preserve"><value>تم تغيير كلمة المرور. سجّل الدخول مجددًا على أجهزتك.</value></data>
+  <data name="Loading" xml:space="preserve"><value>جارٍ التحميل</value></data>
+  <data name="AdminsOnly" xml:space="preserve"><value>لا يدير هذا إلا مسؤولو المؤسسة.</value></data>
+  <data name="Invite" xml:space="preserve"><value>دعوة شخص</value></data>
+  <data name="Role" xml:space="preserve"><value>الدور</value></data>
+  <data name="Owner" xml:space="preserve"><value>مالك</value></data>
+  <data name="Admin" xml:space="preserve"><value>مسؤول</value></data>
+  <data name="Member" xml:space="preserve"><value>عضو</value></data>
+  <data name="SendInvite" xml:space="preserve"><value>إرسال الدعوة</value></data>
+  <data name="Name" xml:space="preserve"><value>الاسم</value></data>
+  <data name="KnowledgeOwner" xml:space="preserve"><value>مالك المعرفة</value></data>
+  <data name="Status" xml:space="preserve"><value>الحالة</value></data>
+  <data name="Reactivate" xml:space="preserve"><value>إعادة التفعيل</value></data>
+  <data name="Deactivate" xml:space="preserve"><value>إيقاف</value></data>
+  <data name="InviteSent" xml:space="preserve"><value>تم إرسال الدعوة.</value></data>
+  <data name="Saved" xml:space="preserve"><value>تم الحفظ.</value></data>
+  <data name="LastOwner" xml:space="preserve"><value>تحتاج المؤسسة إلى مالك نشط واحد على الأقل.</value></data>
+  <data name="NotAllowed" xml:space="preserve"><value>غير مسموح لك بذلك.</value></data>
+  <data name="TeamName" xml:space="preserve"><value>اسم الفريق</value></data>
+  <data name="CreateTeam" xml:space="preserve"><value>إنشاء فريق</value></data>
+  <data name="AddMember" xml:space="preserve"><value>إضافة عضو</value></data>
+  <data name="Workspaces" xml:space="preserve"><value>مساحات العمل</value></data>
+  <data name="WorkspaceName" xml:space="preserve"><value>اسم مساحة العمل</value></data>
+  <data name="Slug" xml:space="preserve"><value>الاسم المختصر</value></data>
+  <data name="SlugHelp" xml:space="preserve"><value>أحرف لاتينية صغيرة وأرقام وشرطات</value></data>
+  <data name="CreateWorkspace" xml:space="preserve"><value>إنشاء مساحة عمل</value></data>
+  <data name="NoWorkspaces" xml:space="preserve"><value>لست عضوًا في أي مساحة عمل بعد.</value></data>
+  <data name="Spaces" xml:space="preserve"><value>المساحات</value></data>
+  <data name="JoinToSeeSpaces" xml:space="preserve"><value>لا يرى المساحات إلا أعضاء مساحة العمل. أضف نفسك لتراها.</value></data>
+  <data name="Confidential" xml:space="preserve"><value>سرّي</value></data>
+  <data name="SpaceName" xml:space="preserve"><value>اسم المساحة</value></data>
+  <data name="HoldsPersonalData" xml:space="preserve"><value>تحتوي بيانات شخصية</value></data>
+  <data name="CreateSpace" xml:space="preserve"><value>إنشاء مساحة</value></data>
+  <data name="Members" xml:space="preserve"><value>الأعضاء</value></data>
+  <data name="AiShort" xml:space="preserve"><value>الذكاء الاصطناعي</value></data>
+  <data name="AiNone" xml:space="preserve"><value>الذكاء الاصطناعي: لا وصول</value></data>
+  <data name="AiRead" xml:space="preserve"><value>يمكن للوكلاء القراءة</value></data>
+  <data name="AiWrite" xml:space="preserve"><value>يمكن للوكلاء الكتابة</value></data>
+  <data name="AiDelete" xml:space="preserve"><value>يمكن للوكلاء نقل الصفحات إلى سلة المحذوفات</value></data>
+  <data name="InvalidInput" xml:space="preserve"><value>تحقق من الاسم والاسم المختصر؛ قد يكون الاسم المختصر مستخدمًا.</value></data>
+  <data name="SpaceAdminsOnly" xml:space="preserve"><value>لا يدير هذه المساحة إلا مسؤولو المساحة ومساحة العمل.</value></data>
+  <data name="AiPolicy" xml:space="preserve"><value>سياسة الذكاء الاصطناعي</value></data>
+  <data name="AiPolicyHelp" xml:space="preserve"><value>ما يمكن للوكلاء المتصلين فعله في هذه المساحة. كل إعداد مستقل.</value></data>
+  <data name="Classification" xml:space="preserve"><value>التصنيف</value></data>
+  <data name="ConfidentialHelp" xml:space="preserve"><value>سرّي: لا يُعاد أي شيء من هذه المساحة إلى الوكلاء الخارجيين، ولا حتى العناوين.</value></data>
+  <data name="DeclassifyReason" xml:space="preserve"><value>سبب إلغاء السرية (مطلوب ومسجَّل)</value></data>
+  <data name="Declassify" xml:space="preserve"><value>إلغاء السرية</value></data>
+  <data name="MarkConfidential" xml:space="preserve"><value>تعليم كسرّي</value></data>
+  <data name="Remove" xml:space="preserve"><value>إزالة</value></data>
+  <data name="Team" xml:space="preserve"><value>فريق</value></data>
+  <data name="AddMemberOrTeam" xml:space="preserve"><value>إضافة شخص أو فريق</value></data>
+  <data name="Viewer" xml:space="preserve"><value>مشاهد</value></data>
+  <data name="Commenter" xml:space="preserve"><value>معلّق</value></data>
+  <data name="Editor" xml:space="preserve"><value>محرّر</value></data>
+  <data name="Memories" xml:space="preserve"><value>الذاكرة</value></data>
+  <data name="Wiki" xml:space="preserve"><value>الويكي</value></data>
+  <data name="Proposals" xml:space="preserve"><value>المقترحات</value></data>
+  <data name="Inbox" xml:space="preserve"><value>صندوق الالتقاط</value></data>
+  <data name="Scope" xml:space="preserve"><value>النطاق</value></data>
+  <data name="Type" xml:space="preserve"><value>النوع</value></data>
+  <data name="Project" xml:space="preserve"><value>المشروع</value></data>
+  <data name="Any" xml:space="preserve"><value>الكل</value></data>
+  <data name="StaleOnly" xml:space="preserve"><value>التجاوزات القديمة فقط</value></data>
+  <data name="Title" xml:space="preserve"><value>العنوان</value></data>
+  <data name="Revision" xml:space="preserve"><value>المراجعة</value></data>
+  <data name="Updated" xml:space="preserve"><value>آخر تحديث</value></data>
+  <data name="NoMemories" xml:space="preserve"><value>لا توجد ذكريات تطابق عوامل التصفية هذه.</value></data>
+  <data name="Edit" xml:space="preserve"><value>تعديل</value></data>
+  <data name="Save" xml:space="preserve"><value>حفظ</value></data>
+  <data name="Cancel" xml:space="preserve"><value>إلغاء</value></data>
+  <data name="Archive" xml:space="preserve"><value>أرشفة</value></data>
+  <data name="ArchiveConfirm" xml:space="preserve"><value>أرشفة هذه الذاكرة؟ سيتوقف الوكلاء عن استدعائها.</value></data>
+  <data name="Body" xml:space="preserve"><value>المحتوى (Markdown)</value></data>
+  <data name="Links" xml:space="preserve"><value>الروابط</value></data>
+  <data name="AddLink" xml:space="preserve"><value>إضافة رابط</value></data>
+  <data name="History" xml:space="preserve"><value>السجل</value></data>
+  <data name="SentForReview" xml:space="preserve"><value>أُرسل للمراجعة.</value></data>
+  <data name="ShadowOf" xml:space="preserve"><value>يتجاوز ذاكرة الشركة في هذا المشروع</value></data>
+  <data name="Stale" xml:space="preserve"><value>قديم</value></data>
+  <data name="Approve" xml:space="preserve"><value>اعتماد</value></data>
+  <data name="Reject" xml:space="preserve"><value>رفض</value></data>
+  <data name="Rebase" xml:space="preserve"><value>إعادة البناء على الأحدث</value></data>
+  <data name="Note" xml:space="preserve"><value>ملاحظة</value></data>
+  <data name="NoProposals" xml:space="preserve"><value>لا توجد مقترحات مفتوحة.</value></data>
+  <data name="ProposedChanges" xml:space="preserve"><value>التغييرات المقترحة</value></data>
+  <data name="TargetMoved" xml:space="preserve"><value>تغيّرت الذاكرة بعد تقديم هذا المقترح. أعد بناءه لمراجعته مقابل النص الحالي.</value></data>
+  <data name="Evidence" xml:space="preserve"><value>الأدلة</value></data>
+  <data name="InboxEmpty" xml:space="preserve"><value>لا شيء للمراجعة. تظهر هنا المقترحات المستخرجة من جلسات وكلائك.</value></data>
+  <data name="SuggestedScope" xml:space="preserve"><value>النطاق المقترح</value></data>
+  <data name="NotFound" xml:space="preserve"><value>غير موجود.</value></data>
+  <data name="Previous" xml:space="preserve"><value>السابق</value></data>
+  <data name="Next" xml:space="preserve"><value>التالي</value></data>
+  <data name="Scope_personal" xml:space="preserve"><value>شخصي</value></data>
+  <data name="Scope_team" xml:space="preserve"><value>الفريق</value></data>
+  <data name="Scope_project" xml:space="preserve"><value>المشروع</value></data>
+  <data name="Scope_company" xml:space="preserve"><value>الشركة</value></data>
+  <data name="Type_fact" xml:space="preserve"><value>حقيقة</value></data>
+  <data name="Type_decision" xml:space="preserve"><value>قرار</value></data>
+  <data name="Type_convention" xml:space="preserve"><value>عُرف</value></data>
+  <data name="Type_procedure" xml:space="preserve"><value>إجراء</value></data>
+  <data name="Type_policy" xml:space="preserve"><value>سياسة</value></data>
+  <data name="Type_preference" xml:space="preserve"><value>تفضيل</value></data>
+  <data name="Type_incident" xml:space="preserve"><value>حادثة</value></data>
+  <data name="Type_glossary" xml:space="preserve"><value>مسرد</value></data>
+  <data name="Status_active" xml:space="preserve"><value>نشطة</value></data>
+  <data name="Status_archived" xml:space="preserve"><value>مؤرشفة</value></data>
+  <data name="Status_superseded" xml:space="preserve"><value>مستبدلة</value></data>
+  <data name="Proposal_pending" xml:space="preserve"><value>قيد الانتظار</value></data>
+  <data name="Proposal_approved" xml:space="preserve"><value>معتمد</value></data>
+  <data name="Proposal_rejected" xml:space="preserve"><value>مرفوض</value></data>
+  <data name="Proposal_needs_rereview" xml:space="preserve"><value>يحتاج إلى مراجعة جديدة</value></data>
+  <data name="Kind_new" xml:space="preserve"><value>ذاكرة جديدة</value></data>
+  <data name="Kind_replace" xml:space="preserve"><value>استبدال</value></data>
+  <data name="Kind_evidence" xml:space="preserve"><value>أدلة</value></data>
+  <data name="Kind_skill" xml:space="preserve"><value>مهارة للشركة</value></data>
+  <data name="Audit" xml:space="preserve"><value>سجل التدقيق</value></data>
+  <data name="ActionStartsWith" xml:space="preserve"><value>الإجراء يبدأ بـ</value></data>
+  <data name="ResourceType" xml:space="preserve"><value>نوع المورد</value></data>
+  <data name="AuditHelp" xml:space="preserve"><value>تظهر التغييرات على الموارد التي لا يمكنك قراءتها الآن كـ [restricted].</value></data>
+  <data name="When" xml:space="preserve"><value>الوقت</value></data>
+  <data name="Action" xml:space="preserve"><value>الإجراء</value></data>
+  <data name="Resource" xml:space="preserve"><value>المورد</value></data>
+  <data name="Actor" xml:space="preserve"><value>المنفّذ</value></data>
+  <data name="Credential" xml:space="preserve"><value>بيانات الاعتماد</value></data>
+  <data name="ClaimedClient" xml:space="preserve"><value>العميل المُدّعى (غير موثّق)</value></data>
+  <data name="Change" xml:space="preserve"><value>قبل ← بعد</value></data>
+  <data name="Tokens" xml:space="preserve"><value>رموز الوصول</value></data>
+  <data name="ConnectAgent" xml:space="preserve"><value>اربط وكيلك</value></data>
+  <data name="TokensHelp" xml:space="preserve"><value>تتيح رموز الوصول الشخصية للوكلاء مثل Claude Code استدعاء أثر نيابة عنك. وهي وكلاء خارجيون: لا ترى المحتوى السري أبدًا.</value></data>
+  <data name="AllTokens" xml:space="preserve"><value>رموز المؤسسة</value></data>
+  <data name="NewToken" xml:space="preserve"><value>رمز جديد</value></data>
+  <data name="TokenName" xml:space="preserve"><value>الاسم</value></data>
+  <data name="TokenNameHelp" xml:space="preserve"><value>مثلًا: الحاسوب، Claude Code</value></data>
+  <data name="Expires" xml:space="preserve"><value>ينتهي</value></data>
+  <data name="Days" xml:space="preserve"><value>{0} يومًا</value></data>
+  <data name="Never" xml:space="preserve"><value>أبدًا</value></data>
+  <data name="CreateToken" xml:space="preserve"><value>إنشاء رمز</value></data>
+  <data name="CopyTokenNow" xml:space="preserve"><value>انسخ هذا الرمز الآن. لن يُعرض مرة أخرى.</value></data>
+  <data name="Scopes" xml:space="preserve"><value>الصلاحيات</value></data>
+  <data name="Disclosure" xml:space="preserve"><value>الفئة</value></data>
+  <data name="ExternalAgent" xml:space="preserve"><value>وكيل خارجي</value></data>
+  <data name="TrustedLocal" xml:space="preserve"><value>محلي موثوق</value></data>
+  <data name="LastUsed" xml:space="preserve"><value>آخر استخدام</value></data>
+  <data name="Actions" xml:space="preserve"><value>إجراءات</value></data>
+  <data name="Revoke" xml:space="preserve"><value>إلغاء</value></data>
+  <data name="Revoked" xml:space="preserve"><value>مُلغى</value></data>
+  <data name="ClassifyReason" xml:space="preserve"><value>سبب تعليم الرمز كمحلي موثوق (مطلوب ومسجَّل)</value></data>
+  <data name="MakeTrustedLocal" xml:space="preserve"><value>جعله محليًا موثوقًا</value></data>
+  <data name="MakeExternal" xml:space="preserve"><value>جعله وكيلًا خارجيًا</value></data>
+  <data name="TrustedLocalHelp" xml:space="preserve"><value>لا يعلّم الرمز كمحلي موثوق إلا المالكون، ولعميل يعمل كليًا على خادم ونموذج تتحكم بهما الشركة فقط.</value></data>
+  <data name="OAuthSignIn" xml:space="preserve"><value>سجّل الدخول لربط تطبيق</value></data>
+  <data name="OAuthSignInHelp" xml:space="preserve"><value>يطلب تطبيق استخدام أثر نيابةً عنك. سجّل الدخول للمتابعة؛ هذا لا يسجّل دخولك إلى تطبيق أثر على الويب.</value></data>
+  <data name="ConsentTitle" xml:space="preserve"><value>ربط تطبيق</value></data>
+  <data name="ConsentAsk" xml:space="preserve"><value>السماح لـ {0} باستخدام أثر نيابةً عنك، بما يلي:</value></data>
+  <data name="ConsentReturnsTo" xml:space="preserve"><value>بعد ردّك ستعود إلى {0}.</value></data>
+  <data name="ConsentHelp" xml:space="preserve"><value>إنه وكيل خارجي: لا يرى المحتوى السري أبدًا. يمكنك فصله في أي وقت من صفحة رموز الوصول.</value></data>
+  <data name="Allow" xml:space="preserve"><value>سماح</value></data>
+  <data name="Deny" xml:space="preserve"><value>رفض</value></data>
+  <data name="Scope_read" xml:space="preserve"><value>قراءة الصفحات والذكريات التي يمكنك قراءتها</value></data>
+  <data name="Scope_write" xml:space="preserve"><value>تعديل الصفحات التي يمكنك تحريرها</value></data>
+  <data name="Scope_memory_write" xml:space="preserve"><value>حفظ الذكريات</value></data>
+  <data name="Scope_pages_delete" xml:space="preserve"><value>نقل الصفحات إلى سلة المحذوفات</value></data>
+  <data name="Scope_offline_access" xml:space="preserve"><value>البقاء متصلًا (حتى 30 يومًا)</value></data>
+  <data name="ConnectedApps" xml:space="preserve"><value>التطبيقات المتصلة</value></data>
+  <data name="NoConnectedApps" xml:space="preserve"><value>لا توجد تطبيقات متصلة.</value></data>
+  <data name="Disconnect" xml:space="preserve"><value>فصل</value></data>
+  <data name="MudChip_Close" xml:space="preserve"><value>إزالة</value></data>
+  <data name="MudAlert_Close" xml:space="preserve"><value>إغلاق</value></data>
+  <data name="MudDialog_Close" xml:space="preserve"><value>إغلاق</value></data>
+  <data name="MudSnackbar_Close" xml:space="preserve"><value>إغلاق</value></data>
+  <data name="MudInput_Clear" xml:space="preserve"><value>مسح</value></data>
+  <data name="NoAuditEvents" xml:space="preserve"><value>لا توجد أحداث تطابق هذه المرشحات.</value></data>
+  <data name="NoTokens" xml:space="preserve"><value>لا توجد رموز وصول بعد.</value></data>
+  <data name="Menu" xml:space="preserve"><value>القائمة</value></data>
+  <data name="Search" xml:space="preserve"><value>بحث</value></data>
+  <data name="SearchFor" xml:space="preserve"><value>ابحث في الصفحات والذاكرة</value></data>
+  <data name="SearchIn" xml:space="preserve"><value>البحث في</value></data>
+  <data name="All" xml:space="preserve"><value>الكل</value></data>
+  <data name="Pages" xml:space="preserve"><value>الصفحات</value></data>
+  <data name="Page" xml:space="preserve"><value>صفحة</value></data>
+  <data name="Memory" xml:space="preserve"><value>ذاكرة</value></data>
+  <data name="SearchDegraded" xml:space="preserve"><value>تُعرض مطابقات الكلمات فقط: البحث بالمعنى غير متاح الآن.</value></data>
+  <data name="SearchCount" xml:space="preserve"><value>{0} نتيجة</value></data>
+  <data name="SearchNoResults" xml:space="preserve"><value>لا شيء مما يمكنك رؤيته يطابق هذا البحث.</value></data>
+  <data name="Accept" xml:space="preserve"><value>قبول</value></data>
+  <data name="Discard" xml:space="preserve"><value>تجاهل</value></data>
+  <data name="Similar" xml:space="preserve"><value>ذكريات مشابهة (لم تُدمج)</value></data>
+  <data name="Breadcrumb" xml:space="preserve"><value>مسار التنقل</value></data>
+  <data name="MoreActions" xml:space="preserve"><value>إجراءات أخرى</value></data>
+  <data name="NothingHereYet" xml:space="preserve"><value>لا يوجد شيء هنا بعد</value></data>
+  <data name="JustNow" xml:space="preserve"><value>الآن</value></data>
+  <data name="MinutesAgo" xml:space="preserve"><value>قبل {0} د</value></data>
+  <data name="HoursAgo" xml:space="preserve"><value>قبل {0} س</value></data>
+  <data name="DaysAgo" xml:space="preserve"><value>قبل {0} يوم</value></data>
+  <data name="Reason" xml:space="preserve"><value>السبب</value></data>
+  <data name="NoAccessTitle" xml:space="preserve"><value>ليس لديك صلاحية الوصول إلى هذه الصفحة</value></data>
+  <data name="NoAccessText" xml:space="preserve"><value>اطلب ذلك من أحد مسؤولي المؤسسة إن كنت بحاجة إليها.</value></data>
+  <data name="BackHome" xml:space="preserve"><value>العودة إلى الرئيسية</value></data>
+  <data name="MainNavigation" xml:space="preserve"><value>التنقل الرئيسي</value></data>
+  <data name="Home" xml:space="preserve"><value>الرئيسية</value></data>
+  <data name="Athar" xml:space="preserve"><value>أثر</value></data>
+  <data name="NavBrain" xml:space="preserve"><value>الذاكرة المشتركة</value></data>
+  <data name="NavManage" xml:space="preserve"><value>الإدارة</value></data>
+  <data name="InboxCount" xml:space="preserve"><value>{0} بانتظار المراجعة في صندوق الالتقاط</value></data>
+  <data name="ProposalCount" xml:space="preserve"><value>{0} مقترحات بانتظار القرار</value></data>
+  <data name="SkipToContent" xml:space="preserve"><value>تخطَّ إلى المحتوى</value></data>
+  <data name="SearchPlaceholder" xml:space="preserve"><value>ابحث في الصفحات والذاكرات والمصادر</value></data>
+  <data name="AccountMenu" xml:space="preserve"><value>قائمة الحساب</value></data>
+  <data name="Language" xml:space="preserve"><value>اللغة</value></data>
+  <data name="Theme" xml:space="preserve"><value>المظهر</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>حسب النظام</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>فاتح</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>داكن</value></data>
+  <data name="UnhandledError" xml:space="preserve"><value>حدث خطأ وتوقفت هذه الصفحة عن العمل.</value></data>
+  <data name="Reload" xml:space="preserve"><value>إعادة التحميل</value></data>
+  <data name="Dismiss" xml:space="preserve"><value>إغلاق</value></data>
+  <data name="SignInTitle" xml:space="preserve"><value>تسجيل الدخول إلى أثر</value></data>
+  <data name="SignInLead" xml:space="preserve"><value>ويكي فريقك والذاكرة التي يتشاركها وكلاؤك.</value></data>
+  <data name="AuthTagline" xml:space="preserve"><value>اكتبوا المعرفة معًا. يتذكّرها الوكلاء حسب النطاق ومع مصادرها، ويعتمد أصحابها ما يُلزِم الجميع.</value></data>
+  <data name="ResetYourPassword" xml:space="preserve"><value>إعادة تعيين كلمة المرور</value></data>
+  <data name="ForgotPasswordLead" xml:space="preserve"><value>أدخل بريدك الإلكتروني وسنرسل إليك رابطًا لاختيار كلمة مرور جديدة.</value></data>
+  <data name="BackToSignIn" xml:space="preserve"><value>العودة إلى تسجيل الدخول</value></data>
+  <data name="ChooseNewPassword" xml:space="preserve"><value>اختر كلمة مرور جديدة</value></data>
+  <data name="ResetLinkInvalid" xml:space="preserve"><value>رابط إعادة التعيين هذا غير مكتمل أو انتهت صلاحيته.</value></data>
+  <data name="RequestNewLink" xml:space="preserve"><value>اطلب رابطًا جديدًا</value></data>
+  <data name="PasswordRule" xml:space="preserve"><value>12 حرفًا على الأقل.</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>تأكيد كلمة المرور</value></data>
+  <data name="PasswordsDontMatch" xml:space="preserve"><value>كلمتا المرور غير متطابقتين.</value></data>
+  <data name="JoinAthar" xml:space="preserve"><value>الانضمام إلى أثر</value></data>
+  <data name="OAuthRequestedBy" xml:space="preserve"><value>يطلب {0} الاتصال بأثر.</value></data>
+  <data name="HomeLead" xml:space="preserve"><value>هذا ما ينتظرك، ومن حيث توقفت.</value></data>
+  <data name="WaitingForYou" xml:space="preserve"><value>بانتظارك</value></data>
+  <data name="NothingWaiting" xml:space="preserve"><value>لا شيء بانتظارك</value></data>
+  <data name="NothingWaitingText" xml:space="preserve"><value>ستظهر هنا الالتقاطات الجديدة والمقترحات التي يمكنك البتّ فيها.</value></data>
+  <data name="RecentlyEdited" xml:space="preserve"><value>عُدِّلت مؤخرًا</value></data>
+  <data name="NoRecentPages" xml:space="preserve"><value>لا توجد صفحات بعد</value></data>
+  <data name="YourSpaces" xml:space="preserve"><value>مساحاتك</value></data>
+  <data name="AllSpaces" xml:space="preserve"><value>كل المساحات</value></data>
+  <data name="RecentMemories" xml:space="preserve"><value>ذاكرات حديثة</value></data>
+  <data name="AllMemories" xml:space="preserve"><value>كل الذاكرات</value></data>
+  <data name="GoodMorning" xml:space="preserve"><value>صباح الخير يا {0}</value></data>
+  <data name="GoodAfternoon" xml:space="preserve"><value>مساء الخير يا {0}</value></data>
+  <data name="GoodEvening" xml:space="preserve"><value>مساء الخير يا {0}</value></data>
+  <data name="WaitingInbox" xml:space="preserve"><value>{0} مُلتقَطة من جلسات الوكلاء بانتظار مراجعتك</value></data>
+  <data name="WaitingProposals" xml:space="preserve"><value>{0} مقترحات بانتظار قرار</value></data>
+  <data name="WaitingStale" xml:space="preserve"><value>{0} من تجاوزات المشاريع لم تعد متوافقة مع ذاكرة الشركة</value></data>
+  <data name="Review" xml:space="preserve"><value>مراجعة</value></data>
+  <data name="WelcomeTabTitle" xml:space="preserve"><value>ويكي الفريق والذاكرة التي يتشاركها وكلاؤك</value></data>
+  <data name="HowItWorks" xml:space="preserve"><value>كيف يعمل</value></data>
+  <data name="Governance" xml:space="preserve"><value>الحوكمة</value></data>
+  <data name="ForAgents" xml:space="preserve"><value>للوكلاء</value></data>
+  <data name="WelcomeHeadline" xml:space="preserve"><value>ويكي فريقك. ذاكرة وكلائك. سجل واحد.</value></data>
+  <data name="WelcomeLead" xml:space="preserve"><value>صفحات وقرارات وجلسات وكلاء، مصنّفة حسب النطاق ومعتمدة من أصحابها. اسأل بالعربية أو الإنجليزية واحصل على إجابات مع مصادرها.</value></data>
+  <data name="ConnectAnAgent" xml:space="preserve"><value>اربط وكيلًا</value></data>
+  <data name="ExampleLedger" xml:space="preserve"><value>مثال على سجل الذاكرة</value></data>
+  <data name="MemoryRegister" xml:space="preserve"><value>سجل الذاكرة</value></data>
+  <data name="Example" xml:space="preserve"><value>مثال</value></data>
+  <data name="Approved" xml:space="preserve"><value>معتمدة</value></data>
+  <data name="Proposed" xml:space="preserve"><value>مقترحة</value></data>
+  <data name="ExDeploys" xml:space="preserve"><value>النشر إلى الإنتاج يحتاج موافقتين</value></data>
+  <data name="ExByOwner" xml:space="preserve"><value>اعتمدها مسؤول معرفة DevOps</value></data>
+  <data name="ExPnpm" xml:space="preserve"><value>استخدم pnpm لحزم Node</value></data>
+  <data name="ExByClaude" xml:space="preserve"><value>تذكّرها Claude Code</value></data>
+  <data name="ExRetention" xml:space="preserve"><value>تُحفظ سجلات الجلسات 30 يومًا</value></data>
+  <data name="ExByCodex" xml:space="preserve"><value>اقترحها Codex، بانتظار الموارد البشرية</value></data>
+  <data name="ExOnCall" xml:space="preserve"><value>تسليم المناوبة في فريق المنصة</value></data>
+  <data name="ExByMember" xml:space="preserve"><value>كتبها أحد أعضاء الفريق</value></data>
+  <data name="StepWriteTitle" xml:space="preserve"><value>اكتبوا معًا</value></data>
+  <data name="StepWriteText" xml:space="preserve"><value>المواصفات وأدلة التشغيل والقرارات في ويكي واحد، يُحرَّر مباشرة مع التعليقات والإصدارات والمشاركة.</value></data>
+  <data name="StepRememberTitle" xml:space="preserve"><value>التذكّر حسب النطاق</value></data>
+  <data name="StepRememberText" xml:space="preserve"><value>يتذكّر الوكلاء ما تعلّمته الجلسة، مصنّفًا معرفةً شخصية أو للمشروع أو للفريق أو للشركة. وتُلتقط الجلسات في صندوق للمراجعة.</value></data>
+  <data name="StepAnswerTitle" xml:space="preserve"><value>إجابات مع مصادرها</value></data>
+  <data name="StepAnswerText" xml:space="preserve"><value>يبحث الوكلاء والناس في الويكي وGitHub والذاكرات معًا، بالعربية والإنجليزية، وكل إجابة تذكر مصدرها.</value></data>
+  <data name="GovernanceLead" xml:space="preserve"><value>لكل ذاكرة نطاق، والنطاق يحدد من يحق له تغييرها.</value></data>
+  <data name="RuleCompany" xml:space="preserve"><value>للقراءة فقط للجميع عدا مسؤولي المعرفة. يقترح الوكلاء والأعضاء ويعتمد المسؤولون.</value></data>
+  <data name="RuleProject" xml:space="preserve"><value>يكتب أعضاء المشروع. ويمكن للمشروع تجاوز ذاكرة الشركة محليًا دون تغييرها.</value></data>
+  <data name="RuleTeam" xml:space="preserve"><value>يكتب أعضاء الفريق ويشاركونها مع وكلائهم.</value></data>
+  <data name="RulePersonal" xml:space="preserve"><value>لك ولوكلائك فقط.</value></data>
+  <data name="AgentsLead" xml:space="preserve"><value>يتصل Claude Code وCodex عبر MCP برمز وصول شخصي أو OAuth. وكل تغيير يجرونه مسجَّل في سجل التدقيق.</value></data>
+  <data name="McpEndpoint" xml:space="preserve"><value>عنوان MCP</value></data>
+  <data name="AgentsNote" xml:space="preserve"><value>سجّل الدخول وأنشئ رمز وصول من قائمة حسابك، ثم أضف هذا العنوان إلى وكيلك.</value></data>
+  <data name="FooterLine" xml:space="preserve"><value>منصة معرفة لفريقك ووكلائه.</value></data>
+  <data name="NotFoundTitle" xml:space="preserve"><value>هذه الصفحة غير موجودة</value></data>
+  <data name="NotFoundText" xml:space="preserve"><value>ربما يكون الرابط قديمًا، أو نُقلت الصفحة أو حُذفت.</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>حدث خطأ ما</value></data>
+  <data name="ErrorText" xml:space="preserve"><value>تعذّر إكمال الطلب. حاول مرة أخرى أو عد إلى الصفحة الرئيسية.</value></data>
+  <data name="RequestId" xml:space="preserve"><value>معرّف الطلب</value></data>
+  <data name="Reconnecting" xml:space="preserve"><value>جارٍ إعادة الاتصال بالخادم…</value></data>
+  <data name="ReconnectRetry" xml:space="preserve"><value>تعذّرت إعادة الاتصال. محاولة جديدة بعد (ثوانٍ):</value></data>
+  <data name="ReconnectFailed" xml:space="preserve"><value>تعذّرت إعادة الاتصال. أعد المحاولة أو أعد تحميل الصفحة.</value></data>
+  <data name="Retry" xml:space="preserve"><value>إعادة المحاولة</value></data>
+  <data name="SessionPaused" xml:space="preserve"><value>أوقف الخادم هذه الجلسة مؤقتًا.</value></data>
+  <data name="ResumeFailed" xml:space="preserve"><value>تعذّر استئناف الجلسة. أعد المحاولة أو أعد تحميل الصفحة.</value></data>
+  <data name="Resume" xml:space="preserve"><value>استئناف</value></data>
+  <data name="ShareNotFoundTitle" xml:space="preserve"><value>غير موجود</value></data>
+  <data name="ShareNotFound" xml:space="preserve"><value>هذا الرابط غير موجود.</value></data>
+  <data name="ShareGoneTitle" xml:space="preserve"><value>الرابط غير متاح</value></data>
+  <data name="ShareGone" xml:space="preserve"><value>انتهت صلاحية هذا الرابط أو أُلغي.</value></data>
+  <data name="ShareFileMissing" xml:space="preserve"><value>هذا الملف ليس ضمن المشاركة.</value></data>
+  <data name="SharePageMissing" xml:space="preserve"><value>هذه الصفحة ليست ضمن المشاركة.</value></data>
+  <data name="ShareBadRequestTitle" xml:space="preserve"><value>طلب غير صالح</value></data>
+  <data name="ShareBadRequest" xml:space="preserve"><value>أعد تحميل الصفحة وحاول مرة أخرى.</value></data>
+  <data name="ShareTooManyTitle" xml:space="preserve"><value>محاولات كثيرة جدًا</value></data>
+  <data name="ShareTooMany" xml:space="preserve"><value>كلمات مرور خاطئة كثيرة. حاول لاحقًا.</value></data>
+  <data name="ShareWrongPassword" xml:space="preserve"><value>كلمة المرور هذه خاطئة.</value></data>
+  <data name="SharePages" xml:space="preserve"><value>الصفحات</value></data>
+  <data name="SharePasswordTitle" xml:space="preserve"><value>كلمة المرور مطلوبة</value></data>
+  <data name="ShareProtected" xml:space="preserve"><value>هذه الصفحة محمية</value></data>
+  <data name="ShareProtectedText" xml:space="preserve"><value>أدخل كلمة المرور التي أُعطيت لك مع الرابط.</value></data>
+  <data name="ShareOpen" xml:space="preserve"><value>فتح</value></data>
+  <data name="ShareReadOnly" xml:space="preserve"><value>للقراءة فقط</value></data>
+  <data name="ShareSharedFrom" xml:space="preserve"><value>مُشارَكة من ويكي فريق</value></data>
+  <data name="Access" xml:space="preserve"><value>الوصول</value></data>
+  <data name="AccessExternalAgent" xml:space="preserve"><value>وكيل خارجي</value></data>
+  <data name="AccessTrustedLocal" xml:space="preserve"><value>محلي موثوق</value></data>
+  <data name="Add" xml:space="preserve"><value>إضافة</value></data>
+  <data name="After" xml:space="preserve"><value>بعد</value></data>
+  <data name="App" xml:space="preserve"><value>التطبيق</value></data>
+  <data name="Before" xml:space="preserve"><value>قبل</value></data>
+  <data name="ChangeRole" xml:space="preserve"><value>تغيير الدور</value></data>
+  <data name="ClientAsReported" xml:space="preserve"><value>العميل (كما أبلغ عن نفسه)</value></data>
+  <data name="Close" xml:space="preserve"><value>إغلاق</value></data>
+  <data name="ConnectedOn" xml:space="preserve"><value>تاريخ الربط</value></data>
+  <data name="Copied" xml:space="preserve"><value>تم النسخ</value></data>
+  <data name="CopyFailed" xml:space="preserve"><value>تعذّر النسخ. حدّد الرمز وانسخه بنفسك.</value></data>
+  <data name="CopyToken" xml:space="preserve"><value>نسخ الرمز</value></data>
+  <data name="DeactivateConfirm" xml:space="preserve"><value>هل تريد تعطيل {0}؟ سيُسجَّل خروجه ولن يتمكن من تسجيل الدخول حتى يعيد أحدٌ تفعيله.</value></data>
+  <data name="Deactivated" xml:space="preserve"><value>معطّل</value></data>
+  <data name="DeclassifyWhy" xml:space="preserve"><value>سيتمكن الوكلاء الخارجيون من رؤية هذه المساحة مجددًا في حدود سياسة الذكاء الاصطناعي الخاصة بها. يُحفظ السبب في سجل التدقيق.</value></data>
+  <data name="DisconnectConfirm" xml:space="preserve"><value>هل تريد فصل {0}؟ لن يتمكن من استخدام أثر باسمك حتى تربطه من جديد.</value></data>
+  <data name="Done" xml:space="preserve"><value>تم</value></data>
+  <data name="Expired" xml:space="preserve"><value>منتهي الصلاحية</value></data>
+  <data name="Export" xml:space="preserve"><value>تصدير</value></data>
+  <data name="ExportCsv" xml:space="preserve"><value>ملف CSV</value></data>
+  <data name="ExportJson" xml:space="preserve"><value>ملف JSON</value></data>
+  <data name="Filters" xml:space="preserve"><value>عوامل التصفية</value></data>
+  <data name="IpAddress" xml:space="preserve"><value>عنوان IP</value></data>
+  <data name="MakeExternalHelp" xml:space="preserve"><value>سيُعامَل {0} كوكيل خارجي ولن يرى المحتوى السري بعد الآن.</value></data>
+  <data name="MakeKnowledgeOwner" xml:space="preserve"><value>تعيين مالكًا للمعرفة</value></data>
+  <data name="MakeKnowledgeOwnerConfirm" xml:space="preserve"><value>هل تريد تعيين {0} مالكًا للمعرفة؟ سيتمكن من اعتماد ذاكرة الشركة وتعديلها.</value></data>
+  <data name="MemberCount" xml:space="preserve"><value>الأعضاء: {0}</value></data>
+  <data name="NewSpace" xml:space="preserve"><value>مساحة جديدة</value></data>
+  <data name="NewTeam" xml:space="preserve"><value>فريق جديد</value></data>
+  <data name="NewWorkspace" xml:space="preserve"><value>مساحة عمل جديدة</value></data>
+  <data name="NoMembers" xml:space="preserve"><value>لا يوجد أعضاء بعد</value></data>
+  <data name="NoPeopleMatch" xml:space="preserve"><value>لا أحد يطابق هذا البحث</value></data>
+  <data name="NoSpaces" xml:space="preserve"><value>لا توجد مساحات بعد</value></data>
+  <data name="NoTeams" xml:space="preserve"><value>لا توجد فرق بعد</value></data>
+  <data name="NoTeamsHelp" xml:space="preserve"><value>تجمع الفرق الأشخاص لتمنح فريقًا كاملًا صلاحية الوصول إلى مساحة دفعةً واحدة.</value></data>
+  <data name="NoTokensHelp" xml:space="preserve"><value>أنشئ رمزًا لربط وكيل مثل Claude Code.</value></data>
+  <data name="NotConfidentialHelp" xml:space="preserve"><value>غير سرية: يمكن للوكلاء الخارجيين رؤية هذه المساحة في حدود سياسة الذكاء الاصطناعي الخاصة بها.</value></data>
+  <data name="OpenInWiki" xml:space="preserve"><value>فتح في الويكي</value></data>
+  <data name="ReactivateConfirm" xml:space="preserve"><value>هل تريد إعادة تفعيل {0}؟ سيتمكن من تسجيل الدخول مجددًا.</value></data>
+  <data name="RemoveKnowledgeOwner" xml:space="preserve"><value>إلغاء صفة مالك المعرفة</value></data>
+  <data name="RemoveKnowledgeOwnerConfirm" xml:space="preserve"><value>هل تريد إلغاء صفة مالك المعرفة عن {0}؟ لن يتمكن بعد ذلك من اعتماد ذاكرة الشركة.</value></data>
+  <data name="RemoveMemberConfirm" xml:space="preserve"><value>هل تريد إزالة {0}؟ سيفقد صلاحيات الوصول التي تمنحها هذه العضوية.</value></data>
+  <data name="ResourceId" xml:space="preserve"><value>معرّف المورد</value></data>
+  <data name="RevokeTokenConfirm" xml:space="preserve"><value>هل تريد إلغاء {0}؟ سيفقد كل ما يستخدم هذا الرمز صلاحية الوصول فورًا.</value></data>
+  <data name="SearchPeople" xml:space="preserve"><value>البحث بالاسم أو البريد الإلكتروني</value></data>
+  <data name="ShowDetails" xml:space="preserve"><value>عرض التفاصيل</value></data>
+  <data name="Space" xml:space="preserve"><value>المساحة</value></data>
+  <data name="SpaceSettings" xml:space="preserve"><value>إعدادات المساحة</value></data>
+  <data name="UrlName" xml:space="preserve"><value>الاسم في الرابط</value></data>
+  <data name="UrlNameHelp" xml:space="preserve"><value>يُستخدم في الروابط. أحرف لاتينية صغيرة وأرقام وشرطات.</value></data>
+  <data name="UserAgent" xml:space="preserve"><value>وكيل المستخدم</value></data>
+  <data name="ResType_page" xml:space="preserve"><value>صفحة</value></data>
+  <data name="ResType_space" xml:space="preserve"><value>مساحة</value></data>
+  <data name="ResType_memory" xml:space="preserve"><value>ذاكرة</value></data>
+  <data name="ResType_user" xml:space="preserve"><value>مستخدم</value></data>
+  <data name="ResType_team" xml:space="preserve"><value>فريق</value></data>
+  <data name="ResType_workspace" xml:space="preserve"><value>مساحة عمل</value></data>
+  <data name="ResType_invitation" xml:space="preserve"><value>دعوة</value></data>
+  <data name="ResType_organization" xml:space="preserve"><value>المؤسسة</value></data>
+  <data name="ResType_token" xml:space="preserve"><value>رمز وصول</value></data>
+  <data name="ScopeShort_read" xml:space="preserve"><value>قراءة</value></data>
+  <data name="ScopeShort_write" xml:space="preserve"><value>تعديل الصفحات</value></data>
+  <data name="ScopeShort_memory_write" xml:space="preserve"><value>حفظ الذكريات</value></data>
+  <data name="ScopeShort_pages_delete" xml:space="preserve"><value>نقل الصفحات إلى سلة المحذوفات</value></data>
+  <data name="ScopeShort_offline_access" xml:space="preserve"><value>البقاء متصلًا</value></data>
+  <data name="Open" xml:space="preserve"><value>فتح</value></data>
+  <data name="OnlyStaleOverrides" xml:space="preserve"><value>التجاوزات القديمة فقط</value></data>
+  <data name="MemoriesHelp" xml:space="preserve"><value>ما يتذكره وكلاؤك وفريقك، مصنَّفًا حسب النطاق.</value></data>
+  <data name="StaleHelp" xml:space="preserve"><value>تغيّرت ذاكرة الشركة التي يتجاوزها هذا منذ ذلك الحين.</value></data>
+  <data name="Pagination" xml:space="preserve"><value>التنقل بين الصفحات</value></data>
+  <data name="PagerRange" xml:space="preserve"><value>{0}–{1} من {2}</value></data>
+  <data name="NoLinks" xml:space="preserve"><value>لا توجد روابط بعد.</value></data>
+  <data name="MarkConfidentialConfirm" xml:space="preserve"><value>تعليم هذه الذاكرة كسرّية؟ ستصبح تجاوزاتها في المشاريع ومقترحاتها المفتوحة سرّية أيضًا.</value></data>
+  <data name="MemoryNotFound" xml:space="preserve"><value>هذه الذاكرة غير موجودة، أو لا يمكنك رؤيتها.</value></data>
+  <data name="BackToMemories" xml:space="preserve"><value>العودة إلى الذاكرة</value></data>
+  <data name="InboxHelp" xml:space="preserve"><value>عناصر التُقطت من جلسات وكلائك. عدّلها ثم اقبلها أو تجاهلها. يُرسَل عنصر الشركة إلى مسؤول المعرفة لمراجعته.</value></data>
+  <data name="InboxEmptyTitle" xml:space="preserve"><value>لا شيء للمراجعة</value></data>
+  <data name="InboxEmptyText" xml:space="preserve"><value>تظهر هنا العناصر المستخرجة من جلسات وكلائك.</value></data>
+  <data name="DiscardConfirm" xml:space="preserve"><value>تجاهل هذا العنصر؟ لن يصبح ذاكرة.</value></data>
+  <data name="SimilarMemoryN" xml:space="preserve"><value>ذاكرة مشابهة {0}</value></data>
+  <data name="ProposalsHelpOwner" xml:space="preserve"><value>مقترحات مفتوحة لتغيير الذاكرة تنتظر قرارك.</value></data>
+  <data name="ProposalsHelpMember" xml:space="preserve"><value>المقترحات التي قدّمتها وما آلت إليه.</value></data>
+  <data name="TargetMovedUpdate" xml:space="preserve"><value>تغيّرت الذاكرة بعد تقديم هذا المقترح. حدّثه إلى أحدث نص قبل مراجعته.</value></data>
+  <data name="RejectWithNote" xml:space="preserve"><value>الرفض مع ملاحظة</value></data>
+  <data name="RejectHelp" xml:space="preserve"><value>سيرى مقدّم المقترح هذه الملاحظة.</value></data>
+  <data name="UpdateToLatest" xml:space="preserve"><value>التحديث إلى الأحدث</value></data>
+  <data name="EvidencePage" xml:space="preserve"><value>الصفحة المصدر</value></data>
+  <data name="Evidence_session" xml:space="preserve"><value>جلسة وكيل</value></data>
+  <data name="Evidence_conflict" xml:space="preserve"><value>تعارض</value></data>
+  <data name="TypeToSearch" xml:space="preserve"><value>اكتب للبحث</value></data>
+  <data name="SearchHelp" xml:space="preserve"><value>يعثر على الصفحات والذكريات التي يمكنك قراءتها، بالعربية والإنجليزية.</value></data>
+  <data name="Source" xml:space="preserve"><value>مصدر</value></data>
+  <data name="PendingInvitations" xml:space="preserve"><value>دعوات لم تُقبَل بعد</value></data>
+  <data name="Sent" xml:space="preserve"><value>أُرسلت</value></data>
+  <data name="ExpiresOn" xml:space="preserve"><value>تنتهي في</value></data>
+  <data name="ResendInvite" xml:space="preserve"><value>إرسال رابط جديد</value></data>
+  <data name="RevokeInvite" xml:space="preserve"><value>سحب الدعوة</value></data>
+  <data name="RevokeInviteConfirm" xml:space="preserve"><value>سحب الدعوة الموجّهة إلى {0}؟ سيتوقف الرابط عن العمل.</value></data>
+  <data name="InviteResent" xml:space="preserve"><value>أُرسل رابط جديد.</value></data>
+  <data name="InviteRevoked" xml:space="preserve"><value>سُحبت الدعوة.</value></data>
+  <data name="ChangedBy" xml:space="preserve"><value>عدّلها</value></data>
+  <data name="FormerMember" xml:space="preserve"><value>عضو سابق</value></data>
+  <data name="Favorites" xml:space="preserve"><value>المفضلة</value></data>
+  <data name="Favorite" xml:space="preserve"><value>إضافة إلى المفضلة</value></data>
+  <data name="Appearance" xml:space="preserve"><value>المظهر</value></data>
+  <data name="AppearanceHelp" xml:space="preserve"><value>الشارة التي تظهر في القوائم والمفضلة.</value></data>
+  <data name="Color" xml:space="preserve"><value>اللون</value></data>
+  <data name="Icon" xml:space="preserve"><value>الأيقونة</value></data>
+  <data name="AutomaticColor" xml:space="preserve"><value>لون تلقائي</value></data>
+  <data name="Initials" xml:space="preserve"><value>الأحرف الأولى</value></data>
+  <data name="Color_teal" xml:space="preserve"><value>أخضر مزرق</value></data>
+  <data name="Color_blue" xml:space="preserve"><value>أزرق</value></data>
+  <data name="Color_indigo" xml:space="preserve"><value>نيلي</value></data>
+  <data name="Color_purple" xml:space="preserve"><value>بنفسجي</value></data>
+  <data name="Color_pink" xml:space="preserve"><value>وردي</value></data>
+  <data name="Color_red" xml:space="preserve"><value>أحمر</value></data>
+  <data name="Color_orange" xml:space="preserve"><value>برتقالي</value></data>
+  <data name="Color_amber" xml:space="preserve"><value>كهرماني</value></data>
+  <data name="Color_green" xml:space="preserve"><value>أخضر</value></data>
+  <data name="Color_slate" xml:space="preserve"><value>رمادي</value></data>
+  <data name="Icon_code" xml:space="preserve"><value>برمجة</value></data>
+  <data name="Icon_rocket" xml:space="preserve"><value>صاروخ</value></data>
+  <data name="Icon_book" xml:space="preserve"><value>كتاب</value></data>
+  <data name="Icon_people" xml:space="preserve"><value>أشخاص</value></data>
+  <data name="Icon_build" xml:space="preserve"><value>أدوات</value></data>
+  <data name="Icon_cloud" xml:space="preserve"><value>سحابة</value></data>
+  <data name="Icon_security" xml:space="preserve"><value>أمان</value></data>
+  <data name="Icon_chart" xml:space="preserve"><value>مخطط</value></data>
+  <data name="Icon_idea" xml:space="preserve"><value>فكرة</value></data>
+  <data name="Icon_work" xml:space="preserve"><value>عمل</value></data>
+  <data name="Icon_school" xml:space="preserve"><value>تعلم</value></data>
+  <data name="Icon_support" xml:space="preserve"><value>دعم</value></data>
+  <data name="Icon_science" xml:space="preserve"><value>علوم</value></data>
+  <data name="Icon_palette" xml:space="preserve"><value>تصميم</value></data>
+  <data name="Icon_home" xml:space="preserve"><value>الرئيسية</value></data>
+  <data name="Icon_star" xml:space="preserve"><value>نجمة</value></data>
+  <data name="Settings" xml:space="preserve"><value>الإعدادات</value></data>
+  <data name="Security" xml:space="preserve"><value>الأمان</value></data>
+  <data name="SearchMembers" xml:space="preserve"><value>ابحث في الأعضاء</value></data>
+  <data name="Profile" xml:space="preserve"><value>الملف الشخصي</value></data>
+  <data name="ProfilePhoto" xml:space="preserve"><value>صورة الملف الشخصي</value></data>
+  <data name="ProfilePhotoHelp" xml:space="preserve"><value>PNG أو JPEG أو WebP، حتى 2 ميغابايت. تظهر دائرية بجانب اسمك.</value></data>
+  <data name="UploadPhoto" xml:space="preserve"><value>رفع صورة</value></data>
+  <data name="RemovePhoto" xml:space="preserve"><value>إزالة الصورة</value></data>
+  <data name="PhotoTooLarge" xml:space="preserve"><value>حجم الصورة أكبر من 2 ميغابايت.</value></data>
+  <data name="PhotoNotAnImage" xml:space="preserve"><value>استخدم صورة PNG أو JPEG أو WebP.</value></data>
+  <data name="CropPhoto" xml:space="preserve"><value>قص صورتك</value></data>
+  <data name="CropHelp" xml:space="preserve"><value>اسحب الصورة (أو استخدم مفاتيح الأسهم) وكبّرها لتأطيرها.</value></data>
+  <data name="CropArea" xml:space="preserve"><value>تأطير الصورة</value></data>
+  <data name="Zoom" xml:space="preserve"><value>تكبير</value></data>
+  <data name="SavePhoto" xml:space="preserve"><value>حفظ الصورة</value></data>
+  <data name="ReviewCount" xml:space="preserve"><value>{0} بانتظار المراجعة</value></data>
+  <data name="NavAgents" xml:space="preserve"><value>الوكلاء</value></data>
+  <data name="NavAdmin" xml:space="preserve"><value>الإدارة</value></data>
+  <data name="Sources" xml:space="preserve"><value>المصادر</value></data>
+  <data name="Conflicts" xml:space="preserve"><value>التعارضات</value></data>
+  <data name="ConflictsHelp" xml:space="preserve"><value>ذاكرتان متعارضتان. أبقِ إحداهما أو ادمجهما أو علّمهما بأنهما غير متعارضتين.</value></data>
+  <data name="ShowResolved" xml:space="preserve"><value>إظهار المحلولة</value></data>
+  <data name="NoConflicts" xml:space="preserve"><value>لا توجد تعارضات مفتوحة</value></data>
+  <data name="NoConflictsHelp" xml:space="preserve"><value>عندما تتعارض ذاكرتان، افتح إحداهما واختر "الإبلاغ عن تعارض" من قائمتها.</value></data>
+  <data name="ConflictResolved" xml:space="preserve"><value>محلول</value></data>
+  <data name="ConflictWaiting" xml:space="preserve"><value>بانتظار الموافقة</value></data>
+  <data name="ConflictWaitingHelp" xml:space="preserve"><value>الحل يغيّر ذاكرة على مستوى الشركة، لذا يوافق عليه مسؤول المعرفة أولاً.</value></data>
+  <data name="ConflictOpen" xml:space="preserve"><value>مفتوح</value></data>
+  <data name="FlaggedBy" xml:space="preserve"><value>أبلغ عنه</value></data>
+  <data name="KeepA" xml:space="preserve"><value>أبقِ A</value></data>
+  <data name="KeepB" xml:space="preserve"><value>أبقِ B</value></data>
+  <data name="MergeEllipsis" xml:space="preserve"><value>دمج…</value></data>
+  <data name="NotAConflict" xml:space="preserve"><value>ليس تعارضاً</value></data>
+  <data name="MergeTitle" xml:space="preserve"><value>ادمج في A</value></data>
+  <data name="MergeHelp" xml:space="preserve"><value>تحصل الذاكرة A على هذا النص كمراجعة جديدة وتُستبدل B.</value></data>
+  <data name="Merge" xml:space="preserve"><value>دمج</value></data>
+  <data name="KeepConfirm" xml:space="preserve"><value>ستُستبدل "{0}". ستبقى قابلة للقراءة في سجلها.</value></data>
+  <data name="ConflictResolvedNow" xml:space="preserve"><value>حُلّ التعارض</value></data>
+  <data name="ConflictSentForApproval" xml:space="preserve"><value>أُرسل إلى مسؤول المعرفة للموافقة</value></data>
+  <data name="RevisionN" xml:space="preserve"><value>المراجعة {0}</value></data>
+  <data name="Resolution_keep_a" xml:space="preserve"><value>أُبقيت A</value></data>
+  <data name="Resolution_keep_b" xml:space="preserve"><value>أُبقيت B</value></data>
+  <data name="Resolution_merged" xml:space="preserve"><value>مدموجة</value></data>
+  <data name="Resolution_not_conflict" xml:space="preserve"><value>ليس تعارضاً</value></data>
+  <data name="FlagConflict" xml:space="preserve"><value>الإبلاغ عن تعارض…</value></data>
+  <data name="FlagConflictHelp" xml:space="preserve"><value>اختر الذاكرة التي تتعارض معها هذه واذكر وجه الاختلاف. سيظهر في المراجعة › التعارضات.</value></data>
+  <data name="ConflictsWith" xml:space="preserve"><value>تتعارض مع</value></data>
+  <data name="WhatDisagrees" xml:space="preserve"><value>ما وجه التعارض؟</value></data>
+  <data name="FlagConflictShort" xml:space="preserve"><value>أبلغ عن التعارض</value></data>
+  <data name="ConflictFlagged" xml:space="preserve"><value>تم الإبلاغ عن التعارض</value></data>
+  <data name="Projects" xml:space="preserve"><value>المشاريع</value></data>
+  <data name="ProjectsHelp" xml:space="preserve"><value>تربط المشاريع المستودعات بالذاكرات ومصادر GitHub والوكلاء العاملين فيها.</value></data>
+  <data name="NewProject" xml:space="preserve"><value>مشروع جديد</value></data>
+  <data name="NoProjects" xml:space="preserve"><value>لا توجد مشاريع بعد</value></data>
+  <data name="NoProjectsHelp" xml:space="preserve"><value>ينشئ مالك المؤسسة أو مسؤولها المشروع ويضيف أعضاءه.</value></data>
+  <data name="YourRole" xml:space="preserve"><value>دورك</value></data>
+  <data name="Repositories" xml:space="preserve"><value>المستودعات</value></data>
+  <data name="NotAMember" xml:space="preserve"><value>لست عضواً</value></data>
+  <data name="ProjectSlugHelp" xml:space="preserve"><value>أحرف إنجليزية صغيرة وأرقام وشرطات. يراها الوكلاء.</value></data>
+  <data name="Create" xml:space="preserve"><value>إنشاء</value></data>
+  <data name="ProjectNotFound" xml:space="preserve"><value>هذا المشروع غير موجود أو غير متاح لك</value></data>
+  <data name="BackToProjects" xml:space="preserve"><value>العودة إلى المشاريع</value></data>
+  <data name="ProjectMemories" xml:space="preserve"><value>ذاكرات المشروع</value></data>
+  <data name="SourcesHelp" xml:space="preserve"><value>صفحات الويب والمستندات ومستودعات GitHub التي يبحث فيها هذا المشروع ويسترجع منها.</value></data>
+  <data name="AttachRepository" xml:space="preserve"><value>إرفاق مستودع</value></data>
+  <data name="NoSources" xml:space="preserve"><value>لا توجد مصادر بعد</value></data>
+  <data name="NoSourcesHelp" xml:space="preserve"><value>أضف صفحة ويب أو ارفع مستنداً. ويمكن لمسؤولي المشروع أيضاً إرفاق مستودع GitHub.</value></data>
+  <data name="Repository" xml:space="preserve"><value>المستودع</value></data>
+  <data name="Documents" xml:space="preserve"><value>المستندات</value></data>
+  <data name="LastCommit" xml:space="preserve"><value>آخر إيداع</value></data>
+  <data name="SourcePaused" xml:space="preserve"><value>متوقف</value></data>
+  <data name="SourcePausedHelp" xml:space="preserve"><value>رفض GitHub الرمز. عيّن رمزاً جديداً للاستئناف؛ يبقى المحتوى المزامن حتى تحذفه.</value></data>
+  <data name="SourceError" xml:space="preserve"><value>فشلت المزامنة</value></data>
+  <data name="Syncing" xml:space="preserve"><value>جارٍ المزامنة…</value></data>
+  <data name="SourceOk" xml:space="preserve"><value>محدّث</value></data>
+  <data name="SourcesAudience" xml:space="preserve"><value>كل ما يُزامَن يمكن لأعضاء هذا المشروع قراءته.</value></data>
+  <data name="ProjectMembersHelp" xml:space="preserve"><value>يقرأ الأعضاء ذاكرات المشروع ومصادره. يدير المسؤولون الأعضاء والمصادر.</value></data>
+  <data name="NoRepositories" xml:space="preserve"><value>لا توجد مستودعات مرتبطة</value></data>
+  <data name="ProjectReposHelp" xml:space="preserve"><value>الوكلاء العاملون في هذه المستودعات يسترجعون ذاكرات هذا المشروع.</value></data>
+  <data name="RepositoryRemote" xml:space="preserve"><value>عنوان المستودع</value></data>
+  <data name="RepositoryHelp" xml:space="preserve"><value>owner/name أو رابط GitHub. يجب أن يكون في قائمة السماح.</value></data>
+  <data name="GitHubToken" xml:space="preserve"><value>رمز GitHub</value></data>
+  <data name="GitHubTokenHelp" xml:space="preserve"><value>رمز دقيق الصلاحيات للقراءة فقط. يُخزَّن مشفراً ولا يُعرض مرة أخرى.</value></data>
+  <data name="SourceConfidential" xml:space="preserve"><value>سري (لا يقرؤه الوكلاء الخارجيون)</value></data>
+  <data name="Attach" xml:space="preserve"><value>إرفاق</value></data>
+  <data name="NewGitHubToken" xml:space="preserve"><value>رمز جديد</value></data>
+  <data name="SaveAndSync" xml:space="preserve"><value>حفظ ومزامنة</value></data>
+  <data name="SyncNow" xml:space="preserve"><value>زامن الآن</value></data>
+  <data name="PurgeSynced" xml:space="preserve"><value>حذف المحتوى المزامن</value></data>
+  <data name="Purged" xml:space="preserve"><value>حُذف المحتوى المزامن</value></data>
+  <data name="PurgeConfirm" xml:space="preserve"><value>حذف كل ما زُومن من {0}؟ يبقى المصدر وتبدأ المزامنة التالية من جديد.</value></data>
+  <data name="SourceAttached" xml:space="preserve"><value>أُرفق {0}. بدأت المزامنة الأولى.</value></data>
+  <data name="SourceResumed" xml:space="preserve"><value>حُفظ الرمز. عادت المزامنة.</value></data>
+  <data name="SyncQueued" xml:space="preserve"><value>بدأت المزامنة. تتحدث المستندات هنا أثناء تشغيلها.</value></data>
+  <data name="TourStep" xml:space="preserve"><value>{0} من {1}</value></data>
+  <data name="TourSkip" xml:space="preserve"><value>تخطَّ</value></data>
+  <data name="TourBack" xml:space="preserve"><value>السابق</value></data>
+  <data name="TourNext" xml:space="preserve"><value>التالي</value></data>
+  <data name="TourDone" xml:space="preserve"><value>تم</value></data>
+  <data name="TourReplay" xml:space="preserve"><value>جولة في هذه الصفحة</value></data>
+  <data name="TourNavTitle" xml:space="preserve"><value>كل شيء في الشريط الجانبي</value></data>
+  <data name="TourNavText" xml:space="preserve"><value>يضم الويكي صفحاتك. وتضم الذاكرة المشتركة ما تعلّمه الناس والوكلاء. ولا تظهر الإدارة إلا للمسؤولين.</value></data>
+  <data name="TourSearchTitle" xml:space="preserve"><value>ابحث في كل شيء</value></data>
+  <data name="TourSearchText" xml:space="preserve"><value>الصفحات والذكريات والشيفرة المزامنة، بالعربية والإنجليزية. اضغط / من أي مكان للانتقال إلى هنا.</value></data>
+  <data name="TourReviewTitle" xml:space="preserve"><value>القرارات بانتظارك في المراجعة</value></data>
+  <data name="TourReviewText" xml:space="preserve"><value>ما التقطه وكلاؤك، ومقترحات ذاكرة الشركة، والتعارضات بين الذكريات. يخبرك العدد عندما يصل شيء جديد.</value></data>
+  <data name="TourAgentsTitle" xml:space="preserve"><value>اربط وكيلك</value></data>
+  <data name="TourAgentsText" xml:space="preserve"><value>يستطيع Claude Code أو Codex أو Claude نفسه البحث في هذا الويكي ومشاركة ذاكرة واحدة مع فريقك.</value></data>
+  <data name="TourHelpTitle" xml:space="preserve"><value>أعد الجولة متى شئت</value></data>
+  <data name="TourHelpText" xml:space="preserve"><value>تُظهر الصفحات التي لها جولة هذا الزر. هذه هي الجولة كلها.</value></data>
+  <data name="TourCandidateTitle" xml:space="preserve"><value>شيء تعلّمه وكيلك</value></data>
+  <data name="TourCandidateText" xml:space="preserve"><value>كل بطاقة اقتراح مستخرج من إحدى جلسات وكيلك. عدّل العنوان والنص قبل أن تحتفظ به.</value></data>
+  <data name="TourScopeTitle" xml:space="preserve"><value>اختر لمن هي</value></data>
+  <data name="TourScopeText" xml:space="preserve"><value>الشخصية تبقى لك. والفريق والمشروع يتطلبان صلاحية النشر هناك. وذاكرة الشركة تذهب إلى مسؤول المعرفة للموافقة.</value></data>
+  <data name="TourDecideTitle" xml:space="preserve"><value>احتفظ أو تجاهل</value></data>
+  <data name="TourDecideText" xml:space="preserve"><value>القبول يحفظها (أو يرسلها للموافقة). والتجاهل يزيلها. لا يصبح شيء مشتركاً دون هذه الخطوة.</value></data>
+  <data name="TourReviewTabsTitle" xml:space="preserve"><value>المقترحات والتعارضات</value></data>
+  <data name="TourReviewTabsText" xml:space="preserve"><value>تضم التبويبات الأخرى المقترحات التي تنتظر مسؤول المعرفة والذكريات المتعارضة.</value></data>
+  <data name="TourFiltersTitle" xml:space="preserve"><value>ضيّق النتائج</value></data>
+  <data name="TourFiltersText" xml:space="preserve"><value>صفِّ حسب النطاق أو النوع أو الحالة أو المشروع. ويُظهر خيار "قديمة" تجاوزات المشروع التي تغيّرت ذاكرة الشركة الخاصة بها منذ ذلك الحين.</value></data>
+  <data name="TourScopeChipTitle" xml:space="preserve"><value>النطاق يحدد من يراها</value></data>
+  <data name="TourScopeChipText" xml:space="preserve"><value>شخصية أو فريق أو مشروع أو شركة. ذكريات الشركة وافق عليها مسؤول المعرفة.</value></data>
+  <data name="ViewProposal" xml:space="preserve"><value>عرض المقترح</value></data>
+  <data name="ViewMemory" xml:space="preserve"><value>عرض الذاكرة</value></data>
+  <data name="MemorySaved" xml:space="preserve"><value>حُفظت الذاكرة</value></data>
+  <data name="Discarded" xml:space="preserve"><value>تم التجاهل</value></data>
+  <data name="WaitingConflicts" xml:space="preserve"><value>{0} تعارضات بين الذكريات بانتظار الحل</value></data>
+  <data name="GetStartedTitle" xml:space="preserve"><value>اربط وكيلك الأول</value></data>
+  <data name="GetStartedText" xml:space="preserve"><value>يصبح أثر مفيداً عندما يستخدمه وكلاؤك: يبحثون في هذا الويكي، ويسترجعون ما قرره الفريق، ويلتقطون ما يتعلمونه لتراجعه.</value></data>
+  <data name="ScopeMeaning_personal" xml:space="preserve"><value>أنت فقط تستطيع قراءتها.</value></data>
+  <data name="ScopeMeaning_team" xml:space="preserve"><value>يستطيع أعضاء الفريق قراءتها.</value></data>
+  <data name="ScopeMeaning_project" xml:space="preserve"><value>يستطيع أعضاء المشروع قراءتها.</value></data>
+  <data name="ScopeMeaning_company" xml:space="preserve"><value>يستطيع الجميع في المؤسسة قراءتها. وافق عليها مسؤول المعرفة.</value></data>
+  <data name="ScopeAccept_personal" xml:space="preserve"><value>القبول يحفظها ذاكرة شخصية لك الآن.</value></data>
+  <data name="ScopeAccept_team" xml:space="preserve"><value>القبول ينشرها لفريقك إن كانت لديك صلاحية النشر هناك.</value></data>
+  <data name="ScopeAccept_project" xml:space="preserve"><value>القبول ينشرها في المشروع إن كانت لديك صلاحية النشر هناك.</value></data>
+  <data name="ScopeAccept_company" xml:space="preserve"><value>القبول يرسلها إلى مسؤول المعرفة ليوافق عليها للجميع.</value></data>
+  <data name="NavSkills" xml:space="preserve"><value>المهارات</value></data>
+  <data name="NavMySessions" xml:space="preserve"><value>جلساتي</value></data>
+  <data name="MySessions" xml:space="preserve"><value>جلساتي</value></data>
+  <data name="MySessionsHelp" xml:space="preserve"><value>ما أرسله وكلاؤك ومحادثاتك إلى أثر، مجمّعًا حسب المشروع. لا يقرأ النصوص سواك، وتُحذف بعد ٣٠ يومًا من وصولها.</value></data>
+  <data name="CaptureSettings" xml:space="preserve"><value>إعدادات الالتقاط</value></data>
+  <data name="CaptureSettingsHelp" xml:space="preserve"><value>المستودعات التي يلتقطها وكلاؤك، وما يحفظه أثر لك دون أن يسألك.</value></data>
+  <data name="CapturePaused" xml:space="preserve"><value>إيقاف كل الالتقاط مؤقتًا</value></data>
+  <data name="CapturePausedHelp" xml:space="preserve"><value>أثناء الإيقاف لا يرسل الوكلاء شيئًا ويُرفض حفظ المحادثات، مهما كانت إعداداتك المحلية.</value></data>
+  <data name="CaptureRepos" xml:space="preserve"><value>المستودعات الملتقطة</value></data>
+  <data name="CaptureReposHelp" xml:space="preserve"><value>على كل جهاز، يضيف capture_repos في ‎~/.athar/config.json إلى هذه القائمة ويحذف منها capture_exclude.</value></data>
+  <data name="NoCaptureRepos" xml:space="preserve"><value>لا مستودعات بعد: لا يُلتقط شيء ما لم تذكر القائمة المحلية لجهاز ما مستودعًا.</value></data>
+  <data name="AddRepo" xml:space="preserve"><value>إضافة مستودع</value></data>
+  <data name="RepoRemote" xml:space="preserve"><value>المستودع (مثل github.com/org/repo)</value></data>
+  <data name="RemoveRepo" xml:space="preserve"><value>إزالة {0}</value></data>
+  <data name="AutoAcceptPersonal" xml:space="preserve"><value>حفظ الذكريات الشخصية تلقائيًا</value></data>
+  <data name="AutoAcceptPersonalHelp" xml:space="preserve"><value>تصبح المرشحات الشخصية ذكريات فورًا، ويمكنك التراجع عن كل منها هنا.</value></data>
+  <data name="AutoAcceptShared" xml:space="preserve"><value>حفظ ذكريات المشروع والفريق تلقائيًا</value></data>
+  <data name="AutoAcceptSharedHelp" xml:space="preserve"><value>فقط حيث يمكنك النشر. ذكريات الشركة تذهب دائمًا إلى مسؤول المعرفة.</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>حُفظت إعدادات الالتقاط</value></data>
+  <data name="NoProjectGroup" xml:space="preserve"><value>بلا مشروع</value></data>
+  <data name="SourceHook" xml:space="preserve"><value>وكيل برمجة</value></data>
+  <data name="SourceChat" xml:space="preserve"><value>محادثة</value></data>
+  <data name="SessionRecords" xml:space="preserve"><value>{0} سجلات، محفوظة حتى {1}</value></data>
+  <data name="TranscriptGone" xml:space="preserve"><value>حُذف النص</value></data>
+  <data name="ShowTranscript" xml:space="preserve"><value>عرض النص</value></data>
+  <data name="HideTranscript" xml:space="preserve"><value>إخفاء النص</value></data>
+  <data name="DeleteNow" xml:space="preserve"><value>احذف الآن</value></data>
+  <data name="DeleteTranscriptConfirm" xml:space="preserve"><value>هل تحذف نص هذه الجلسة ومرشحاتها غير المراجعة الآن؟ تبقى الذكريات التي حفظتها.</value></data>
+  <data name="TranscriptDeleted" xml:space="preserve"><value>حُذف النص</value></data>
+  <data name="CandidatesWaiting" xml:space="preserve"><value>{0} بانتظارك في صندوق الالتقاط</value></data>
+  <data name="Undo" xml:space="preserve"><value>تراجع</value></data>
+  <data name="AutoAcceptUndone" xml:space="preserve"><value>تم التراجع: أُرشفت الذكرى</value></data>
+  <data name="CandidateStatus_new" xml:space="preserve"><value>بانتظار المراجعة</value></data>
+  <data name="CandidateStatus_accepted" xml:space="preserve"><value>مقبول</value></data>
+  <data name="CandidateStatus_edited" xml:space="preserve"><value>مقبول مع تعديل</value></data>
+  <data name="CandidateStatus_discarded" xml:space="preserve"><value>مُستبعد</value></data>
+  <data name="CandidateStatus_auto_accepted" xml:space="preserve"><value>حُفظ تلقائيًا</value></data>
+  <data name="SessionsEmptyTitle" xml:space="preserve"><value>لا جلسات بعد</value></data>
+  <data name="SessionsEmptyText" xml:space="preserve"><value>اربط وكيل برمجة وأضف مستودعًا أعلاه، أو احفظ محادثة من تطبيق Claude عبر «احفظ هذه المحادثة في أثر».</value></data>
+  <data name="AddUrl" xml:space="preserve"><value>إضافة صفحة ويب</value></data>
+  <data name="UploadDocument" xml:space="preserve"><value>رفع مستند</value></data>
+  <data name="SourceUpdated" xml:space="preserve"><value>آخر تحديث</value></data>
+  <data name="SourceKind_url" xml:space="preserve"><value>صفحة ويب</value></data>
+  <data name="SourceKind_document" xml:space="preserve"><value>مستند</value></data>
+  <data name="SourceKind_github" xml:space="preserve"><value>مستودع GitHub</value></data>
+  <data name="SourceUrl" xml:space="preserve"><value>عنوان الصفحة</value></data>
+  <data name="SourceUrlHelp" xml:space="preserve"><value>صفحة عامة واحدة. يحفظ أثر نسخة منها، ويأخذ التحديث نسخة جديدة.</value></data>
+  <data name="RefreshSource" xml:space="preserve"><value>تحديث</value></data>
+  <data name="SourceAdding" xml:space="preserve"><value>تجري قراءتها الآن، وستظهر في البحث عند الانتهاء.</value></data>
+  <data name="SourceIngestErrorHelp" xml:space="preserve"><value>تعذّر على أثر قراءتها. تحقّق من العنوان أو الملف، ثم حدّث.</value></data>
+  <data name="DocumentTooLarge" xml:space="preserve"><value>حجم المستندات محدود بـ 10 ميغابايت.</value></data>
+  <data name="SourceKind_file" xml:space="preserve"><value>مجلد</value></data>
+  <data name="SourceFileHelp" xml:space="preserve"><value>مجلد أُرسل بالأمر athar ingest. شغّله مرة أخرى على ذلك الحاسوب لتحديثه.</value></data>
+  <data name="NavHelp" xml:space="preserve"><value>المساعدة</value></data>
+  <data name="Help" xml:space="preserve"><value>المساعدة</value></data>
+  <data name="HelpLead" xml:space="preserve"><value>كيف تستخدم أثر: الويكي والذكريات والمراجعة والوكلاء والالتقاط، ومهام المشرفين.</value></data>
+  <data name="UserGuide" xml:space="preserve"><value>دليل المستخدم</value></data>
+  <data name="AdminGuide" xml:space="preserve"><value>دليل المشرف</value></data>
+  <data name="AddGettingStarted" xml:space="preserve"><value>إضافة صفحة البدء</value></data>
+  <data name="AddGettingStartedHelp" xml:space="preserve"><value>تضيف صفحة «البدء مع الوكلاء» بالإنجليزية والعربية في جذر مساحة يمكنك تحريرها. وإضافتها مرة أخرى إلى المساحة نفسها تعيد الصفحتين نفسيهما.</value></data>
+  <data name="AddGettingStartedNoSpace" xml:space="preserve"><value>تحتاج إلى دور المحرر أو المشرف في مساحة لتضيف الصفحة إليها.</value></data>
+  <data name="GettingStartedAdded" xml:space="preserve"><value>أُضيفت صفحات البدء</value></data>
+  <data name="OpenPage" xml:space="preserve"><value>فتح الصفحة</value></data>
+  <data name="HelpAbout" xml:space="preserve"><value>اقرأ عن هذه الصفحة في المساعدة</value></data>
+  <data name="TourLearnMore" xml:space="preserve"><value>اعرف المزيد</value></data>
+  <data name="HowAgentsWork" xml:space="preserve"><value>كيف يعمل الوكلاء</value></data>
+  <data name="HelpContents" xml:space="preserve"><value>المحتويات</value></data>
+  <data name="HelpFilter" xml:space="preserve"><value>تصفية الدليل</value></data>
+  <data name="HelpNoMatch" xml:space="preserve"><value>لا يذكر أي قسم ذلك. جرّب كلمة أخرى.</value></data>
+  <data name="HelpStartHere" xml:space="preserve"><value>ابدأ من هنا</value></data>
+  <data name="HelpTaskWrite" xml:space="preserve"><value>اكتب صفحة</value></data>
+  <data name="HelpTaskWriteLine" xml:space="preserve"><value>المسودات والتحرير المباشر والتعليقات والإصدارات</value></data>
+  <data name="HelpTaskConnect" xml:space="preserve"><value>اربط وكيلًا</value></data>
+  <data name="HelpTaskConnectLine" xml:space="preserve"><value>Claude Code وCodex وتطبيقات Claude عبر MCP</value></data>
+  <data name="HelpTaskReview" xml:space="preserve"><value>راجع ما التقطه الوكلاء</value></data>
+  <data name="HelpTaskReviewLine" xml:space="preserve"><value>اقبل أو عدّل أو تجاهل، ووافق على المقترحات</value></data>
+  <data name="HelpTaskMemories" xml:space="preserve"><value>افهم الذاكرة</value></data>
+  <data name="HelpTaskMemoriesLine" xml:space="preserve"><value>النطاقات ومن يغيّر ماذا والتظليل</value></data>
+  <data name="NavConnect" xml:space="preserve"><value>الاتصال</value></data>
+  <data name="CollapseNav" xml:space="preserve"><value>طي الشريط الجانبي</value></data>
+  <data name="ExpandNav" xml:space="preserve"><value>توسيع الشريط الجانبي</value></data>
+  <data name="EditPending" xml:space="preserve"><value>تعديلك بانتظار مراجعة صاحب المعرفة، أُرسل</value></data>
+  <data name="ShowMore" xml:space="preserve"><value>عرض المزيد</value></data>
+  <data name="ShowLess" xml:space="preserve"><value>عرض أقل</value></data>
+  <data name="SentForReviewMemory" xml:space="preserve"><value>أُرسل للمراجعة. تتغير الذكرى عندما يوافق صاحب المعرفة على تعديلك.</value></data>
+  <data name="ImportSpaces" xml:space="preserve"><value>استيراد مساحات…</value></data>
+  <data name="ImportSpacesHelp" xml:space="preserve"><value>تصدير من Confluence (مساحات بصيغة HTML، أو تصدير XML للموقع أو لمساحة): تصبح كل مساحة في Confluence مساحة هنا وتكون أنت مشرفها. وأي ملف zip آخر من نظام ويكي يصبح مساحة واحدة باسم الملف.</value></data>
+  <data name="ChooseFile" xml:space="preserve"><value>اختر ملفًا</value></data>
+  <data name="Importing" xml:space="preserve"><value>جارٍ الاستيراد…</value></data>
+  <data name="ImportedSpaces" xml:space="preserve"><value>تم استيراد {0} مساحة و{1} صفحة و{2} ملف. الصفحات منشورة وستظهر في البحث قريبًا.</value></data>
+  <data name="ImportSkipped" xml:space="preserve"><value>تم تخطي:</value></data>
+  <data name="ImportTooLarge" xml:space="preserve"><value>حجم الاستيراد محدود بـ 4 غيغابايت.</value></data>
+  <data name="OpenSpace" xml:space="preserve"><value>فتح المساحة</value></data>
+  <data name="ImportUploading" xml:space="preserve"><value>جارٍ الرفع… {0}%</value></data>
+  <data name="ImportQueued" xml:space="preserve"><value>بانتظار البدء…</value></data>
+  <data name="ImportRunning" xml:space="preserve"><value>جارٍ الاستيراد… {0} من {1} صفحة</value></data>
+  <data name="ImportBackground" xml:space="preserve"><value>يمكنك الإغلاق: يستمر الاستيراد، وسيصلك إشعار عند انتهائه.</value></data>
+  <data name="ImportFailed" xml:space="preserve"><value>فشل الاستيراد: {0}</value></data>
+  <data name="ImportedPagesFiles" xml:space="preserve"><value>تم استيراد {0} صفحة و{1} ملف. الصفحات منشورة وستظهر في البحث قريبًا.</value></data>
+  <data name="DeleteSpace" xml:space="preserve"><value>حذف المساحة…</value></data>
+  <data name="DeleteSpaceHelp" xml:space="preserve"><value>ستختفي "{0}" عن الجميع، وتنتقل كل صفحاتها إلى سلة المحذوفات حيث تُحذف نهائيًا بعد 30 يومًا. اكتب اسم المساحة للتأكيد.</value></data>
+  <data name="DeleteSpaceConfirm" xml:space="preserve"><value>اسم المساحة</value></data>
+  <data name="AiModels" xml:space="preserve"><value>نماذج الذكاء الاصطناعي</value></data>
+  <data name="AiModelsIntro" xml:space="preserve"><value>خادم النماذج الذي تستخدمه هذه المؤسسة للبحث والإجابات وقراءة الصور.</value></data>
+  <data name="AiApplyNote" xml:space="preserve"><value>تُطبَّق التغييرات المحفوظة خلال ثوانٍ على البحث والمهام الخلفية دون إعادة تشغيل. ما يعمل الآن يكتمل بالإعدادات التي بدأ بها. أما الإعدادات الافتراضية للنشر فتتغير فقط عند إعادة تشغيل الخادم.</value></data>
+  <data name="AiKeyUnreadable" xml:space="preserve"><value>لا يمكن فك تشفير مفتاح API المحفوظ على هذا الخادم. استبدله أو امسحه أو أعد الإعدادات الافتراضية للنشر. يستمر البحث بالكلمات المفتاحية في الأثناء.</value></data>
+  <data name="AiProvider" xml:space="preserve"><value>خادم النماذج</value></data>
+  <data name="AiUsingDeployment" xml:space="preserve"><value>تُستخدم الإعدادات الافتراضية للنشر.</value></data>
+  <data name="AiUsingSaved" xml:space="preserve"><value>تُستخدم الإعدادات المحفوظة لهذه المؤسسة.</value></data>
+  <data name="AiDeploymentDefaults" xml:space="preserve"><value>الإعدادات الافتراضية للنشر</value></data>
+  <data name="AiCustomEndpoint" xml:space="preserve"><value>خادم مخصص</value></data>
+  <data name="AiEndpoint" xml:space="preserve"><value>عنوان الخادم</value></data>
+  <data name="AiEndpointHelp" xml:space="preserve"><value>خادم متوافق مع OpenAI داخل شبكة الشركة، مثل http://host:8080/v1. تُرفض عناوين الإنترنت العامة.</value></data>
+  <data name="AiLocalOllama" xml:space="preserve"><value>Ollama المحلي</value></data>
+  <data name="AiDeploymentAfterReset" xml:space="preserve"><value>تُطبَّق بعد إعادة الإعدادات الافتراضية للنشر.</value></data>
+  <data name="AiResetExplain" xml:space="preserve"><value>تستخدم هذه المؤسسة إعدادات محفوظة. أعد الإعدادات الافتراضية للعودة إلى إعدادات النشر؛ ويتوقف استخدام الخادم والنماذج والمفتاح المحفوظة.</value></data>
+  <data name="AiResetToDeployment" xml:space="preserve"><value>إعادة الإعدادات الافتراضية للنشر</value></data>
+  <data name="AiResetDone" xml:space="preserve"><value>تمت العودة إلى الإعدادات الافتراضية للنشر.</value></data>
+  <data name="AiApiKey" xml:space="preserve"><value>مفتاح API</value></data>
+  <data name="AiKeyStateStored" xml:space="preserve"><value>يوجد مفتاح محفوظ، ولا يُعرض أبدًا.</value></data>
+  <data name="AiKeyStateNone" xml:space="preserve"><value>لا يوجد مفتاح محفوظ.</value></data>
+  <data name="AiKeyStateUnreadable" xml:space="preserve"><value>يوجد مفتاح محفوظ لكن لا يمكن فك تشفيره.</value></data>
+  <data name="AiKeyKeep" xml:space="preserve"><value>الإبقاء على المفتاح المحفوظ</value></data>
+  <data name="AiKeyKeepDeployment" xml:space="preserve"><value>استخدام مفتاح النشر</value></data>
+  <data name="AiKeyReplace" xml:space="preserve"><value>استبدال المفتاح</value></data>
+  <data name="AiKeySet" xml:space="preserve"><value>تعيين مفتاح</value></data>
+  <data name="AiKeyClear" xml:space="preserve"><value>بدون مفتاح</value></data>
+  <data name="AiNewKey" xml:space="preserve"><value>مفتاح API الجديد</value></data>
+  <data name="AiKeyEndpointChanged" xml:space="preserve"><value>تغيّر الخادم: أدخل مفتاحه أو اختر «بدون مفتاح». لا يُرسل المفتاح إلى خادم آخر أبدًا.</value></data>
+  <data name="AiEmbeddingModel" xml:space="preserve"><value>نموذج التضمين</value></data>
+  <data name="AiEmbeddingHelp" xml:space="preserve"><value>يفهرس المحتوى للبحث. تغييره يعيد فهرسة كل شيء.</value></data>
+  <data name="AiQueryModel" xml:space="preserve"><value>نموذج الاستعلام</value></data>
+  <data name="AiQueryHelp" xml:space="preserve"><value>يجيب من نتائج البحث، ويحوّل جلسات الوكلاء إلى مقترحات ذاكرة.</value></data>
+  <data name="AiVisionModel" xml:space="preserve"><value>نموذج الرؤية</value></data>
+  <data name="AiVisionHelp" xml:space="preserve"><value>اختياري. يقرأ النص في مرفقات PNG وJPEG وWebP الجديدة (حتى 25 ميغابايت) ليجدها البحث.</value></data>
+  <data name="AiOff" xml:space="preserve"><value>متوقف</value></data>
+  <data name="AiDimensionsNote" xml:space="preserve"><value>يخزّن البحث 1024 قيمة لكل متجه. يجب أن يُرجع نموذج التضمين هذا العدد على الأقل؛ والاختبار يتحقق من ذلك.</value></data>
+  <data name="AiLoadModels" xml:space="preserve"><value>تحميل النماذج</value></data>
+  <data name="AiTest" xml:space="preserve"><value>اختبار</value></data>
+  <data name="AiNoModels" xml:space="preserve"><value>لم يُدرج الخادم أي نماذج. ما زال بإمكانك كتابة أسماء النماذج.</value></data>
+  <data name="AiModelsFound" xml:space="preserve"><value>{0} نموذج متاح. اختر من القوائم أو اكتب اسمًا.</value></data>
+  <data name="AiTestResults" xml:space="preserve"><value>نتائج الاختبار</value></data>
+  <data name="AiTestOk" xml:space="preserve"><value>يعمل</value></data>
+  <data name="AiTestFailed" xml:space="preserve"><value>فشل ({0})</value></data>
+  <data name="AiTestCode_ok" xml:space="preserve"><value>يعمل</value></data>
+  <data name="AiTestCode_invalid_response" xml:space="preserve"><value>أجاب النموذج بشكل غير متوقع (للتضمين: أقل من 1024 قيمة؛ للاستعلام: لا JSON منظَّم).</value></data>
+  <data name="AiTestCode_provider_unavailable" xml:space="preserve"><value>الخادم غير متاح مؤقتًا. أعد المحاولة بعد عودته للعمل.</value></data>
+  <data name="AiTestCode_authentication_unavailable" xml:space="preserve"><value>رفض الخادم المفتاح. تحقّق من صلاحياته أو استبدله.</value></data>
+  <data name="AiTestCode_provider_rejected" xml:space="preserve"><value>رفض الخادم هذا الطلب. تحقّق من أن النموذج المحدد يدعم هذه المهمة.</value></data>
+  <data name="AiTestCode_configuration_unavailable" xml:space="preserve"><value>مزوّد النشر غير متاح. اضبط خادمًا محليًا أو Ollama.</value></data>
+  <data name="AiTestCode_invalid_endpoint" xml:space="preserve"><value>عنوان الخادم غير مسموح به.</value></data>
+  <data name="AiTestCode_key_unreadable" xml:space="preserve"><value>لا يمكن فك تشفير المفتاح المحفوظ. استبدله.</value></data>
+  <data name="AiTestCode_configuration_invalid" xml:space="preserve"><value>الإعدادات ناقصة أو غير صحيحة.</value></data>
+  <data name="AiIndex" xml:space="preserve"><value>فهرس البحث</value></data>
+  <data name="AiIndexHelp" xml:space="preserve"><value>مقدار المحتوى الذي له متجهات من نموذج التضمين الحالي. حتى يكتمل، يُعثر على الباقي بالكلمات المفتاحية.</value></data>
+  <data name="AiEmbeddingIdentity" xml:space="preserve"><value>إصدار التضمين</value></data>
+  <data name="AiCoverage" xml:space="preserve"><value>{0} من {1} مقطع مفهرس بالنموذج الحالي</value></data>
+  <data name="AiCoverageComplete" xml:space="preserve"><value>جميع المقاطع ({0}) مفهرسة بالنموذج الحالي.</value></data>
+  <data name="AiJobs" xml:space="preserve"><value>في الانتظار: {0} · قيد التشغيل: {1} · فاشلة: {2}</value></data>
+  <data name="AiCheckedAt" xml:space="preserve"><value>آخر تحقق</value></data>
+  <data name="AiIndexPercent" xml:space="preserve"><value>اكتمل {0:N0}٪</value></data>
+  <data name="AiIndexEmpty" xml:space="preserve"><value>لا يوجد محتوى للفهرسة.</value></data>
+  <data name="AiIndexComplete" xml:space="preserve"><value>الفهرس محدّث. يتحدث التقدم تلقائيًا كل 3 ثوانٍ.</value></data>
+  <data name="AiIndexWorking" xml:space="preserve"><value>الفهرسة قيد التشغيل. يتحدث التقدم تلقائيًا كل 3 ثوانٍ.</value></data>
+  <data name="AiIndexQueued" xml:space="preserve"><value>المحتوى في انتظار الفهرسة. يتحدث التقدم تلقائيًا كل 3 ثوانٍ.</value></data>
+  <data name="AiIndexWaiting" xml:space="preserve"><value>بانتظار العامل الخلفي لإضافة مهام إعادة البناء، عادةً خلال 30 ثانية. يتحدث التقدم تلقائيًا كل 3 ثوانٍ.</value></data>
+  <data name="AiIndexFailed" xml:space="preserve"><value>توقفت الفهرسة مع مهام فاشلة. اختبر إعدادات النموذج، ثم أعد البناء للمحاولة مجددًا. يتحدث التقدم تلقائيًا كل 3 ثوانٍ.</value></data>
+  <data name="AiStatusUnavailable" xml:space="preserve"><value>حالة الفهرس غير متاحة الآن.</value></data>
+  <data name="AiRebuild" xml:space="preserve"><value>إعادة بناء الفهرس</value></data>
+  <data name="AiRebuildStarted" xml:space="preserve"><value>بدأت إعادة البناء. يظهر التقدم هنا.</value></data>
+  <data name="AiConfirmSave" xml:space="preserve"><value>يتغيّر خادم التضمين أو نموذجه، لذا يُعاد فهرسة كل المحتوى في الخلفية. حتى يكتمل ذلك، يُعثر على المحتوى غير المفهرس بعد بالكلمات المفتاحية فقط. تُحفظ المتجهات القديمة.</value></data>
+  <data name="AiConfirmReset" xml:space="preserve"><value>العودة إلى الإعدادات الافتراضية للنشر؟ يتوقف استخدام الخادم والنماذج والمفتاح المحفوظة. وإن اختلف نموذج التضمين، يُعاد فهرسة المحتوى.</value></data>
+  <data name="AiConfirmRebuild" xml:space="preserve"><value>إعادة فهرسة كل المحتوى بالنموذج الحالي؟ استخدم هذا عند استبدال النموذج تحت الاسم نفسه. يستخدم البحث الكلمات المفتاحية للمحتوى غير المفهرس بعد.</value></data>
+  <data name="AiErrorConflict" xml:space="preserve"><value>غيّر شخص آخر هذه الإعدادات. تعرض الصفحة الآن أحدثها؛ راجعها وحاول مجددًا.</value></data>
+  <data name="AiErrorInvalid" xml:space="preserve"><value>لم تُقبل الإعدادات. تأكد أن عنوان الخادم بصيغة http أو https داخل شبكة الشركة دون اسم مستخدم أو استعلام أو جزء؛ وأن نموذجي التضمين والاستعلام مُدخلان (200 حرف كحد أقصى لكل منهما)؛ وأن مفتاحًا جديدًا أُدخل عند تغيير الخادم أو تعذّر قراءة المفتاح المحفوظ.</value></data>
+  <data name="AiErrorProvider" xml:space="preserve"><value>تعذّر الوصول إلى خادم النماذج أو رفض الطلب.</value></data>
+  <data name="AnswerTitle" xml:space="preserve"><value>الإجابة</value></data>
+  <data name="AnswerFromResults" xml:space="preserve"><value>أجب من هذه النتائج</value></data>
+  <data name="Answering" xml:space="preserve"><value>جارٍ كتابة الإجابة…</value></data>
+  <data name="AnswerSources" xml:space="preserve"><value>المصادر</value></data>
+  <data name="AnswerNote" xml:space="preserve"><value>كتبها نموذج الاستعلام من نتائج يمكنك قراءتها. راجع المصادر قبل الاعتماد عليها.</value></data>
+  <data name="AnswerNoEvidence" xml:space="preserve"><value>لا تحتوي هذه النتائج على ما يكفي للإجابة. جرّب كلمات أخرى.</value></data>
+  <data name="AnswerUnavailable" xml:space="preserve"><value>الإجابة غير متاحة الآن. النتائج ما زالت هنا.</value></data>
+  <data name="Refresh" xml:space="preserve"><value>تحديث</value></data>
+  <data name="Dashboard" xml:space="preserve"><value>لوحة المتابعة</value></data>
+  <data name="DashboardHelp" xml:space="preserve"><value>ما فعله وكلاؤك بمعرفة الشركة: استدعاءاتك واسترجاعاتك وكتاباتك ومراجعاتك.</value></data>
+  <data name="DashboardHelpOrg" xml:space="preserve"><value>ما فعله وكلاء الجميع بمعرفة الشركة على مستوى المؤسسة.</value></data>
+  <data name="DashboardScope" xml:space="preserve"><value>نشاط من</value></data>
+  <data name="DashboardMine" xml:space="preserve"><value>نشاطي</value></data>
+  <data name="DashboardAll" xml:space="preserve"><value>الكل</value></data>
+  <data name="DashKnowledge" xml:space="preserve"><value>المعرفة المخزنة</value></data>
+  <data name="DashPages" xml:space="preserve"><value>الصفحات</value></data>
+  <data name="DashSources" xml:space="preserve"><value>المصادر</value></data>
+  <data name="DashCallsToday" xml:space="preserve"><value>استدعاءات الوكلاء اليوم</value></data>
+  <data name="DashReadsWrites" xml:space="preserve"><value>قراءة {0} · كتابة {1}</value></data>
+  <data name="DashRetrievals" xml:space="preserve"><value>الاسترجاعات اليوم</value></data>
+  <data name="DashEmptyRate" xml:space="preserve"><value>{0} بلا نتائج</value></data>
+  <data name="DashAgents" xml:space="preserve"><value>الوكلاء النشطون (٢٤ ساعة)</value></data>
+  <data name="DashTokensDue" xml:space="preserve"><value>رموز تنتهي خلال ٧ أيام: {0} · غير مستخدمة منذ ٣٠ يومًا: {1}</value></data>
+  <data name="DashPromoted" xml:space="preserve"><value>رُقّيت إلى الشركة</value></data>
+  <data name="DashPromotedSub" xml:space="preserve"><value>{0} من الذكريات الجديدة · مرفوضة: {1} · تعارضات مفتوحة: {2}</value></data>
+  <data name="DashWaiting" xml:space="preserve"><value>بانتظار المراجعة</value></data>
+  <data name="DashOldest" xml:space="preserve"><value>أقدمها ينتظر منذ {0}</value></data>
+  <data name="DashNothingWaiting" xml:space="preserve"><value>لا شيء بالانتظار</value></data>
+  <data name="DashDays" xml:space="preserve"><value>{0} يوم</value></data>
+  <data name="DashHours" xml:space="preserve"><value>{0} ساعة</value></data>
+  <data name="DashMinutes" xml:space="preserve"><value>{0} دقيقة</value></data>
+  <data name="DashRecallHit" xml:space="preserve"><value>نسبة نجاح الاستدعاء</value></data>
+  <data name="DashLast30" xml:space="preserve"><value>آخر ٣٠ يومًا</value></data>
+  <data name="DashIndexJobs" xml:space="preserve"><value>مهام الفهرسة</value></data>
+  <data name="DashJobsSub" xml:space="preserve"><value>في الطابور {0} · قيد التشغيل {1} · متوقفة {2}</value></data>
+  <data name="DashCallsPerDay" xml:space="preserve"><value>استدعاءات الوكلاء يوميًا</value></data>
+  <data name="DashCallsPerDayHelp" xml:space="preserve"><value>آخر ١٤ يومًا حسب العميل. الجمعة والسبت مظللان.</value></data>
+  <data name="DashNoCalls" xml:space="preserve"><value>لا استدعاءات من الوكلاء بعد</value></data>
+  <data name="DashNoCallsText" xml:space="preserve"><value>اربط وكيلًا وستظهر استدعاءاته هنا.</value></data>
+  <data name="DashOther" xml:space="preserve"><value>أخرى</value></data>
+  <data name="DashWeekend" xml:space="preserve"><value>عطلة نهاية الأسبوع</value></data>
+  <data name="DashWrites" xml:space="preserve"><value>الكتابات</value></data>
+  <data name="DashWritesHelp" xml:space="preserve"><value>الذكريات وحفظ الجلسات والصفحات والمصادر المكتوبة يوميًا خلال السنة الماضية.</value></data>
+  <data name="DashNoWrites" xml:space="preserve"><value>لم يُكتب شيء بعد</value></data>
+  <data name="DashWritesSummary" xml:space="preserve"><value>الكتابات خلال السنة الماضية: {0} يوم نشط، الذروة {1}</value></data>
+  <data name="DashActiveDays" xml:space="preserve"><value>أيام نشطة: {0}</value></data>
+  <data name="DashPeak" xml:space="preserve"><value>الذروة {0} ({1})</value></data>
+  <data name="DashLastWrite" xml:space="preserve"><value>آخر كتابة {0}</value></data>
+  <data name="DashFunnel" xml:space="preserve"><value>من الجلسات إلى معرفة الشركة</value></data>
+  <data name="DashNoSessions" xml:space="preserve"><value>لا جلسات ملتقطة</value></data>
+  <data name="DashNoSessionsText" xml:space="preserve"><value>فعّل الالتقاط في وكيلك وستظهر جلساته هنا.</value></data>
+  <data name="DashSessions" xml:space="preserve"><value>الجلسات</value></data>
+  <data name="DashReviewed" xml:space="preserve"><value>رُوجعت</value></data>
+  <data name="DashPromotedStep" xml:space="preserve"><value>رُقّيت</value></data>
+  <data name="DashMostRecalled" xml:space="preserve"><value>أكثر الذكريات استدعاءً</value></data>
+  <data name="DashNoRecalls" xml:space="preserve"><value>لا استدعاءات بعد</value></data>
+  <data name="DashRestricted" xml:space="preserve"><value>ذكرى لا يمكنك قراءتها</value></data>
+  <data name="DashRecalls" xml:space="preserve"><value>مرات الاستدعاء: {0}</value></data>
+  <data name="DashAttention" xml:space="preserve"><value>يحتاج إلى انتباه</value></data>
+  <data name="DashAllClear" xml:space="preserve"><value>لا شيء يحتاج إلى انتباه</value></data>
+  <data name="DashNeverRecalled" xml:space="preserve"><value>لم تُستدعَ بعد ٣٠ يومًا: {0}</value></data>
+  <data name="DashOpenConflicts" xml:space="preserve"><value>تعارضات مفتوحة: {0}</value></data>
+  <data name="DashEmptyRepeat" xml:space="preserve"><value>«{0}» لم يجد شيئًا ({1} مرات)</value></data>
+  <data name="DashEmptyRepeatHidden" xml:space="preserve"><value>استعلام لم يجد شيئًا ({0} مرات)</value></data>
+  <data name="DashTools" xml:space="preserve"><value>أدوات MCP</value></data>
+  <data name="DashToolsHelp" xml:space="preserve"><value>استدعاءاتك أنت خلال آخر ٣٠ يومًا.</value></data>
+  <data name="DashNoTools" xml:space="preserve"><value>لم تستدعِ أي أداة بعد</value></data>
+  <data name="DashTool" xml:space="preserve"><value>الأداة</value></data>
+  <data name="DashCalls" xml:space="preserve"><value>الاستدعاءات</value></data>
+  <data name="DashP95" xml:space="preserve"><value>زمن الاستجابة p95</value></data>
+  <data name="DashErrors" xml:space="preserve"><value>نسبة الأخطاء</value></data>
+  <data name="DashMs" xml:space="preserve"><value>{0} مللي ثانية</value></data>
+  <data name="DashModelTokens" xml:space="preserve"><value>رموز النماذج يوميًا</value></data>
+  <data name="DashAdminOnly" xml:space="preserve"><value>يظهر للمشرفين فقط.</value></data>
+  <data name="DashNoTokens" xml:space="preserve"><value>لا استدعاءات للنماذج خلال آخر ١٤ يومًا</value></data>
+  <data name="Role_embedding" xml:space="preserve"><value>التضمين</value></data>
+  <data name="Role_query" xml:space="preserve"><value>الاستعلام</value></data>
+  <data name="Role_vision" xml:space="preserve"><value>الرؤية</value></data>
+  <data name="DashJobQueue" xml:space="preserve"><value>طابور المهام</value></data>
+  <data name="DashReady" xml:space="preserve"><value>جاهزة</value></data>
+  <data name="DashRunning" xml:space="preserve"><value>قيد التشغيل</value></data>
+  <data name="DashDead" xml:space="preserve"><value>متوقفة</value></data>
+  <data name="DashTokenHealth" xml:space="preserve"><value>رموز الوصول</value></data>
+  <data name="DashYourTokens" xml:space="preserve"><value>رموز الوصول الشخصية الخاصة بك.</value></data>
+  <data name="DashActiveTokens" xml:space="preserve"><value>نشطة</value></data>
+  <data name="DashExpiring" xml:space="preserve"><value>تنتهي خلال ٧ أيام</value></data>
+  <data name="DashUnused" xml:space="preserve"><value>غير مستخدمة منذ ٣٠ يومًا</value></data>
+  <data name="DashExpired" xml:space="preserve"><value>منتهية</value></data>
+  <data name="DashManageTokens" xml:space="preserve"><value>إدارة الرموز</value></data>
+</root>

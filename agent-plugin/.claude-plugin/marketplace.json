@@ -1,0 +1,14 @@
+{
+  "name": "athar",
+  "owner": {
+    "name": "Athar"
+  },
+  "description": "Athar's plugin for Claude Code, served by your Athar server.",
+  "plugins": [
+    {
+      "name": "athar",
+      "source": "./athar",
+      "description": "Athar for Claude Code: the athar-brain skill, the Athar MCP server (OAuth) and opt-in session capture."
+    }
+  ]
+}

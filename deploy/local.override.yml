@@ -1,0 +1,37 @@
+# The production stack on your own machine (Docker Desktop), built from this checkout. Use it through deploy/local.ps1 or
+# deploy/local.sh, which create deploy/.env.local (git-ignored) and run Compose as project athar-local, with its own
+# volumes and ports beside anything else on the machine.
+#
+# Differences from production: images built locally (athar-local-*:dev), the qa seed (sample spaces, pages and users)
+# by default, Mailpit instead of the SMTP relay, and no backup service. Models still come from the model gateway when
+# ATHAR_AI_API_KEY is set; without it, search runs degraded (keyword only) and extraction is off.
+services:
+  web:
+    environment:
+      # Local, not Production: the same app behaviour, except that db reset and OAuth over HTTP are allowed.
+      ASPNETCORE_ENVIRONMENT: Local
+      DOTNET_ENVIRONMENT: Local
+      Athar__Seed: "${ATHAR_SEED:-qa}"
+      Athar__OAuth__AllowHttp: "true" # agents sign in over http://localhost; production gets HTTPS from Pangolin (refused there)
+    depends_on:
+      mailpit: { condition: service_started }
+
+  worker:
+    environment:
+      DOTNET_ENVIRONMENT: Local
+
+  mailpit:
+    image: axllent/mailpit:v1.31.2
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${ATHAR_MAILPIT_PORT:-8185}:8025" # the inbox UI: invitations and password links land here
+
+  proxy:
+    # Loopback only: the qa seed's users share a published password, so the LAN must not reach this stack.
+    ports: !override
+      - "127.0.0.1:${ATHAR_LAN_PORT:-8180}:80"
+      - "127.0.0.1:${ATHAR_MCP_PORT:-8181}:8081"
+      - "127.0.0.1:${ATHAR_SHARE_PORT:-8182}:8082"
+
+  backup:
+    profiles: [never] # local data never goes to the backup bucket

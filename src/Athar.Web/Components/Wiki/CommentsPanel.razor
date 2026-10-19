@@ -1,0 +1,257 @@
+@using Athar.Web.Services
+@inject WikiSession Session
+@inject IServiceScopeFactory Scopes
+@inject ISnackbar Snackbar
+@implements IDisposable
+
+@* Comments beside the editor (FR-CM-01..07). Threads load over the service; anchors are placed by collab, never here. *@
+<section aria-label="@T("Comments")" class="comments-panel">
+    @* FR-CM-05: resolved threads are hidden by default (Open). *@
+    <div class="filters" role="tablist" aria-label="@T("CommentFilter")">
+        @foreach (var (value, label) in Filters)
+        {
+            <button type="button" role="tab" class="filter @value" aria-selected="@(filter == value ? "true" : "false")" @onclick="() => filter = value">
+                <span class="pill">@Count(value)</span>@T(label)
+            </button>
+        }
+    </div>
+
+    <p class="visually-hidden" role="status">@(fresh.Count > 0 ? string.Format(T("NewCommentActivity"), fresh.Count) : null)</p>
+    <div class="thread-list">
+        @if (!loaded)
+        {
+            <LoadingState Rows="3" />
+        }
+        else if (!Shown().Any())
+        {
+            <EmptyState Icon="@Icons.Material.Outlined.ChatBubbleOutline" Title="@T("NoComments")" Compact="true" />
+        }
+        @* T103: all threads load (the editor needs every resolved id and the counts), but only `shownThreads` render. *@
+        @foreach (var t in Shown().Take(shownThreads))
+        {
+            @* T152: a thread someone else (a person or an agent) started or replied to since the last look flashes once. *@
+            <div @key="t.Id" class="@(fresh.Contains(t.Id) ? "athar-flash thread-wrap" : "thread-wrap")">
+                <CommentThread Thread="t" CanComment="CanComment" CanModerate="CanModerate" Run="w => Run(w)" Focus="Focus" />
+            </div>
+        }
+        @if (Shown().Count() > shownThreads)
+        {
+            <button type="button" class="list-more" @onclick="() => shownThreads += ThreadStep">@string.Format(T("ShowMoreThreads"), Shown().Count() - shownThreads)</button>
+        }
+    </div>
+
+    @if (CanComment)
+    {
+        @* The composer stays at the bottom of the panel, like a chat: avatar, one field, and the options once it has focus. *@
+        <div class="composer" @onfocusin="CheckSelectionAsync">
+            @if (hasSelection && anchor && selectionQuote is not null)
+            {
+                @* What the comment will be attached to: the editor keeps it highlighted while the box has focus. *@
+                <blockquote class="pending-quote" dir="auto">@selectionQuote</blockquote>
+            }
+            <div class="composer-row">
+                <Avatar UserId="Session.Actor!.UserId" Name="@Session.Name" />
+                <CommentBox @bind-Value="draft" Label="@T("AddComment")" Placeholder="@T("AddCommentHint")" OnSubmit="SubmitAsync" OnCancel="Clear"
+                            ShowActions="hasSelection || mentioning">
+                    @if (mentioning)
+                    {
+                        @* FR-CM-04: only people who can see the page are offered, and only they are notified. *@
+                        <MudAutocomplete T="MentionCandidate" @ref="mentionPicker" Label="@T("MentionSomeone")" Dense="true" Margin="Margin.Dense" SearchFunc="SearchPeopleAsync"
+                                         ToStringFunc="@(c => c?.Name)" ValueChanged="Mention" DebounceInterval="200" AutoFocus="true" Class="mention-picker" />
+                    }
+                    <div class="composer-actions">
+                        @if (hasSelection)
+                        {
+                            <MudCheckBox T="bool" @bind-Value="anchor" Label="@T("AnchorToSelection")" Size="Size.Small" Class="anchor" />
+                        }
+                        <IconAction Icon="@Icons.Material.Outlined.AlternateEmail" Label="@T("MentionSomeone")" aria-pressed="@(mentioning ? "true" : "false")"
+                                    OnClick="() => mentioning = !mentioning" />
+                        @* One submit. Its name says where the comment goes; the AT-17/AT-46 smoke tests look for "Comment on page". *@
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Disabled="string.IsNullOrWhiteSpace(draft)" OnClick="SubmitAsync"
+                                   aria-label="@(hasSelection && anchor ? T("CommentOnSelection") : T("CommentOnPage"))">@T("CommentAction")</MudButton>
+                    </div>
+                </CommentBox>
+            </div>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public Guid PageId { get; set; }
+    /// <summary>Commenter and above (FR-CM-07).</summary>
+    [Parameter] public bool CanComment { get; set; }
+    /// <summary>Space admins may delete any comment (FR-CM-06).</summary>
+    [Parameter] public bool CanModerate { get; set; }
+    [Parameter, EditorRequired] public Func<Task<PageEditor.CommentSelection?>> GetSelection { get; set; } = null!;
+    /// <summary>Drops the editor's kept selection once a comment is attached to it.</summary>
+    [Parameter] public Func<Task>? ClearSelection { get; set; }
+    /// <summary>The resolved threads, whose highlights the editor hides (FR-CM-05).</summary>
+    [Parameter] public Func<IReadOnlyList<Guid>, Task>? OnResolved { get; set; }
+    [Parameter] public EventCallback<Guid> Focus { get; set; }
+    /// <summary>The number of open threads, for the tab.</summary>
+    [Parameter] public EventCallback<int> OnCount { get; set; }
+
+    private static readonly (string Value, string Label)[] Filters = [("open", "FilterOpen"), ("resolved", "FilterResolved")];
+
+    private List<ThreadView> threads = [];
+    private string filter = "open";
+    /// <summary>Threads rendered at once (T103).</summary>
+    public const int ThreadStep = 30;
+    private int shownThreads = ThreadStep;
+    private bool loaded, hasSelection, anchor, mentioning;
+    private int? lastCount;
+    private string? lastResolved;
+    private string? draft, selectionQuote;
+
+    private IEnumerable<ThreadView> Shown() => threads.Where(t => (t.Status == "resolved") == (filter == "resolved"));
+
+    private int Count(string value) => threads.Count(t => (t.Status == "resolved") == (value == "resolved"));
+
+    private MudAutocomplete<MentionCandidate>? mentionPicker;
+
+    private string T(string key) => Session.T(key);
+
+    private async Task<IEnumerable<MentionCandidate>> SearchPeopleAsync(string? query, CancellationToken ct)
+    {
+        await using var scope = Scopes.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<NotificationService>().CandidatesAsync(Session.Actor!.OrgId, PageId, query ?? "", ct: ct);
+    }
+
+    private async Task Mention(MentionCandidate? who)
+    {
+        if (who is null) return;
+        draft = $"{draft}{(string.IsNullOrEmpty(draft) || draft.EndsWith(' ') ? "" : " ")}@[{who.Name}](user:{who.Id}) ";
+        if (mentionPicker is not null) await mentionPicker.ClearAsync();
+        mentioning = false;
+    }
+
+    private Guid loadedPage;
+
+    // Loads when the page changes. It used to reload on every parameter set, so every re-render of the wiki page (presence,
+    // save state) hit the database and re-rendered every thread, which made hovered controls flicker. The 20 s poll and
+    // each action keep it fresh.
+    protected override Task OnParametersSetAsync()
+    {
+        if (PageId == loadedPage) return Task.CompletedTask;
+        loadedPage = PageId;
+        return LoadAsync();
+    }
+
+    private readonly CancellationTokenSource stop = new();
+    private HashSet<Guid> fresh = [];
+
+    protected override void OnInitialized() => _ = PollAsync();
+
+    // ponytail: polls every 20 s, so comments and replies by others (people or agents over MCP) appear without a reload.
+    // A push from collab can replace it. Your own actions reload at once and never flash.
+    private async Task PollAsync()
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(20));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(stop.Token))
+                await InvokeAsync(async () =>
+                {
+                    var before = threads.ToDictionary(t => t.Id, t => (t.Comments.Count, t.Status));
+                    await LoadAsync();
+                    fresh = [.. threads.Where(t => !before.TryGetValue(t.Id, out var b) || b != (t.Comments.Count, t.Status)).Select(t => t.Id)];
+                    StateHasChanged();
+                });
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    public void Dispose()
+    {
+        stop.Cancel();
+        stop.Dispose();
+    }
+
+    private async Task LoadAsync()
+    {
+        // All threads, filtered here: the counts are on the filter buttons, and the editor needs the resolved ones.
+        await Run(async s => threads = await s.ListAsync(Session.AsActor(), PageId, includeResolved: true), reload: false);
+        loaded = true;
+        var resolved = threads.Where(t => t.Status == "resolved").Select(t => t.Id).ToList();
+        var key = string.Join(',', resolved);
+        if (key != lastResolved && OnResolved is not null)
+        {
+            lastResolved = key;
+            try { await OnResolved(resolved); }
+            catch (JSException) { lastResolved = null; } // try again on the next load
+        }
+        var open = threads.Count(t => t.Status != "resolved");
+        // Only a change goes up: the page re-renders on it, which sets these parameters again.
+        if (open != lastCount)
+        {
+            lastCount = open;
+            await OnCount.InvokeAsync(open);
+        }
+    }
+
+    /// <summary>The anchor option shows only while the editor has a selection to anchor to.</summary>
+    private async Task CheckSelectionAsync()
+    {
+        PageEditor.CommentSelection? selection;
+        try
+        {
+            selection = await GetSelection();
+        }
+        catch (JSException)
+        {
+            selection = null;
+        }
+        var has = selection is { Error: null };
+        selectionQuote = has ? selection!.Quote : null;
+        if (has != hasSelection) (hasSelection, anchor) = (has, has);
+    }
+
+    private Task SubmitAsync() => hasSelection && anchor ? CommentOnSelectionAsync() : CommentOnPageAsync();
+
+    private async Task CommentOnPageAsync()
+    {
+        var body = draft!;
+        if (await Run(s => s.AddPageThreadAsync(Session.AsActor(), PageId, body))) Clear();
+    }
+
+    private async Task CommentOnSelectionAsync()
+    {
+        var selection = await GetSelection();
+        if (selection is null || selection.Error is not null)
+        {
+            Snackbar.Add(T("SelectTextFirst"), Severity.Info);
+            return;
+        }
+        var body = draft!;
+        if (await Run(s => s.AddInlineThreadAsync(Session.AsActor(), PageId, body, selection.From!, selection.To!, selection.Quote!, Guid.NewGuid().ToString())))
+        {
+            Clear();
+            if (ClearSelection is not null) await ClearSelection();
+        }
+    }
+
+    private void Clear() => (draft, hasSelection, anchor, selectionQuote, mentioning) = (null, false, false, null, false);
+
+    /// <summary>One use case in its own scope; domain errors become a snackbar. Reloads the threads after a change.</summary>
+    private async Task<bool> Run(Func<CommentService, Task> work, bool reload = true)
+    {
+        try
+        {
+            await using (var scope = Scopes.CreateAsyncScope())
+                await work(scope.ServiceProvider.GetRequiredService<CommentService>());
+            if (reload)
+            {
+                await LoadAsync();
+                // A thread calls this through a delegate, not an EventCallback, so nothing re-renders the panel on its own:
+                // without this a reply only showed after a refresh.
+                StateHasChanged();
+            }
+            return true;
+        }
+        catch (AtharError e)
+        {
+            Snackbar.Add(e.Message, Severity.Error);
+            return false;
+        }
+    }
+}

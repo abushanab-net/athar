@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve">
+    <value>الوكلاء</value>
+  </data>
+  <data name="Intro" xml:space="preserve">
+    <value>اربط Claude Code أو Codex أو تطبيقات Claude أو VS Code بأثر: ابحث في الويكي والذاكرة، واسترجع الذكريات، والتقط الجلسات التي تختار مشاركتها.</value>
+  </data>
+  <data name="ServerTitle" xml:space="preserve">
+    <value>الخادم</value>
+  </data>
+  <data name="ServerHelp" xml:space="preserve">
+    <value>يتصل الوكلاء بهذا العنوان، وتستخدم الخطافات المضيف نفسه.</value>
+  </data>
+  <data name="McpUrl" xml:space="preserve">
+    <value>عنوان MCP</value>
+  </data>
+  <data name="TokenTitle" xml:space="preserve">
+    <value>١. أنشئ رمزًا</value>
+  </data>
+  <data name="TokenHelp" xml:space="preserve">
+    <value>يدخل وكيلك برمز وصول شخصي. يعمل باسمك، وبالصلاحيات المذكورة أدناه فقط، ولا يرى المحتوى السري أبدًا مثل أي وكيل.</value>
+  </data>
+  <data name="TokenName" xml:space="preserve">
+    <value>اسم الرمز</value>
+  </data>
+  <data name="AllowEdits" xml:space="preserve">
+    <value>اسمح للوكيل أيضًا بتعديل الصفحات والتعليق</value>
+  </data>
+  <data name="CreateToken" xml:space="preserve">
+    <value>إنشاء الرمز</value>
+  </data>
+  <data name="TokenScopes" xml:space="preserve">
+    <value>الصلاحيات: read و memory:write (الالتقاط)، و write إذا سمحت بالتعديل. تنتهي صلاحيته بعد ٩٠ يومًا.</value>
+  </data>
+  <data name="ManageTokens" xml:space="preserve">
+    <value>إدارة رموزك</value>
+  </data>
+  <data name="CopyTokenNow" xml:space="preserve">
+    <value>انسخ الرمز الآن، فلن يظهر مرة أخرى. الإعدادات أدناه تتضمنه بالفعل.</value>
+  </data>
+  <data name="YourToken" xml:space="preserve">
+    <value>رمزك</value>
+  </data>
+  <data name="TokenFailed" xml:space="preserve">
+    <value>تعذّر إنشاء الرمز. تحقق من الاسم وحاول مرة أخرى.</value>
+  </data>
+  <data name="CaptureTitle" xml:space="preserve">
+    <value>٢. الالتقاط الاختياري</value>
+  </data>
+  <data name="CaptureHelp" xml:space="preserve">
+    <value>يمكن للخطافات إرسال جلسات وكيلك إلى أثر، فيقترح منها ذكريات. لا يُلتقط شيء ما لم تُدرج المستودع.</value>
+  </data>
+  <data name="CaptureOptIn" xml:space="preserve">
+    <value>يجري الالتقاط فقط في المستودعات التي تختارها في صفحة جلساتي، لكل أجهزتك معاً. والإيقاف المؤقت هناك يوقف كل شيء.</value>
+  </data>
+  <data name="CaptureSent" xml:space="preserve">
+    <value>ترسل الجلسة الملتقطة نصها عند انتهائها أو ضغطها. تنتظر الدفعات المعلّقة في ‎~/.athar/outbox‎ حتى تُرسل.</value>
+  </data>
+  <data name="CaptureRedacted" xml:space="preserve">
+    <value>تُحجب الأسرار مثل كلمات المرور والمفاتيح على جهازك ثم مرة أخرى على الخادم.</value>
+  </data>
+  <data name="CaptureReview" xml:space="preserve">
+    <value>يستخرج أثر ذكريات مقترحة إلى صندوقك. لا يصبح شيء ذكرى للفريق أو الشركة دون مراجعة.</value>
+  </data>
+  <data name="CaptureStop" xml:space="preserve">
+    <value>لإيقاف مستودع واحد، احذفه من صفحة جلساتي، أو أدرجه في capture_exclude على الجهاز. وإلغاء الرمز يوقف ذلك الجهاز.</value>
+  </data>
+  <data name="Repos" xml:space="preserve">
+    <value>المستودعات المراد التقاطها (اختياري)</value>
+  </data>
+  <data name="ReposHelp" xml:space="preserve">
+    <value>اختياري، لهذا الجهاز فقط: مستودعات إضافية للالتقاط (capture_repos). مستودع في كل سطر، مثل github.com/org/repo</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>المجلد الرئيسي في أوامر الخطافات</value>
+  </data>
+  <data name="HomeHelp" xml:space="preserve">
+    <value>لا تُفسَّر ~ في أوامر الخطافات على Windows؛ استخدم المسار الكامل، مثل C:/Users/you</value>
+  </data>
+  <data name="ClaudeHelp" xml:space="preserve">
+    <value>تحتاج الخطافات إلى Node 22.15 أو أحدث.</value>
+  </data>
+  <data name="CodexHelp" xml:space="preserve">
+    <value>يستخدم Codex نص الخطاف والمهارة نفسيهما.</value>
+  </data>
+  <data name="StepFiles" xml:space="preserve">
+    <value>نزّل نص الخطاف ومهارة athar-brain واحفظهما هنا:</value>
+  </data>
+  <data name="StepConfig" xml:space="preserve">
+    <value>احفظ إعدادات الخطاف:</value>
+  </data>
+  <data name="StepMcp" xml:space="preserve">
+    <value>أضف خادم MCP:</value>
+  </data>
+  <data name="StepHooks" xml:space="preserve">
+    <value>أضف الخطافات (ادمجها مع الموجود):</value>
+  </data>
+  <data name="CodexTrust" xml:space="preserve">
+    <value>لا يشغّل Codex إلا الخطافات التي تثق بها: افتح جلسة codex تفاعلية مرة واحدة ووافق على الخطافين، وإلا فلن يُلتقط شيء.</value>
+  </data>
+  <data name="Terminal" xml:space="preserve">
+    <value>الطرفية</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>نسخ</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>تم النسخ</value>
+  </data>
+  <data name="CopyFailed" xml:space="preserve">
+    <value>تعذّر النسخ. حدّد النص وانسخه بنفسك.</value>
+  </data>
+  <data name="StatusTitle" xml:space="preserve">
+    <value>حالة الاتصال</value>
+  </data>
+  <data name="StatusHelp" xml:space="preserve">
+    <value>آخر مرة تواصل فيها وكلاؤك مع أثر.</value>
+  </data>
+  <data name="LastCommit" xml:space="preserve">
+    <value>آخر إرسال للجلسة</value>
+  </data>
+  <data name="TokenLastUsed" xml:space="preserve">
+    <value>آخر استخدام لرمز الوصول</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>لم يحدث بعد</value>
+  </data>
+  <data name="AppsConnected" xml:space="preserve">
+    <value>التطبيقات المتصلة</value>
+  </data>
+  <data name="NoApps" xml:space="preserve">
+    <value>لا يوجد بعد</value>
+  </data>
+  <data name="ClientsLabel" xml:space="preserve">
+    <value>عملاء الوكلاء</value>
+  </data>
+  <data name="AppsTab" xml:space="preserve">
+    <value>تطبيقات Claude</value>
+  </data>
+  <data name="AppsHelp" xml:space="preserve">
+    <value>يشترك claude.ai وClaude Desktop وClaude على الجوال في موصل واحد. يسجّل الدخول بحسابك في أثر، فلا تحتاج إلى رمز وصول.</value>
+  </data>
+  <data name="AppsAdd" xml:space="preserve">
+    <value>أضف موصلًا مخصصًا. في خطط Team وEnterprise يضيفه المالك مرة واحدة من Organization settings › Connectors › Add › Custom › Web. وفي خطط Free وPro وMax أضفه بنفسك من Customize › Connectors › Add custom connector.</value>
+  </data>
+  <data name="AppsUrl" xml:space="preserve">
+    <value>عنوان خادم MCP: استخدم هذا العنوان كما هو.</value>
+  </data>
+  <data name="AppsAuth" xml:space="preserve">
+    <value>المصادقة: Sign in now. عميل OAuth: اختر Use your own OAuth client، بمعرّف العميل هذا واترك السر فارغًا.</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>معرّف عميل OAuth</value>
+  </data>
+  <data name="AppsConnect" xml:space="preserve">
+    <value>اضغط Connect، وسجّل الدخول إلى أثر واختر Allow. ثم اسأل Claude سؤالًا يجيب عنه الويكي.</value>
+  </data>
+  <data name="AppsExternal" xml:space="preserve">
+    <value>تُعدّ جلسات الموصل وكلاء خارجيين: لا ترى أي محتوى سري.</value>
+  </data>
+  <data name="AppsRevoke" xml:space="preserve">
+    <value>لقطع الاتصال، أزل الموصل من Claude، أو ألغِه في أثر من</value>
+  </data>
+  <data name="VsCodeHelp" xml:space="preserve">
+    <value>يستخدم GitHub Copilot في وضع الوكيل أدوات أثر. يسجّل VS Code الدخول بحسابك في أثر ولا يلتقط الجلسات.</value>
+  </data>
+  <data name="VsStepMcp" xml:space="preserve">
+    <value>أضف الخادم إلى ملف mcp.json الخاص بك (Command Palette › MCP: Open User Configuration). يفتح VS Code المتصفح لتسجيل الدخول عند تشغيله أول مرة.</value>
+  </data>
+  <data name="VsStepSkill" xml:space="preserve">
+    <value>اختياري: احفظ المهارة في المستودع ليعرف Copilot متى يستخدم أثر.</value>
+  </data>
+  <data name="VsStepCheck" xml:space="preserve">
+    <value>افتح Copilot Chat في وضع Agent، وشغّل خادم athar من قائمة الأدوات، واسأل سؤالًا يجيب عنه الويكي.</value>
+  </data>
+  <data name="QuickTitle" xml:space="preserve">
+    <value>إعداد سريع</value>
+  </data>
+  <data name="QuickHelp" xml:space="preserve">
+    <value>أمر واحد يُعدّ كل وكيل يجده على هذا الحاسوب: إضافة Claude Code (المهارة وخطافات الالتقاط وأثر عبر OAuth)، وCodex (أثر والمهارة والخطافات)، وVS Code. يطلب رمز الوصول دون إظهاره، ويحفظه فقط في ‎~/.athar/config.json لخطافات الالتقاط. يحتاج إلى Node 22.15 أو أحدث.</value>
+  </data>
+  <data name="QuickAfter" xml:space="preserve">
+    <value>ثم سجّل الدخول مرة واحدة في كل وكيل: ‎/mcp في Claude Code، وcodex mcp login athar في Codex، وخادم athar في VS Code. تقوم التبويبات أدناه بالأمر نفسه يدويًا.</value>
+  </data>
+  <data name="CodexLogin" xml:space="preserve">
+    <value>سجّل الدخول إلى أثر في المتصفح:</value>
+  </data>
+  <data name="VsStepPat" xml:space="preserve">
+    <value>لا يوجد متصفح على ذلك الجهاز؟ استخدم رمز وصول بدلًا من ذلك. يطلبه VS Code مرة واحدة ويحفظه في مخزن الأسرار لديه، لا في الملف.</value>
+  </data>
+  <data name="OpenSessions" xml:space="preserve">
+    <value>اختر المستودعات في صفحة جلساتي</value>
+  </data>
+  <data name="QuickIngest" xml:space="preserve">
+    <value>ولإضافة مجلد مستندات إلى مشروع: athar ingest &lt;folder&gt; --project &lt;project id&gt;. يرسل ملفات Markdown والنصوص وHTML (ويتخطى ما يتجاهله .gitignore)، وترسل المرات التالية ما تغيّر فقط.</value>
+  </data>
+  <data name="CaptureWhat" xml:space="preserve"><value>ما يرسله الالتقاط وما لا يرسله أبدًا</value></data>
+</root>

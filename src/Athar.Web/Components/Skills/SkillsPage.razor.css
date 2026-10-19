@@ -1,0 +1,3 @@
+.publish { display: flex; flex-wrap: wrap; align-items: center; gap: 16px }
+.publish ::deep .mud-input-control { flex: 0 1 16rem }
+.preview { margin: 12px 0 0 }

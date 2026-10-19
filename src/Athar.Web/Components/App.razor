@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" dir="@(AuthSetup.IsRightToLeft ? "rtl" : "ltr")">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121826" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="@Assets["favicon.svg"]" type="image/svg+xml" />
+    <link rel="icon" href="@Assets["favicon.ico"]" sizes="48x48" />
+    <link rel="apple-touch-icon" href="@Assets["img/apple-touch-icon.png"]" />
+    <link rel="preload" href="@Assets["fonts/public-sans-latin.woff2"]" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="@Assets["fonts.css"]" />
+    <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["Athar.Web.styles.css"]" />
+    <ImportMap />
+    <HeadOutlet @rendermode="PageRenderMode" />
+</head>
+
+<body>
+    <Routes @rendermode="PageRenderMode" Ip="@HttpContext.Connection.RemoteIpAddress?.ToString()" UserAgent="@HttpContext.Request.Headers.UserAgent.ToString()" />
+    <ReconnectModal />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
+    <script src="@Assets["a11y.js"]"></script>
+    <script src="@Assets["athar.js"]"></script>
+</body>
+
+</html>
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+
+    // The app is InteractiveServer. Pages marked [ExcludeFromInteractiveRouting] (account forms that set cookies,
+    // public share pages) render as static SSR.
+    private IComponentRenderMode? PageRenderMode => HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null;
+}

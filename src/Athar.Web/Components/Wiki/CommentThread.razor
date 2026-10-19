@@ -1,0 +1,80 @@
+@using Athar.Web.Services
+@inject WikiSession Session
+
+@* One comment thread as a card: the anchored text and any status, the comments, then a rule and an always-there
+   "Reply…" field whose Save appears once there is something to send. *@
+<article class="thread @(Thread.Status == "resolved" ? "resolved" : null)">
+    @if (Thread.Quote is not null || Status() is not null)
+    {
+        <div class="thread-what">
+            @if (Thread.Quote is not null)
+            {
+                <blockquote class="quote" dir="auto">
+                    @if (Thread.Inline)
+                    {
+                        <MudTooltip Text="@T("ShowInPage")" Arrow="false">
+                            <button type="button" @onclick="() => Focus.InvokeAsync(Thread.Id)">@Thread.Quote</button>
+                        </MudTooltip>
+                    }
+                    else
+                    {
+                        @Thread.Quote
+                    }
+                </blockquote>
+            }
+            @if (Status() is { } s)
+            {
+                <Seal Kind="@s.Kind" Icon="@s.Icon">@s.Label</Seal>
+            }
+        </div>
+    }
+
+    @foreach (var (c, i) in Thread.Comments.Select((c, i) => (c, i)))
+    {
+        <CommentItem @key="c.Id" Comment="c" CanEdit="c.AuthorId == Me" CanDelete="c.AuthorId == Me || CanModerate" Run="Run"
+                     ThreadAction="@(i == 0 ? ThreadAction() : null)" />
+    }
+
+    @if (CanComment)
+    {
+        <CommentBox @bind-Value="reply" Label="@T("Reply")" Placeholder="@T("ReplyHint")" Class="reply" OnSubmit="ReplyAsync" OnCancel="() => reply = null">
+            <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" OnClick="ReplyAsync">@T("Save")</MudButton>
+        </CommentBox>
+    }
+</article>
+
+@code {
+    [Parameter, EditorRequired] public ThreadView Thread { get; set; } = null!;
+    [Parameter] public bool CanComment { get; set; }
+    [Parameter] public bool CanModerate { get; set; }
+    /// <summary>Runs a comment use case and reloads the threads; false when it failed.</summary>
+    [Parameter, EditorRequired] public Func<Func<CommentService, Task>, Task<bool>> Run { get; set; } = null!;
+    [Parameter] public EventCallback<Guid> Focus { get; set; }
+
+    private string? reply;
+
+    private Guid Me => Session.Actor!.UserId;
+    private string T(string key) => Session.T(key);
+
+    /// <summary>Resolve or Reopen, in the first comment's ⋮ menu.</summary>
+    private RowAction? ThreadAction() => !CanComment ? null
+        : Thread.Status == "resolved"
+            ? new RowAction(T("ReopenComment"), Icons.Material.Outlined.Replay, () => Run(s => s.ReopenAsync(Session.AsActor(), Thread.Id)))
+            : new RowAction(T("ResolveComment"), Icons.Material.Outlined.CheckCircle, () => Run(s => s.ResolveAsync(Session.AsActor(), Thread.Id)));
+
+    private async Task ReplyAsync()
+    {
+        if (string.IsNullOrWhiteSpace(reply)) return;
+        var body = reply;
+        if (await Run(s => s.ReplyAsync(Session.AsActor(), Thread.Id, body))) reply = null;
+    }
+
+    // Resolved needs no seal: the Resolved tab already says so.
+    private (Seal.Kinds Kind, string Icon, string Label)? Status() => Thread.Status switch
+    {
+        "orphaned" => (Seal.Kinds.Warn, Icons.Material.Outlined.LinkOff, T("StatusOrphaned")),
+        "anchor_failed" => (Seal.Kinds.Warn, Icons.Material.Outlined.ErrorOutline, T("StatusAnchorFailed")),
+        "pending_anchor" => (Seal.Kinds.Ink, Icons.Material.Outlined.HourglassEmpty, T("StatusPending")),
+        _ => null,
+    };
+}

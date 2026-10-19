@@ -1,0 +1,41 @@
+@* Confirm an action that needs a written reason (classification, access changes, rejecting a proposal). Returns the text.
+   Open with ReasonDialog.AskAsync(dialogs, title, message, actionLabel, danger). *@
+<MudDialog>
+    <TitleContent><span dir="auto">@Title</span></TitleContent>
+    <DialogContent>
+        @if (Message is not null) { <p class="mb-3" dir="auto">@Message</p> }
+        <MudTextField T="string" @bind-Value="reason" Label="@(Label ?? L["Reason"])" Lines="3" AutoFocus="true" Immediate="true"
+                      Required="@Required" HelperText="@Help" dir="auto" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => Dialog.Cancel()">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="@(Danger ? Color.Error : Color.Primary)" Disabled="@(Required && string.IsNullOrWhiteSpace(reason))"
+                   OnClick="() => Dialog.Close(DialogResult.Ok(reason?.Trim() ?? string.Empty))">@ActionLabel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    [Inject] private IStringLocalizer<SharedResource> L { get; set; } = default!;
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? Help { get; set; }
+    [Parameter] public string ActionLabel { get; set; } = "OK";
+    [Parameter] public bool Danger { get; set; }
+    [Parameter] public bool Required { get; set; } = true;
+    private string? reason;
+
+    /// <summary>Asks for a reason; null when the person cancels.</summary>
+    public static async Task<string?> AskAsync(IDialogService dialogs, string title, string? message, string actionLabel, bool danger = false, bool required = true, string? label = null, string? help = null)
+    {
+        var parameters = new DialogParameters<ReasonDialog>
+        {
+            { d => d.Title, title }, { d => d.Message, message }, { d => d.ActionLabel, actionLabel },
+            { d => d.Danger, danger }, { d => d.Required, required }, { d => d.Label, label }, { d => d.Help, help },
+        };
+        var dialog = await dialogs.ShowAsync<ReasonDialog>(title, parameters, new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true });
+        var result = await dialog.Result;
+        return result is { Canceled: false, Data: string text } ? text : null;
+    }
+}

@@ -1,0 +1,10 @@
+@inject NavigationManager Nav
+
+@code {
+    // The home address goes to the public page; any other protected address goes to sign-in and comes back after.
+    protected override void OnInitialized()
+    {
+        var path = Nav.ToBaseRelativePath(Nav.Uri);
+        Nav.NavigateTo(path.Length == 0 ? "/welcome" : $"/account/login?returnUrl={Uri.EscapeDataString(path)}", forceLoad: true);
+    }
+}

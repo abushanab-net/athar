@@ -1,0 +1,133 @@
+@* A short, skippable tour of the page (T152, Impeccable onboard): a spotlight on one element at a time with a sentence on what
+   it's for. It starts once by itself on pages that ask for it, and the top bar's help button replays it. Steps whose
+   element isn't on screen (a closed drawer, a panel the person can't use) are skipped. Esc (athar.js, wherever focus is) or Skip ends it. *@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject Athar.Web.Services.TourService Tours
+@inject IStringLocalizer<SharedResource> L
+
+@if (active is { } step)
+{
+    <div class="tour" @onkeydown="OnKeyAsync">
+        @* The veil keeps clicks off the page but doesn't end the tour: a stray click lost it. Skip, Done or Esc end it. *@
+        <div class="tour-scrim"></div>
+        <div id="tour-spot" class="tour-spot" hidden></div>
+        <div id="tour-card" class="tour-card centered" role="dialog" aria-modal="false" aria-labelledby="tour-title" aria-describedby="tour-text" tabindex="-1" @key="index">
+            <div class="tour-progress">
+                <span class="tour-dots" aria-hidden="true">
+                    @for (var i = 0; i < shown.Count; i++)
+                    {
+                        <span class="@(i == position ? "on" : i < position ? "done" : null)"></span>
+                    }
+                </span>
+                <span class="tour-count">@L["TourStep", position + 1, shown.Count]</span>
+            </div>
+            <h2 id="tour-title" dir="auto">@step.Title</h2>
+            <p id="tour-text" dir="auto">@step.Text</p>
+            <div class="tour-actions">
+                @* Ghost Skip, secondary Back, one primary Next (DESIGN.md Buttons); Learn more is a link, it leaves the page. *@
+                <button type="button" class="tour-skip" @onclick="EndAsync">@L["TourSkip"]</button>
+                @if (Help is not null)
+                {
+                    <a class="tour-more" href="@($"/help#{Help}")" @onclick="EndAsync">@L["TourLearnMore"]</a>
+                }
+                <span class="grow"></span>
+                @if (position > 0)
+                {
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="() => GoAsync(-1)">@L["TourBack"]</MudButton>
+                }
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="() => GoAsync(1)">
+                    @(position == shown.Count - 1 ? L["TourDone"] : L["TourNext"])
+                </MudButton>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    public sealed record Step(string Selector, string Title, string Text);
+
+    /// <summary>Remembered per browser: a tour that ran (or was skipped) doesn't start by itself again.</summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+    [Parameter, EditorRequired] public IReadOnlyList<Step> Steps { get; set; } = [];
+    /// <summary>Start on the first visit. Off for pages people reach later; the help button still replays them.</summary>
+    [Parameter] public bool AutoStart { get; set; }
+    /// <summary>The /help anchor the card's "Learn more" opens (T153); following it ends the tour.</summary>
+    [Parameter] public string? Help { get; set; }
+
+    private List<int> shown = [];
+    private int position, index;
+    private Step? active;
+    private bool place;
+    private Func<Task>? starter;
+
+    protected override void OnInitialized()
+    {
+        starter = StartAsync;
+        Tours.Register(starter);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && AutoStart)
+        {
+            try { if (!await JS.InvokeAsync<bool>("athar.tour.seen", Id)) await StartAsync(); }
+            catch (JSDisconnectedException) { }
+        }
+        if (place && active is { } step)
+        {
+            place = false;
+            await JS.InvokeVoidAsync("athar.tour.place", step.Selector);
+        }
+    }
+
+    public async Task StartAsync()
+    {
+        // Only the steps whose element is on screen now, so the count ("2 of 4") is honest.
+        shown = [];
+        for (var i = 0; i < Steps.Count; i++)
+            if (await JS.InvokeAsync<bool>("athar.tour.visible", Steps[i].Selector)) shown.Add(i);
+        if (shown.Count == 0) return;
+        position = 0;
+        Show();
+    }
+
+    private void Show()
+    {
+        index = shown[position];
+        active = Steps[index];
+        place = true;
+        StateHasChanged();
+    }
+
+    private async Task GoAsync(int delta)
+    {
+        if (position + delta >= shown.Count) { await EndAsync(); return; }
+        position = Math.Max(0, position + delta);
+        Show();
+    }
+
+    private async Task EndAsync()
+    {
+        active = null;
+        await JS.InvokeVoidAsync("athar.tour.end");
+        await JS.InvokeVoidAsync("athar.tour.done", Id);
+    }
+
+    private async Task OnKeyAsync(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "ArrowRight": await GoAsync(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? -1 : 1); break;
+            case "ArrowLeft": await GoAsync(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? 1 : -1); break;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (starter is not null) Tours.Unregister(starter);
+        if (active is null) return;
+        try { await JS.InvokeVoidAsync("athar.tour.end"); }
+        catch (JSDisconnectedException) { }
+    }
+}

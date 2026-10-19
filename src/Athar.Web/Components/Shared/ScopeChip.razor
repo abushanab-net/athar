@@ -1,0 +1,17 @@
+@* Memory scope as a label: team, project and company are ink outlines, personal is quiet. Cinnabar is kept for decisions (The Seal Rule). *@
+@* T152: the chip says who can read the memory, on hover and to screen readers (title). *@
+<Seal Kind="@Kind" Icon="@IconFor" Tooltip="@L["ScopeMeaning_" + Scope]">@L["Scope_" + Scope]</Seal>
+
+@code {
+    [Inject] private IStringLocalizer<SharedResource> L { get; set; } = default!;
+    [Parameter, EditorRequired] public string Scope { get; set; } = "";
+
+    private Seal.Kinds Kind => Scope switch { "personal" => Seal.Kinds.Quiet, _ => Seal.Kinds.Ink };
+    private string IconFor => Scope switch
+    {
+        "company" => Icons.Material.Outlined.Business,
+        "team" => Icons.Material.Outlined.Groups,
+        "project" => Icons.Material.Outlined.FolderOpen,
+        _ => Icons.Material.Outlined.Person,
+    };
+}

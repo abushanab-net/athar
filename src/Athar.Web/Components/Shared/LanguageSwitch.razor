@@ -1,0 +1,24 @@
+@* English / العربية as small post forms (the /account/language endpoint sets the cookie and, when signed in, the user's locale).
+   Works on static pages: no interactivity needed. *@
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> L
+
+<div class="language-switch @Class">
+    <span>@L["Language"]:</span>
+    @foreach (var (culture, label) in Languages)
+    {
+        <form method="post" action="/account/language">
+            <AntiforgeryToken />
+            <input type="hidden" name="culture" value="@culture" />
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+            <button type="submit" lang="@culture" aria-current="@(IsLanguage(culture) ? "true" : null)">@label</button>
+        </form>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Class { get; set; }
+    public static readonly (string Culture, string Label)[] Languages = [("en", "English"), ("ar", "العربية")];
+    public static bool IsLanguage(string culture) => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == culture;
+    private string ReturnUrl => "/" + Nav.ToBaseRelativePath(Nav.Uri);
+}

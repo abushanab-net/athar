@@ -1,0 +1,86 @@
+@using Athar.Web.Services
+@inject WikiSession Session
+
+@* One comment in a thread card: avatar, name over the relative time (full date as a tooltip), an edited marker, a ⋮ menu
+   (Edit, Resolve or Reopen on a thread's first comment, Delete with a confirm), then the text. *@
+<div class="comment">
+    <div class="meta">
+        @* A stable color per person, from the presence palette the carets use (WikiPage.razor.css). *@
+        <Avatar UserId="Comment.AuthorId" Name="@Comment.AuthorName" />
+        <div class="who">
+            <bdi class="name">@Comment.AuthorName</bdi>
+            <span class="when-line">
+                <Timestamp Value="Comment.CreatedAt" Relative="true" Class="when" />
+                @if (Comment.EditedAt is { } edited && !Comment.Deleted)
+                {
+                    <MudTooltip Text="@edited.ToLocalTime().ToString("F")" Arrow="false"><span class="edited">@T("Edited")</span></MudTooltip>
+                }
+            </span>
+        </div>
+        @if (!Comment.Deleted && !editing && Actions().Any(a => a is not null))
+        {
+            <RowActions Done="StateHasChanged" Actions="Actions()" Inline="0" MenuLabel="@T("CommentActions")" />
+        }
+    </div>
+    @if (Comment.Deleted)
+    {
+        <p class="deleted">@T("Deleted")</p>
+    }
+    else if (editing)
+    {
+        <CommentBox @bind-Value="text" Label="@T("EditComment")" AutoFocus="true" ShowActions="true" OnSubmit="SaveAsync" OnCancel="() => editing = false">
+            <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="() => editing = false">@T("Cancel")</MudButton>
+            <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" Disabled="string.IsNullOrWhiteSpace(text)" OnClick="SaveAsync">@T("Save")</MudButton>
+        </CommentBox>
+    }
+    else
+    {
+        <p class="text" dir="auto">@Render(Comment.BodyMd!)</p>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public CommentView Comment { get; set; } = null!;
+    /// <summary>Only the author edits (FR-CM-06).</summary>
+    [Parameter] public bool CanEdit { get; set; }
+    /// <summary>The author, or a space admin.</summary>
+    [Parameter] public bool CanDelete { get; set; }
+    [Parameter, EditorRequired] public Func<Func<CommentService, Task>, Task<bool>> Run { get; set; } = null!;
+    /// <summary>A thread's own action for its first comment (Resolve or Reopen), placed between Edit and Delete.</summary>
+    [Parameter] public RowAction? ThreadAction { get; set; }
+
+    private bool editing;
+    private string? text;
+
+    private string T(string key) => Session.T(key);
+
+    private RowAction?[] Actions() =>
+    [
+        CanEdit ? new RowAction(T("EditComment"), Icons.Material.Outlined.Edit, () => { (editing, text) = (true, Comment.BodyMd); return Task.CompletedTask; }) : null,
+        ThreadAction,
+        CanDelete ? new RowAction(T("DeleteComment"), Icons.Material.Outlined.Delete, () => Run(s => s.DeleteAsync(Session.AsActor(), Comment.Id)),
+                                  Danger: true, Confirm: T("ConfirmDeleteComment")) : null,
+    ];
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+        var body = text;
+        if (await Run(s => s.EditAsync(Session.AsActor(), Comment.Id, body))) editing = false;
+    }
+
+    /// <summary>Comment text with `@[Name](user:id)` shown as "@Name"; everything else is plain, encoded text.</summary>
+    private static MarkupString Render(string body)
+    {
+        var html = new System.Text.StringBuilder();
+        var at = 0;
+        foreach (System.Text.RegularExpressions.Match m in NotificationService.MentionPattern().Matches(body))
+        {
+            html.Append(System.Net.WebUtility.HtmlEncode(body[at..m.Index]));
+            html.Append("<span class=\"user-mention\">@").Append(System.Net.WebUtility.HtmlEncode(m.Groups["name"].Value)).Append("</span>");
+            at = m.Index + m.Length;
+        }
+        html.Append(System.Net.WebUtility.HtmlEncode(body[at..]));
+        return new MarkupString(html.ToString());
+    }
+}

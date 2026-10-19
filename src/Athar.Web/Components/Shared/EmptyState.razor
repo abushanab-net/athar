@@ -1,0 +1,15 @@
+@* One way to say "nothing here yet" (DESIGN.md): an icon, one line, optional help and an optional action. *@
+<div class="empty @(Compact ? "compact" : null)" role="status">
+    <MudIcon Icon="@Icon" Class="icon" />
+    <p class="title" dir="auto">@Title</p>
+    @if (Text is not null) { <p class="text" dir="auto">@Text</p> }
+    @if (ChildContent is not null) { <div class="action">@ChildContent</div> }
+</div>
+
+@code {
+    [Parameter] public string Icon { get; set; } = Icons.Material.Outlined.Inbox;
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Text { get; set; }
+    [Parameter] public bool Compact { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

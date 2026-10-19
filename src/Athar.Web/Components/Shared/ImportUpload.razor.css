@@ -1,0 +1,4 @@
+.import-upload p { margin: 0 0 8px }
+.import-note { margin-block-start: 8px !important; font-size: .875rem; color: var(--mud-palette-text-secondary) }
+.import-error { color: var(--mud-palette-error) }
+.import-skipped { margin: 0; padding-inline-start: 20px; max-height: 30vh; overflow: auto; font-size: .875rem; overflow-wrap: anywhere }

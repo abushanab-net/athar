@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <!-- T097: the agent hook and skill, offered as downloads on the "Connect your agent" page. -->
+    <EmbeddedResource Include="../../agent-skills/hooks/athar-hook.mjs" LogicalName="agent/athar-hook.mjs" />
+    <EmbeddedResource Include="../../agent-skills/athar-brain/SKILL.md" LogicalName="agent/athar-brain/SKILL.md" />
+    <!-- T132: the Claude Code plugin and the setup scripts, served as /agent/bundle.zip, /agent/setup.sh and /agent/setup.ps1. -->
+    <EmbeddedResource Include="../../agent-plugin/**/*" LogicalName="agent-plugin/%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- T144: the handbook, rendered at /help. -->
+    <EmbeddedResource Include="../../docs/handbook/user-guide.md;../../docs/handbook/admin-guide.md;../../docs/handbook/user-guide.ar.md;../../docs/handbook/admin-guide.ar.md" LogicalName="handbook/%(Filename)%(Extension)" WithCulture="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Athar.ServiceDefaults\Athar.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Athar.Domain\Athar.Domain.csproj" />
+    <ProjectReference Include="..\Athar.Data\Athar.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="ReverseMarkdown" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="MudBlazor" />
+    <PackageReference Include="OpenIddict.AspNetCore" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+  </PropertyGroup>
+
+  <!-- Builds the editor island (src/editor) into wwwroot/editor when its sources change. -->
+  <ItemGroup>
+    <EditorSource Include="..\editor\src\**;..\editor\package-lock.json;..\editor\vite.config.ts" />
+  </ItemGroup>
+  <Target Name="BuildEditor" BeforeTargets="BeforeBuild" Inputs="@(EditorSource)" Outputs="wwwroot\editor\athar-editor.js">
+    <Exec Command="npm ci" WorkingDirectory="..\editor" Condition="!Exists('..\editor\node_modules')" />
+    <Exec Command="npm run build" WorkingDirectory="..\editor" />
+  </Target>
+  <!-- The bundle may not exist yet when wwwroot is globbed, so add it after the build target runs. -->
+  <Target Name="IncludeEditor" AfterTargets="BuildEditor">
+    <ItemGroup>
+      <Content Remove="wwwroot\editor\**" />
+      <Content Include="wwwroot\editor\**" />
+    </ItemGroup>
+  </Target>
+
+</Project>

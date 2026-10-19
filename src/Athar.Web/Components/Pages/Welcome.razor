@@ -1,0 +1,109 @@
+@page "/welcome"
+@layout PublicLayout
+@attribute [AllowAnonymous]
+@attribute [ExcludeFromInteractiveRouting]
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> L
+
+@* The public page before sign-in (PRODUCT.md: no invented customers, metrics or capabilities). The ledger is an example. *@
+<PageTitle>Athar · @L["WelcomeTabTitle"]</PageTitle>
+
+<div class="welcome">
+    <header class="top">
+        <a class="brand" href="/welcome"><img src="img/athar-mark.svg" alt="" width="32" height="32" /><span>@L["Athar"]</span></a>
+        <nav aria-label="@L["MainNavigation"]">
+            <a href="#how">@L["HowItWorks"]</a>
+            <a href="#governance">@L["Governance"]</a>
+            <a href="#agents">@L["ForAgents"]</a>
+        </nav>
+        <LanguageSwitch Class="top-lang" />
+        <MudButton Href="/account/login" Variant="Variant.Filled" Color="Color.Primary">@L["SignIn"]</MudButton>
+    </header>
+
+    <main id="content">
+        <section class="hero">
+            <div class="pitch">
+                <h1>@foreach (var sentence in Sentences(L["WelcomeHeadline"])) { <span>@sentence</span> }</h1>
+                <p class="lead">@L["WelcomeLead"]</p>
+                <div class="cta">
+                    <MudButton Href="/account/login" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large">@L["SignIn"]</MudButton>
+                    <MudButton Href="#agents" Variant="Variant.Outlined" Size="Size.Large">@L["ConnectAnAgent"]</MudButton>
+                </div>
+            </div>
+            <figure class="ledger" aria-label="@L["ExampleLedger"]">
+                <figcaption><span>@L["MemoryRegister"]</span><span class="example">@L["Example"]</span></figcaption>
+                <table>
+                    <thead><tr><th scope="col">@L["Memory"]</th><th scope="col">@L["Scope"]</th><th scope="col">@L["Status"]</th></tr></thead>
+                    <tbody>
+                        @foreach (var row in Rows)
+                        {
+                            <tr>
+                                <td><span class="title" dir="auto">@L[row.Title]</span><span class="by">@L[row.By]</span></td>
+                                <td><ScopeChip Scope="@row.Scope" /></td>
+                                <td><Seal Kind="@(row.Approved ? Seal.Kinds.Seal : Seal.Kinds.Ink)" Icon="@(row.Approved ? Icons.Material.Filled.Verified : Icons.Material.Outlined.Schedule)">@L[row.Approved ? "Approved" : "Proposed"]</Seal></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </figure>
+        </section>
+
+        <section class="band" id="how" aria-labelledby="how-h">
+            <h2 id="how-h">@L["HowItWorks"]</h2>
+            <ol class="steps">
+                <li><h3>@L["StepWriteTitle"]</h3><p>@L["StepWriteText"]</p></li>
+                <li><h3>@L["StepRememberTitle"]</h3><p>@L["StepRememberText"]</p></li>
+                <li><h3>@L["StepAnswerTitle"]</h3><p>@L["StepAnswerText"]</p></li>
+            </ol>
+        </section>
+
+        <section class="band split" id="governance" aria-labelledby="gov-h">
+            <div>
+                <h2 id="gov-h">@L["Governance"]</h2>
+                <p class="lead">@L["GovernanceLead"]</p>
+            </div>
+            <dl class="rules">
+                <div><dt><ScopeChip Scope="company" /></dt><dd>@L["RuleCompany"]</dd></div>
+                <div><dt><ScopeChip Scope="project" /></dt><dd>@L["RuleProject"]</dd></div>
+                <div><dt><ScopeChip Scope="team" /></dt><dd>@L["RuleTeam"]</dd></div>
+                <div><dt><ScopeChip Scope="personal" /></dt><dd>@L["RulePersonal"]</dd></div>
+            </dl>
+        </section>
+
+        <section class="band split" id="agents" aria-labelledby="agents-h">
+            <div>
+                <h2 id="agents-h">@L["ForAgents"]</h2>
+                <p class="lead">@L["AgentsLead"]</p>
+            </div>
+            <div class="connect">
+                <p class="label">@L["McpEndpoint"]</p>
+                <code dir="ltr">@McpUrl</code>
+                <p class="note">@L["AgentsNote"]</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="foot">
+        <span><img src="img/athar-mark.svg" alt="" width="20" height="20" /> @L["Athar"]</span>
+        <span>@L["FooterLine"]</span>
+    </footer>
+</div>
+
+@code {
+    private sealed record Row(string Title, string By, string Scope, bool Approved);
+
+    // Example rows (labeled "Example" on the page): what the register looks like, not real data.
+    private static readonly Row[] Rows =
+    [
+        new("ExDeploys", "ExByOwner", "company", true),
+        new("ExPnpm", "ExByClaude", "project", true),
+        new("ExRetention", "ExByCodex", "company", false),
+        new("ExOnCall", "ExByMember", "team", true),
+    ];
+
+    private string McpUrl => Nav.BaseUri.TrimEnd('/') + "/mcp";
+
+    // One sentence per line, as in the approved comp.
+    private static IEnumerable<string> Sentences(string text) =>
+        text.Split(". ", StringSplitOptions.RemoveEmptyEntries).Select(s => s.EndsWith('.') ? s : s + ".");
+}

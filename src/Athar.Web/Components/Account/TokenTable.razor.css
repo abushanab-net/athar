@@ -1,0 +1,2 @@
+.cell { max-inline-size: 16rem }
+.scopes { display: flex; flex-wrap: nowrap; gap: 4px }

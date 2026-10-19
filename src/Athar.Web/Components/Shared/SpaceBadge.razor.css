@@ -1,0 +1,23 @@
+.space-badge {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    inline-size: 22px;
+    block-size: 22px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+}
+
+.space-badge ::deep .mud-icon-root { font-size: 0.875rem; color: #fff }
+
+.space-badge.large {
+    inline-size: 36px;
+    block-size: 36px;
+    font-size: 0.875rem;
+}
+
+.space-badge.large ::deep .mud-icon-root { font-size: 1.25rem }

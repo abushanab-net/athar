@@ -1,0 +1,30 @@
+@* A date/time in the reader's culture, isolated for bidi (<bdi>) so it never scrambles in Arabic, with the full date as a tooltip. *@
+@if (Value is { } v)
+{
+    var local = v.ToLocalTime();
+    <time datetime="@v.ToString("o")" title="@local.ToString("F")" class="@Class"><bdi>@(Relative ? RelativeText(local) : local.ToString(DateOnly ? "d" : "g"))</bdi></time>
+}
+else if (Empty is not null)
+{
+    <span class="@Class">@Empty</span>
+}
+
+@code {
+    [Inject] private IStringLocalizer<SharedResource> L { get; set; } = default!;
+    [Parameter] public DateTimeOffset? Value { get; set; }
+    [Parameter] public bool DateOnly { get; set; }
+    /// <summary>"5 min ago" for the last week, the short date after that.</summary>
+    [Parameter] public bool Relative { get; set; }
+    [Parameter] public string? Empty { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private string RelativeText(DateTimeOffset local)
+    {
+        var age = DateTimeOffset.Now - local;
+        return age.TotalMinutes < 1 ? L["JustNow"]
+            : age.TotalHours < 1 ? L["MinutesAgo", (int)age.TotalMinutes]
+            : age.TotalDays < 1 ? L["HoursAgo", (int)age.TotalHours]
+            : age.TotalDays < 7 ? L["DaysAgo", (int)age.TotalDays]
+            : local.ToString("d");
+    }
+}

@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+.git/
+.github/
+.vs/
+.vscode/
+.impeccable/
+tests/
+docs/
+# T144: the handbook is embedded in Athar.Data and Athar.Web.
+!docs/handbook/
+deploy/.env
+src/Athar.Web/wwwroot/editor/

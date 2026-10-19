@@ -1,0 +1,271 @@
+@page "/memories/{Id:guid}"
+@attribute [Authorize]
+@inject MemoryService Memories
+@inject OrgAdminService Org
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+@inject SearchService Search
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> L
+
+@if (missing)
+{
+    <PageHeader Help="memories" Title="@L["Memories"]" />
+    <EmptyState Icon="@Icons.Material.Outlined.SearchOff" Title="@L["MemoryNotFound"]">
+        <MudButton Href="/memories" Variant="Variant.Outlined">@L["BackToMemories"]</MudButton>
+    </EmptyState>
+}
+else if (detail is null)
+{
+    <LoadingState Rows="6" />
+}
+else
+{
+    var m = detail.Memory;
+    var canChange = m.Status == "active" && !editing;
+    <PageHeader Help="memories" Title="@m.Title" Crumbs="crumbs">
+        <Actions>
+            @if (canChange)
+            {
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Edit" OnClick="StartEdit">@L["Edit"]</MudButton>
+                <MenuButton Icon="@Icons.Material.Filled.MoreVert" Label="@L["MoreActions"]">
+                    @* FR-CL-01: declassifying needs a stated reason; both directions are audited. *@
+                    @if (detail.IsConfidential)
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Outlined.LockOpen" OnClick="DeclassifyAsync">@L["Declassify"]</MudMenuItem>
+                    }
+                    else
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Lock" OnClick="MarkConfidentialAsync">@L["MarkConfidential"]</MudMenuItem>
+                    }
+                    @* FR-MM-08 (T151): anyone who can read both memories flags a conflict; it goes to Review › Conflicts. *@
+                    <MudMenuItem Icon="@Icons.Material.Outlined.CompareArrows" OnClick="() => flagging = true">@L["FlagConflict"]</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Archive" IconColor="Color.Error" Class="danger" OnClick="ArchiveAsync">@L["Archive"]</MudMenuItem>
+                </MenuButton>
+            }
+        </Actions>
+    </PageHeader>
+
+    <div class="memory">
+        <div class="facts">
+            <ScopeChip Scope="@m.Scope" />
+            <Seal Kind="Seal.Kinds.Quiet">@L["Type_" + m.Type]</Seal>
+            @* DESIGN.md: the normal state is plain text, not a stamp; archived and superseded are labels. *@
+            @if (m.Status == "active") { <span class="athar-muted">@L["Status_" + m.Status]</span> }
+            else { <Seal Kind="Seal.Kinds.Quiet">@L["Status_" + m.Status]</Seal> }
+            @if (detail.IsConfidential) { <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.Lock">@L["Confidential"]</Seal> }
+            @if (m.ShadowOf is { } baseId)
+            {
+                <a href="@($"/memories/{baseId}")" class="shadow-of"><MudIcon Icon="@Icons.Material.Outlined.CallSplit" Size="Size.Small" />@L["ShadowOf"]</a>
+                @if (m.Stale == true) { <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.Update" Tooltip="@L["StaleHelp"]">@L["Stale"]</Seal> }
+            }
+            <span class="meta">@L["Revision"] <bdi class="num">@m.Revision</bdi> · @L["Updated"] <Timestamp Value="m.UpdatedAt" Relative="true" /></span>
+        </div>
+
+        @if (pending is { } pend && !editing)
+        {
+            @* A member's edit of a company memory is a proposal; until a knowledge owner decides, the memory keeps its revision. *@
+            <MudAlert Severity="Severity.Info" Dense="true" Class="pending">
+                @L["EditPending"] <Timestamp Value="pend.At" Relative="true" />.
+                <a href="/review/proposals">@L["ViewProposal"]</a>
+            </MudAlert>
+        }
+
+        @if (editing)
+        {
+            <Section Title="@L["Edit"]">
+                <MudTextField @bind-Value="title" Label="@L["Title"]" Immediate="true" UserAttributes="Dir" />
+                <MudTextField @bind-Value="body" Label="@L["Body"]" Lines="10" AutoGrow="true" MaxLines="30" Immediate="true" InputMode="InputMode.text" Class="mt-3" UserAttributes="Dir" />
+                <div class="form-actions">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="string.IsNullOrWhiteSpace(title)">@L["Save"]</MudButton>
+                    <MudButton OnClick="() => editing = false">@L["Cancel"]</MudButton>
+                </div>
+            </Section>
+        }
+        else
+        {
+            @* A long body folds to a screenful; the history and links stay in reach below it. *@
+            var tall = Tall(detail.BodyMd);
+            <Section>
+                <div class="body-wrap @(tall && !expanded ? "folded" : null)">
+                    <MarkdownView Text="@detail.BodyMd" Class="memory-text" />
+                </div>
+                @if (tall)
+                {
+                    <MudButton Variant="Variant.Text" Size="Size.Small" Class="fold-toggle" aria-expanded="@(expanded ? "true" : "false")"
+                               EndIcon="@(expanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                               OnClick="() => expanded = !expanded">@(expanded ? L["ShowLess"] : L["ShowMore"])</MudButton>
+                }
+            </Section>
+        }
+
+        <Section Title="@L["Links"]">
+            @if (detail.Links.Count == 0)
+            {
+                <EmptyState Icon="@Icons.Material.Outlined.Link" Title="@L["NoLinks"]" Compact="true" />
+            }
+            else
+            {
+                <ul class="links">
+                    @foreach (var link in detail.Links)
+                    {
+                        <li>
+                            @if (Uri.TryCreate(link, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https")
+                            {
+                                <a href="@link" target="_blank" rel="noopener noreferrer" class="athar-truncate" title="@link"><bdi>@link</bdi></a>
+                            }
+                            else
+                            {
+                                <bdi class="athar-truncate" title="@link">@link</bdi>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+            @if (m.Status == "active")
+            {
+                <div class="add-link">
+                    <MudTextField @bind-Value="newLink" Label="@L["AddLink"]" Immediate="true" dir="auto" />
+                    <IconAction Icon="@Icons.Material.Filled.Add" Label="@L["AddLink"]" OnClick="LinkAsync" Disabled="string.IsNullOrWhiteSpace(newLink)" Size="Size.Medium" />
+                </div>
+            }
+        </Section>
+
+        <Section Title="@L["History"]" Flush="true">
+            <DataTable T="MemoryVersionView" Items="detail.History">
+                <HeaderContent>
+                    <SortTh T="MemoryVersionView" By="v => v.Revision" Initial="SortDirection.Descending" Class="num">@L["Revision"]</SortTh>
+                    <SortTh T="MemoryVersionView" By="v => v.Title">@L["Title"]</SortTh>
+                    <SortTh T="MemoryVersionView" By="v => NameOf(v.ChangedBy)">@L["ChangedBy"]</SortTh>
+                    <SortTh T="MemoryVersionView" By="v => v.Reason">@L["Reason"]</SortTh>
+                    <SortTh T="MemoryVersionView" By="v => v.At">@L["When"]</SortTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd Class="num">@context.Revision</MudTd>
+                    <MudTd><span class="athar-truncate cell-text" title="@context.Title" dir="auto">@context.Title</span></MudTd>
+                    <MudTd><span class="athar-truncate cell-text" title="@NameOf(context.ChangedBy)" dir="auto">@NameOf(context.ChangedBy)</span></MudTd>
+                    <MudTd><span class="athar-truncate cell-text" title="@context.Reason" dir="auto">@context.Reason</span></MudTd>
+                    <MudTd><Timestamp Value="context.At" /></MudTd>
+                </RowTemplate>
+            </DataTable>
+        </Section>
+    </div>
+}
+
+<MudDialog @bind-Visible="flagging" Options="flagOptions">
+    <TitleContent>@L["FlagConflict"]</TitleContent>
+    <DialogContent>
+        <p class="athar-muted mb-3">@L["FlagConflictHelp"]</p>
+        <MudAutocomplete T="SearchHit" @bind-Value="other" SearchFunc="FindMemoriesAsync" ToStringFunc="@(h => h?.Title ?? "")" Label="@L["ConflictsWith"]"
+                         DebounceInterval="300" MinCharacters="2" ResetValueOnEmptyText="true" dir="auto" />
+        <MudTextField @bind-Value="flagNote" Immediate="true" Label="@L["WhatDisagrees"]" Lines="3" dir="auto" Class="mt-3" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => flagging = false">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(other is null || string.IsNullOrWhiteSpace(flagNote))" OnClick="FlagAsync">@L["FlagConflictShort"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private static readonly Dictionary<string, object?> Dir = new() { ["dir"] = "auto" };
+    private Actor actor = default!;
+    private MemoryDetail? detail;
+    private PendingEdit? pending;
+    private bool missing, editing, expanded;
+    private string title = "", body = "", newLink = "";
+    private IReadOnlyList<(string, string)> crumbs = [];
+    private Dictionary<Guid, string> names = [];
+    private static readonly DialogOptions flagOptions = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+    private bool flagging;
+    private SearchHit? other;
+    private string flagNote = "";
+
+    private async Task<IEnumerable<SearchHit>> FindMemoriesAsync(string? text, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return [];
+        var found = await Search.SearchAsync(actor, new SearchInput(text.Trim(), ["memory"], Limit: 10), ct);
+        return found.Hits.Where(h => h.Id != Id);
+    }
+
+    private async Task FlagAsync()
+    {
+        if (other is null) return;
+        try
+        {
+            await Memories.OpenConflictAsync(actor, new(Id, other.Id, flagNote.Trim(), Guid.NewGuid().ToString()), default);
+            flagging = false;
+            Snackbar.Add(L["ConflictFlagged"], Severity.Success, o => { o.Action = L["Review"]; o.OnClick = _ => { Nav.NavigateTo("/review/conflicts"); return Task.CompletedTask; }; });
+            (other, flagNote) = (null, "");
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+    }
+    private string NameOf(Guid? id) => id is { } u ? names.GetValueOrDefault(u, L["FormerMember"]) : "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        actor = Actor.ForUser((await Auth).User);
+        crumbs = [(L["Memories"].Value, "/memories")];
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            detail = await Memories.GetAsync(actor, Id, default);
+            pending = await Memories.PendingEditAsync(actor, Id, default);
+            names = await Org.NamesAsync(actor.OrgId, detail.History.Select(v => v.ChangedBy).OfType<Guid>());
+        }
+        catch (AtharError e) when (e.Code == "not_found") { missing = true; }
+    }
+
+    private static bool Tall(string md) => md.Length > 1500 || md.AsSpan().Count('\n') > 30;
+
+    private void StartEdit()
+    {
+        // Picking up your own pending edit, so a second edit builds on it instead of starting over from the published text.
+        (title, body, editing) = pending is { } p ? (p.Title, p.BodyMd, true) : (detail!.Memory.Title, detail.BodyMd, true);
+    }
+
+    // Edits apply on top of the revision shown; someone else's newer revision is a conflict, not an overwrite.
+    private Task SaveAsync() => Run(async () =>
+    {
+        var r = await Memories.UpdateAsync(actor, new(Id, title, body, detail!.Memory.Revision, Guid.NewGuid().ToString()), default);
+        editing = false;
+        return r.Result == "proposed" ? L["SentForReviewMemory"] : L["Saved"];
+    });
+
+    private async Task ArchiveAsync()
+    {
+        if (await Dialogs.ShowMessageBox(L["Archive"].Value, L["ArchiveConfirm"].Value, yesText: L["Archive"].Value, cancelText: L["Cancel"].Value) != true) return;
+        await Run(async () => { await Memories.ArchiveAsync(actor, Id, null, default); return L["Saved"]; });
+    }
+
+    private async Task MarkConfidentialAsync()
+    {
+        if (await Dialogs.ShowMessageBox(L["MarkConfidential"].Value, L["MarkConfidentialConfirm"].Value, yesText: L["MarkConfidential"].Value, cancelText: L["Cancel"].Value) != true) return;
+        await Run(async () => { await Memories.ClassifyAsync(actor, Id, true, null, default); return L["Saved"]; });
+    }
+
+    private async Task DeclassifyAsync()
+    {
+        if (await ReasonDialog.AskAsync(Dialogs, L["Declassify"], null, L["Declassify"], label: L["DeclassifyReason"]) is not { } reason) return;
+        await Run(async () => { await Memories.ClassifyAsync(actor, Id, false, reason, default); return L["Saved"]; });
+    }
+
+    private Task LinkAsync() => Run(async () =>
+    {
+        await Memories.LinkAsync(actor, Id, newLink, default);
+        newLink = "";
+        return L["Saved"];
+    });
+
+    private async Task Run(Func<Task<string>> action)
+    {
+        try { Snackbar.Add(await action(), Severity.Success); }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+        await LoadAsync();
+    }
+}

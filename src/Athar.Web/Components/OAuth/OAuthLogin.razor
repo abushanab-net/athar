@@ -1,0 +1,69 @@
+@page "/oauth/login"
+@layout AuthLayout
+@attribute [ExcludeFromInteractiveRouting]
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@inject AccountService Accounts
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> L
+@inject OpenIddict.Abstractions.IOpenIddictApplicationManager Apps
+
+@* Sign-in for OAuth clients (docs/03 §2): sets only the athar.oauth cookie (Path=/oauth), never the app's. *@
+<PageTitle>@L["OAuthSignIn"] · Athar</PageTitle>
+
+<AccountCard Title="@L["OAuthSignIn"]" Lead="@L["OAuthSignInHelp"]" Error="@error">
+    @if (clientName is not null)
+    {
+        <div class="client"><span class="badge" aria-hidden="true">@clientName[..1].ToUpperInvariant()</span><span dir="auto">@L["OAuthRequestedBy", clientName]</span></div>
+    }
+    <EditForm Model="Input" FormName="oauth-login" OnValidSubmit="SignInAsync" method="post">
+        <div class="athar-field">
+            <label for="email">@L["Email"]</label>
+            <InputText id="email" @bind-Value="Input.Email" type="email" autocomplete="username" required class="athar-input" dir="ltr" />
+        </div>
+        <div class="athar-field">
+            <label for="password">@L["Password"]</label>
+            <InputText id="password" @bind-Value="Input.Password" type="password" autocomplete="current-password" required class="athar-input" dir="ltr" />
+        </div>
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large">@L["SignIn"]</MudButton>
+    </EditForm>
+</AccountCard>
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+    [SupplyParameterFromForm] private Credentials Input { get; set; } = default!;
+    private string? error;
+
+    private string? clientName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+        // Name the app asking for access, from the authorization request it came with.
+        if (ReturnUrl is { } r && r.StartsWith("/oauth/authorize?", StringComparison.Ordinal)
+            && Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(r[r.IndexOf('?')..]).TryGetValue("client_id", out var id)
+            && await Apps.FindByClientIdAsync(id.ToString()) is { } app)
+            clientName = await Apps.GetDisplayNameAsync(app) ?? id.ToString();
+    }
+
+    private async Task SignInAsync()
+    {
+        var (outcome, user) = await Accounts.CheckPasswordAsync(Input.Email, Input.Password, "auth.oauth_sign_in");
+        if (outcome != AccountService.SignInOutcome.Ok)
+        {
+            error = outcome == AccountService.SignInOutcome.LockedOut ? L["LockedOut"] : L["SignInFailed"];
+            return;
+        }
+        Claim[] claims = [new("sub", user!.Id.ToString()), new(AtharClaims.Org, user.OrgId.ToString()), new("name", user.Email!)];
+        await HttpContext.SignInAsync(OAuthSetup.CookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, OAuthSetup.CookieScheme, "name", "role")));
+        // Back to the authorization request only: never an open redirect.
+        Nav.NavigateTo(ReturnUrl is { } r && r.StartsWith("/oauth/authorize?", StringComparison.Ordinal) ? r : "/oauth/login", forceLoad: true);
+    }
+
+    private sealed class Credentials
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+}

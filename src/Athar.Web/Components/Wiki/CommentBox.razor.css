@@ -1,0 +1,39 @@
+/* The comment field: grows with its text (field-sizing; browsers without it scroll inside two lines), the buttons under it. */
+.comment-box {
+    display: grid;
+    gap: 8px;
+}
+
+textarea {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: 34px;
+    max-block-size: 220px;
+    field-sizing: content;
+    resize: none;
+    padding: 6px 10px;
+    border: 1px solid var(--athar-stroke);
+    border-radius: var(--athar-radius);
+    background: var(--mud-palette-surface);
+    color: var(--mud-palette-text-primary);
+    font: inherit;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+textarea::placeholder { color: var(--athar-muted); opacity: 1 }
+textarea:hover { border-color: var(--mud-palette-text-secondary) }
+textarea:focus-visible { outline: 2px solid var(--mud-palette-primary); outline-offset: -1px; border-color: var(--mud-palette-primary) }
+
+/* A reply field reads as a quiet line until it is used. */
+.reply textarea { border-color: transparent; background: transparent }
+.reply textarea:hover { border-color: var(--athar-stroke) }
+.reply textarea:focus-visible { background: var(--mud-palette-surface) }
+
+.box-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}

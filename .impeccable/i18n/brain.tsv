@@ -1,0 +1,28 @@
+shared	Open	Open	فتح
+shared	Filters	Filters	عوامل التصفية
+shared	OnlyStaleOverrides	Only stale overrides	التجاوزات القديمة فقط
+shared	MemoriesHelp	What your agents and team remember, filed by scope.	ما يتذكره وكلاؤك وفريقك، مصنَّفًا حسب النطاق.
+shared	StaleHelp	The company memory this overrides has changed since.	تغيّرت ذاكرة الشركة التي يتجاوزها هذا منذ ذلك الحين.
+shared	Pagination	Pagination	التنقل بين الصفحات
+shared	PagerRange	{0}–{1} of {2}	{0}–{1} من {2}
+shared	NoLinks	No links yet.	لا توجد روابط بعد.
+shared	MarkConfidentialConfirm	Mark this memory as confidential? Its project overrides and open proposals become confidential too.	تعليم هذه الذاكرة كسرّية؟ ستصبح تجاوزاتها في المشاريع ومقترحاتها المفتوحة سرّية أيضًا.
+shared	MemoryNotFound	This memory doesn't exist, or you can't see it.	هذه الذاكرة غير موجودة، أو لا يمكنك رؤيتها.
+shared	BackToMemories	Back to memories	العودة إلى الذاكرة
+shared	InboxHelp	Candidates captured from your agent sessions. Edit them, then accept or discard. A company candidate goes to a knowledge owner for review.	عناصر التُقطت من جلسات وكلائك. عدّلها ثم اقبلها أو تجاهلها. يُرسَل عنصر الشركة إلى مسؤول المعرفة لمراجعته.
+shared	InboxEmptyTitle	Nothing to review	لا شيء للمراجعة
+shared	InboxEmptyText	Candidates from your agent sessions appear here.	تظهر هنا العناصر المستخرجة من جلسات وكلائك.
+shared	DiscardConfirm	Discard this candidate? It won't become a memory.	تجاهل هذا العنصر؟ لن يصبح ذاكرة.
+shared	SimilarMemoryN	Similar memory {0}	ذاكرة مشابهة {0}
+shared	ProposalsHelpOwner	Open proposals to change memory, waiting for your decision.	مقترحات مفتوحة لتغيير الذاكرة تنتظر قرارك.
+shared	ProposalsHelpMember	Proposals you made, and what happened to them.	المقترحات التي قدّمتها وما آلت إليه.
+shared	TargetMovedUpdate	The memory changed after this proposal was made. Update it to the latest text before it's reviewed.	تغيّرت الذاكرة بعد تقديم هذا المقترح. حدّثه إلى أحدث نص قبل مراجعته.
+shared	RejectWithNote	Reject with note	الرفض مع ملاحظة
+shared	RejectHelp	The proposer sees this note.	سيرى مقدّم المقترح هذه الملاحظة.
+shared	UpdateToLatest	Update to latest	التحديث إلى الأحدث
+shared	EvidencePage	Source page	الصفحة المصدر
+shared	Evidence_session	Agent session	جلسة وكيل
+shared	Evidence_conflict	Conflict	تعارض
+shared	TypeToSearch	Type to search	اكتب للبحث
+shared	SearchHelp	Finds the pages and memories you can read, in Arabic and English.	يعثر على الصفحات والذكريات التي يمكنك قراءتها، بالعربية والإنجليزية.
+shared	Source	Source	مصدر

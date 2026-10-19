@@ -1,0 +1,127 @@
+@using Athar.Web.Services
+@inject WikiSession Session
+@inject IServiceScopeFactory Scopes
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+
+@* Version history (FR-PG-05): list, preview, manual snapshot, restore through the ops path. *@
+<section aria-label="@T("Versions")" class="versions-panel">
+    <div class="list-head">
+        <span>@T("History")</span>
+        @if (CanEdit)
+        {
+            <IconAction Icon="@Icons.Material.Outlined.Bookmark" Label="@T("SaveSnapshot")" OnClick="SnapshotAsync" />
+        }
+    </div>
+
+    @if (!loaded)
+    {
+        <LoadingState Rows="3" />
+    }
+    else if (rows.Count == 0)
+    {
+        <EmptyState Icon="@Icons.Material.Outlined.History" Title="@T("NoVersions")" Compact="true" />
+    }
+    else
+    {
+        <ul class="rows">
+            @foreach (var v in rows.Take(shown))
+            {
+                var name = string.Format(T("RevisionN"), v.Revision);
+                <li class="row @(preview?.Id == v.Id ? "selected" : null)" @key="v.Id">
+                    <span class="what">
+                        <span class="line"><span class="rev">@name</span><Seal Kind="Seal.Kinds.Quiet">@T($"ReasonLabel_{v.Reason}")</Seal></span>
+                        <span class="meta"><Timestamp Value="v.CreatedAt" Relative="true" />@if (v.By is not null) { <span> · <bdi>@v.By</bdi></span> }</span>
+                    </span>
+                    <IconAction Icon="@Icons.Material.Outlined.Visibility" Label="@string.Format(T("PreviewRevision"), v.Revision)"
+                                Color="@(preview?.Id == v.Id ? Color.Primary : Color.Default)" aria-pressed="@(preview?.Id == v.Id ? "true" : "false")"
+                                OnClick="() => PreviewAsync(v.Id)" />
+                    @if (CanEdit)
+                    {
+                        <IconAction Icon="@Icons.Material.Outlined.Restore" Label="@string.Format(T("RestoreRevision"), v.Revision)" OnClick="() => RestoreAsync(v)" />
+                    }
+                </li>
+            }
+        </ul>
+        @if (rows.Count > shown)
+        {
+            <button type="button" class="list-more" @onclick="ShowMoreAsync">@T("ShowOlderVersions")</button>
+        }
+    }
+
+    @if (preview is not null)
+    {
+        <div class="preview">
+            <div class="preview-head">
+                <h3>@T("Preview") · @string.Format(T("RevisionN"), preview.Revision)</h3>
+                <IconAction Icon="@Icons.Material.Filled.Close" Label="@T("ClosePreview")" OnClick="() => preview = null" />
+            </div>
+            <pre class="version-preview" dir="auto">@preview.Markdown</pre>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public Guid PageId { get; set; }
+    [Parameter] public bool CanEdit { get; set; }
+
+    /// <summary>Versions shown at once; one extra row is read to know whether there are more (T103).</summary>
+    public const int Step = 50;
+    private List<VersionRow> rows = [];
+    private int shown = Step;
+    private VersionPreview? preview;
+    private bool loaded;
+
+    private string T(string key) => Session.T(key);
+
+    protected override Task OnParametersSetAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        await Run(async s => rows = await List(s));
+        loaded = true;
+    }
+
+    private Task<List<VersionRow>> List(VersionService s) => s.ListAsync(Session.AsActor(), PageId, limit: shown + 1);
+
+    private Task ShowMoreAsync()
+    {
+        shown += Step;
+        return Run(async s => rows = await List(s));
+    }
+
+    private Task PreviewAsync(Guid id) => Run(async s => preview = await s.PreviewAsync(Session.AsActor(), PageId, id));
+
+    private Task SnapshotAsync() => Run(async s =>
+    {
+        await s.SnapshotAsync(Session.AsActor(), PageId);
+        rows = await List(s);
+    });
+
+    private async Task RestoreAsync(VersionRow v)
+    {
+        // Open editors receive the restored content live; it becomes the next revision (AT-13).
+        var ok = await Dialogs.ShowMessageBox(string.Format(T("RestoreRevision"), v.Revision), T("ConfirmRestore"),
+            yesText: T("RestoreVersion"), cancelText: T("Cancel"));
+        if (ok != true) return;
+        await Run(async s =>
+        {
+            var result = await s.RestoreAsync(Session.AsActor(), PageId, v.Id, Guid.NewGuid().ToString());
+            Snackbar.Add($"{T("Restored")} r{result.Revision}", Severity.Success);
+            rows = await List(s);
+        });
+    }
+
+    private async Task Run(Func<VersionService, Task> work)
+    {
+        try
+        {
+            await using var scope = Scopes.CreateAsyncScope();
+            await work(scope.ServiceProvider.GetRequiredService<VersionService>());
+        }
+        catch (AtharError e)
+        {
+            Snackbar.Add(e.Message, Severity.Error);
+        }
+    }
+}

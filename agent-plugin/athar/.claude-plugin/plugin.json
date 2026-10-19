@@ -1,0 +1,8 @@
+{
+  "name": "athar",
+  "version": "1.0.0",
+  "description": "Athar for Claude Code: the athar-brain skill, the Athar MCP server (OAuth) and opt-in session capture.",
+  "author": {
+    "name": "Athar"
+  }
+}

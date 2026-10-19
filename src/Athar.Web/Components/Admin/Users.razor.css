@@ -1,0 +1,4 @@
+.cell { max-inline-size: 20rem }
+
+/* The person's photo (or initials) before their name. */
+.person { display: inline-flex; align-items: center; gap: 8px; min-width: 0 }

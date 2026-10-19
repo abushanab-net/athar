@@ -1,0 +1,24 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.6.0">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
+    <UserSecretsId>ad94c0a7-5f8d-46da-bae9-35d202277ca2</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.JavaScript" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.MailPit" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.Ollama" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Athar.Web\Athar.Web.csproj" />
+    <ProjectReference Include="..\Athar.Worker\Athar.Worker.csproj" />
+  </ItemGroup>
+
+</Project>

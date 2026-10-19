@@ -1,0 +1,80 @@
+# Athar reverse proxy (T095): the only way in. Three listeners, one per host in docs/03 §2:
+#   :80    the portal athar.example.com (Pangolin terminates TLS and forwards here) and the LAN address: the whole
+#          app plus the editor WebSocket at /collab (PM decision 2026-10-05).
+#   :8081  athar-mcp.example.com: agent paths only. Pangolin terminates TLS and forwards here.
+#   :8082  athar-share.example.com: share pages only. Pangolin terminates TLS and forwards here.
+# A public listener returns 404 for any path not listed. collab's HTTP API and postgres are never exposed.
+{
+	auto_https off
+	admin off
+	# On the public listeners Pangolin's X-Forwarded-Proto (https) passes through, and the client address is the rightmost
+	# untrusted X-Forwarded-For entry (strict), so a client can't spoof it. That holds on :80 too, which Pangolin now feeds
+	# for the portal; a LAN visitor (a private address, so trusted) could set its own headers, which the ponytail below accepts.
+	# ponytail: any private address counts as a proxy; narrow to Pangolin's address if the LAN isn't trusted.
+	servers :80 {
+		trusted_proxies static private_ranges
+		trusted_proxies_strict
+	}
+	servers :8081 {
+		trusted_proxies static private_ranges
+		trusted_proxies_strict
+	}
+	servers :8082 {
+		trusted_proxies static private_ranges
+		trusted_proxies_strict
+	}
+}
+
+# web reads one forwarded hop (ASPNETCORE_FORWARDEDHEADERS_ENABLED), so send it only the resolved client address. That
+# keeps per-IP limits (the share password guard) per visitor, not per Pangolin.
+(web) {
+	reverse_proxy web:8080 {
+		header_up X-Forwarded-For {client_ip}
+		{block}
+	}
+}
+
+:80 {
+	# The browser editor's Hocuspocus WebSocket (Collab:PublicUrl = ATHAR_APP_URL/collab). Only the exact path is
+	# proxied, so collab's internal /documents/* routes stay unreachable.
+	handle /collab {
+		rewrite * /
+		reverse_proxy collab:1234
+	}
+	handle {
+		import web
+	}
+}
+
+:8081 {
+	@mcp path /mcp /mcp/*
+	# /agent/*: the setup scripts and the plugin bundle (T132), so the agent host alone is enough to set up.
+	@agents path /agent/* /api/v1/* /oauth/* /.well-known/oauth-protected-resource /.well-known/oauth-protected-resource/* /.well-known/oauth-authorization-server /.well-known/openid-configuration
+	# The OAuth sign-in and consent pages (static SSR) load the app's stylesheets, fonts and images.
+	@assets path /_framework/* /_content/* /Components/* /fonts/* /img/* /favicon* /app*.css /fonts*.css /Athar.Web*.css /athar*.js /a11y*.js
+	handle @mcp {
+		import web {
+			flush_interval -1 # MCP streams responses: no buffering
+		}
+	}
+	handle @agents {
+		import web
+	}
+	handle @assets {
+		import web
+	}
+	handle {
+		respond 404
+	}
+}
+
+:8082 {
+	# /editor/* is static JS: a share page with a ```mermaid block loads /editor/athar-mermaid.js and its chunks (T120).
+	@share path /s/* /fonts.css /fonts/* /favicon.svg /img/athar-mark.svg /editor/*
+	handle @share {
+		import web
+	}
+	handle {
+		respond 404
+	}
+}

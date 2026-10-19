@@ -1,0 +1,30 @@
+@page "/wiki/s/{SpaceId:guid}/settings"
+@attribute [Authorize]
+@inject WorkspaceAdminService Spaces
+@inject IStringLocalizer<SharedResource> L
+
+<PageHeader Help="admin-workspaces-and-spaces" Title="@L["SpaceSettings"]" Crumbs="@crumbs">
+    <Actions>
+        @if (name is not null)
+        {
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.MenuBook" Href="@($"/wiki/s/{SpaceId}")">@L["OpenInWiki"]</MudButton>
+        }
+    </Actions>
+</PageHeader>
+
+@* The settings themselves are SpaceSettingsBody, shared with the wiki's Space settings dialog (T114). *@
+<SpaceSettingsBody SpaceId="SpaceId" OnRenamed="n => name = n" />
+
+@code {
+    [Parameter] public Guid SpaceId { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private string? name;
+    // Space settings live under the space (T150): Wiki › space › Settings; a rename updates the crumb.
+    private IReadOnlyList<(string, string)> crumbs => name is null ? [(L["Wiki"], "/wiki")] : [(L["Wiki"], "/wiki"), (name, $"/wiki/s/{SpaceId}")];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var user = (await Auth).User;
+        name = (await Spaces.SpaceAsync(user.OrgId(), user.UserId(), SpaceId))?.Space.Name;
+    }
+}

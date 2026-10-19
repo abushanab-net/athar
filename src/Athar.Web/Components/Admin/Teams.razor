@@ -1,0 +1,97 @@
+@page "/admin/teams"
+@attribute [Authorize]
+@inject OrgAdminService Admin
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+
+<PageHeader Help="admin-teams" Title="@L["Teams"]">
+    <Actions>
+        @if (loaded && OrgRules.IsAdmin(role))
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="() => creating = true">@L["NewTeam"]</MudButton>
+        }
+    </Actions>
+</PageHeader>
+
+@if (!loaded)
+{
+    <LoadingState />
+}
+else if (!OrgRules.IsAdmin(role))
+{
+    <AccessDenied Text="@L["AdminsOnly"]" />
+}
+else if (teams.Count == 0)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.Groups" Title="@L["NoTeams"]" Text="@L["NoTeamsHelp"]" />
+}
+else
+{
+    @foreach (var team in teams)
+    {
+        <Section Title="@team.Name" Description="@L["MemberCount", team.MemberIds.Count]" Flush="true">
+            <Actions>
+                <PrincipalPicker Label="@L["AddMember"]"
+                                 Options="@members.Where(m => !m.Deactivated && !team.MemberIds.Contains(m.UserId)).Select(m => new WorkspaceAdminService.Principal(m.UserId, m.DisplayName, false))"
+                                 OnAdd="(p, _) => Apply(Admin.SetTeamMemberAsync(OrgId, ActorId, team.Id, p.Id, true))" />
+            </Actions>
+            <ChildContent>
+                <MemberTable Items="@team.MemberIds.Select(id => new WorkspaceAdminService.Grant(new(id, NameOf(id), false), ""))"
+                             OnRemove="p => Apply(Admin.SetTeamMemberAsync(OrgId, ActorId, team.Id, p.Id, false))" />
+            </ChildContent>
+        </Section>
+    }
+}
+
+<MudDialog @bind-Visible="creating" Options="dialogOptions">
+    <TitleContent>@L["NewTeam"]</TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="newTeam" Immediate="true" Label="@L["TeamName"]" AutoFocus="true" dir="auto" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => creating = false">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateAsync" Disabled="string.IsNullOrWhiteSpace(newTeam)">@L["CreateTeam"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private static readonly DialogOptions dialogOptions = new() { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+    private Guid OrgId, ActorId;
+    private OrgRole? role;
+    private bool loaded, creating;
+    private List<OrgAdminService.TeamRow> teams = [];
+    private List<OrgAdminService.MemberRow> members = [];
+    private string newTeam = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await Auth).User;
+        (OrgId, ActorId) = (user.OrgId(), user.UserId());
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        role = await Admin.RoleOfAsync(OrgId, ActorId);
+        teams = await Admin.TeamsAsync(OrgId, ActorId);
+        members = await Admin.MembersAsync(OrgId, ActorId);
+        loaded = true;
+    }
+
+    private string NameOf(Guid userId) => members.FirstOrDefault(m => m.UserId == userId)?.DisplayName ?? userId.ToString();
+
+    private async Task CreateAsync()
+    {
+        if (await Apply(Admin.CreateTeamAsync(OrgId, ActorId, newTeam)) != OrgDecision.Allow) return;
+        (creating, newTeam) = (false, "");
+    }
+
+    private async Task<OrgDecision> Apply(Task<OrgDecision> action)
+    {
+        var decision = await action;
+        Snackbar.Add(decision == OrgDecision.Allow ? L["Saved"] : L["NotAllowed"], decision == OrgDecision.Allow ? Severity.Success : Severity.Warning);
+        await LoadAsync();
+        return decision;
+    }
+}

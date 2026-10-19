@@ -1,0 +1,324 @@
+@page "/dashboard"
+@attribute [Authorize]
+@using System.Globalization
+@using Athar.Web.Services.Dashboard
+@using Athar.Web.Mcp
+@inject DashboardService Service
+@inject IStringLocalizer<SharedResource> L
+
+@* T179 (FR-AG-11): what agents did with the company's knowledge. Members see their own activity; owners and admins can switch to the org. *@
+<PageHeader Help="dashboard" Title="@L["Dashboard"]" Description="@L[org ? "DashboardHelpOrg" : "DashboardHelp"]">
+    <Actions>
+        @if (view?.Admin == true)
+        {
+            <MudToggleGroup T="bool" Value="org" ValueChanged="SwitchAsync" Size="Size.Small" Color="Color.Primary" Outlined="true"
+                            aria-label="@L["DashboardScope"]" Class="scope">
+                <MudToggleItem Value="false" Text="@L["DashboardMine"]" />
+                <MudToggleItem Value="true" Text="@L["DashboardAll"]" />
+            </MudToggleGroup>
+        }
+        <IconAction Icon="@Icons.Material.Outlined.Refresh" Label="@L["Refresh"]" OnClick="LoadAsync" />
+    </Actions>
+</PageHeader>
+
+@if (view is null)
+{
+    <LoadingState Rows="8" />
+}
+else
+{
+    var v = view;
+    <div class="cards">
+        <article class="card" aria-label="@L["DashKnowledge"]">
+            <h2>@L["DashKnowledge"]</h2>
+            <dl>
+                <div><dt>@L["DashPages"]</dt><dd>@N(v.Knowledge.Pages)</dd></div>
+                <div><dt>@L["Memories"]</dt><dd>@N(v.Knowledge.Memories)</dd></div>
+                <div><dt>@L["NavSkills"]</dt><dd>@N(v.Knowledge.Skills)</dd></div>
+                <div><dt>@L["DashSources"]</dt><dd>@N(v.Knowledge.Sources)</dd></div>
+            </dl>
+        </article>
+        <article class="card" aria-label="@L["DashCallsToday"]">
+            <h2>@L["DashCallsToday"]</h2>
+            <p class="big">@N(v.Today.Reads + v.Today.Writes)</p>
+            <p class="sub">@L["DashReadsWrites", N(v.Today.Reads), N(v.Today.Writes)]</p>
+        </article>
+        <article class="card" aria-label="@L["DashRetrievals"]">
+            <h2>@L["DashRetrievals"]</h2>
+            <p class="big">@N(v.Today.Retrievals)</p>
+            <p class="sub">@L["DashEmptyRate", P(v.Today.EmptyRate)]</p>
+        </article>
+        <article class="card" aria-label="@L["DashAgents"]">
+            <h2>@L["DashAgents"]</h2>
+            <p class="big">@N(v.ActiveAgents)</p>
+            <p class="sub">@L["DashTokensDue", N(v.Tokens.ExpiringIn7Days), N(v.Tokens.UnusedFor30Days)]</p>
+        </article>
+    </div>
+
+    <div class="cards">
+        <article class="card" aria-label="@L["DashPromoted"]">
+            <h2>@L["DashPromoted"]</h2>
+            <p class="big">@N(v.Brain.Promoted)</p>
+            <p class="sub">@L["DashPromotedSub", P(v.Brain.PromotedShare), N(v.Brain.Rejected), N(v.Brain.OpenConflicts)]</p>
+        </article>
+        <article class="card" aria-label="@L["DashWaiting"]">
+            <h2>@L["DashWaiting"]</h2>
+            <p class="big"><a href="/review/proposals">@N(v.Brain.WaitingForReview)</a></p>
+            <p class="sub">@(v.Brain.OldestWaiting is { } age ? L["DashOldest", Age(age)] : L["DashNothingWaiting"])</p>
+        </article>
+        <article class="card" aria-label="@L["DashRecallHit"]">
+            <h2>@L["DashRecallHit"]</h2>
+            <p class="big">@P(v.Brain.RecallHitRate)</p>
+            <p class="sub">@L["DashLast30"]</p>
+        </article>
+        @if (v.Brain.IndexJobs is { } index)
+        {
+            <article class="card" aria-label="@L["DashIndexJobs"]">
+                <h2>@L["DashIndexJobs"]</h2>
+                <p class="big">@N(index.Ready + index.Running)</p>
+                <p class="sub @(index.Dead > 0 ? "bad" : null)">@L["DashJobsSub", N(index.Ready), N(index.Running), N(index.Dead)]</p>
+            </article>
+        }
+    </div>
+
+    <Section Title="@L["DashCallsPerDay"]" Description="@L["DashCallsPerDayHelp"]" Class="calls">
+        @if (v.CallsByDay.Count == 0)
+        {
+            <EmptyState Compact="true" Icon="@Icons.Material.Outlined.BarChart" Title="@L["DashNoCalls"]" Text="@L["DashNoCallsText"]">
+                <MudButton Variant="Variant.Outlined" Href="/agents" StartIcon="@Icons.Material.Outlined.SmartToy">@L["ConnectAgent"]</MudButton>
+            </EmptyState>
+        }
+        else
+        {
+            var days = Days(DashboardService.ChartDays);
+            var clients = v.CallsByDay.GroupBy(c => c.Client).OrderByDescending(g => g.Sum(c => c.Count)).Select(g => g.Key).ToList();
+            var max = Math.Max(1, v.CallsByDay.GroupBy(c => c.Date).Max(g => g.Sum(c => c.Count)));
+            <div class="bars" role="img" aria-label="@L["DashCallsPerDay"]">
+                @foreach (var day in days)
+                {
+                    var total = v.CallsByDay.Where(c => c.Date == day).Sum(c => c.Count);
+                    <div class="col @(Weekend(day) ? "weekend" : null)" title="@($"{day.ToString("d", CultureInfo.CurrentCulture)}: {N(total)}")">
+                        <div class="stack">
+                            @foreach (var c in clients)
+                            {
+                                var n = v.CallsByDay.Where(x => x.Date == day && x.Client == c).Sum(x => x.Count);
+                                if (n > 0) { <span class="seg" style="@($"block-size:{100.0 * n / max:0.##}%;background:{Swatch(clients.IndexOf(c))}")"></span> }
+                            }
+                        </div>
+                        <span class="day">@day.ToString("ddd", CultureInfo.CurrentCulture)</span>
+                    </div>
+                }
+            </div>
+            <ul class="legend">
+                @foreach (var c in clients)
+                {
+                    <li><span class="swatch" style="@($"background:{Swatch(clients.IndexOf(c))}")"></span><span dir="auto">@(c == DashboardService.Other ? L["DashOther"].Value : c)</span></li>
+                }
+                <li><span class="swatch weekend"></span>@L["DashWeekend"]</li>
+            </ul>
+        }
+    </Section>
+
+    <Section Title="@L["DashWrites"]" Description="@L["DashWritesHelp"]" Class="heat">
+        @if (v.Writes.Days.Count == 0)
+        {
+            <EmptyState Compact="true" Icon="@Icons.Material.Outlined.CalendarMonth" Title="@L["DashNoWrites"]" />
+        }
+        else
+        {
+            var days = Days(DashboardService.HeatmapDays);
+            var counts = v.Writes.Days.ToDictionary(d => d.Date, d => d.Count);
+            var peak = Math.Max(1, v.Writes.Peak?.Count ?? 1);
+            // Each column is a week, Saturday at the top; leading blanks align the first day under its weekday.
+            var lead = ((int)days[0].DayOfWeek + 1) % 7;
+            <div class="grid" role="img" aria-label="@L["DashWritesSummary", N(v.Writes.ActiveDays), v.Writes.Peak is { } pk ? $"{pk.Date.ToString("d", CultureInfo.CurrentCulture)} ({N(pk.Count)})" : "—"]">
+                @for (var i = 0; i < lead; i++) { <span class="cell blank"></span> }
+                @foreach (var day in days)
+                {
+                    var n = counts.GetValueOrDefault(day);
+                    <span class="cell l@(Level(n, peak))" title="@($"{day.ToString("d", CultureInfo.CurrentCulture)}: {N(n)}")"></span>
+                }
+            </div>
+            <p class="facts">
+                @L["DashActiveDays", N(v.Writes.ActiveDays)]
+                @if (v.Writes.Peak is { } p) { <span> · @L["DashPeak", p.Date.ToString("d", CultureInfo.CurrentCulture), N(p.Count)]</span> }
+                @if (v.Writes.LastWrite is { } last) { <span> · @L["DashLastWrite", last.ToString("d", CultureInfo.CurrentCulture)]</span> }
+            </p>
+        }
+    </Section>
+
+    <div class="pair">
+        <Section Title="@L["DashFunnel"]" Description="@L["DashLast30"]" Class="funnel">
+            @if (v.Funnel.Sessions == 0)
+            {
+                <EmptyState Compact="true" Icon="@Icons.Material.Outlined.FilterAlt" Title="@L["DashNoSessions"]" Text="@L["DashNoSessionsText"]" />
+            }
+            else
+            {
+                <ol>
+                    @foreach (var (label, n) in new[] { (L["DashSessions"].Value, v.Funnel.Sessions), (L["Memories"].Value, v.Funnel.Memories),
+                        (L["Proposals"].Value, v.Funnel.Proposals), (L["DashReviewed"].Value, v.Funnel.Reviewed), (L["DashPromotedStep"].Value, v.Funnel.Promoted) })
+                    {
+                        <li><span class="name">@label</span><span class="bar"><span style="@($"inline-size:{100.0 * n / v.Funnel.Sessions:0.##}%")"></span></span><span class="n">@N(n)</span></li>
+                    }
+                </ol>
+            }
+        </Section>
+
+        <Section Title="@L["DashMostRecalled"]" Description="@L["DashLast30"]" Class="recalled">
+            @if (v.MostRecalled.Count == 0)
+            {
+                <EmptyState Compact="true" Icon="@Icons.Material.Outlined.Hub" Title="@L["DashNoRecalls"]" />
+            }
+            else
+            {
+                <ol class="list">
+                    @foreach (var r in v.MostRecalled)
+                    {
+                        <li @key="r.Id">
+                            @if (r.Title is not null)
+                            {
+                                <a href="/memories/@r.Id" dir="auto">@r.Title</a>
+                                <ScopeChip Scope="@r.Scope" />
+                            }
+                            else { <span class="athar-muted">@L["DashRestricted"]</span> }
+                            <span class="n">@L["DashRecalls", N(r.Count)]</span>
+                        </li>
+                    }
+                </ol>
+            }
+        </Section>
+    </div>
+
+    <Section Title="@L["DashAttention"]" Class="attention">
+        @{ var a = v.Attention; }
+        @if (a.NeverRecalled == 0 && a.OpenConflicts == 0 && a.RepeatedEmptyRecalls.Count == 0)
+        {
+            <EmptyState Compact="true" Icon="@Icons.Material.Outlined.TaskAlt" Title="@L["DashAllClear"]" />
+        }
+        else
+        {
+            <ul class="list">
+                @if (a.NeverRecalled > 0)
+                {
+                    <li>
+                        <strong>@L["DashNeverRecalled", N(a.NeverRecalled)]</strong>
+                        @foreach (var m in a.NeverRecalledReadable) { <a href="/memories/@m.Id" dir="auto" class="item">@m.Title</a> }
+                    </li>
+                }
+                @if (a.OpenConflicts > 0) { <li><a href="/review/conflicts">@L["DashOpenConflicts", N(a.OpenConflicts)]</a></li> }
+                @foreach (var e in a.RepeatedEmptyRecalls)
+                {
+                    <li>@(e.Query is null ? L["DashEmptyRepeatHidden", N(e.Count)] : L["DashEmptyRepeat", e.Query, N(e.Count)])</li>
+                }
+            </ul>
+        }
+    </Section>
+
+    <Section Title="@L["DashTools"]" Description="@L["DashToolsHelp"]" Flush="true" Class="tools">
+        @if (v.Tools.Count == 0)
+        {
+            <EmptyState Compact="true" Icon="@Icons.Material.Outlined.Build" Title="@L["DashNoTools"]" />
+        }
+        else
+        {
+            <MudSimpleTable Dense="true" Elevation="0" Hover="true">
+                <thead><tr><th>@L["DashTool"]</th><th class="num">@L["DashCalls"]</th><th class="num">@L["DashP95"]</th><th class="num">@L["DashErrors"]</th></tr></thead>
+                <tbody>
+                    @foreach (var t in v.Tools)
+                    {
+                        <tr @key="t.Tool"><td><code dir="ltr">@t.Tool</code></td><td class="num">@N(t.Calls)</td><td class="num">@L["DashMs", N(t.P95Ms)]</td>
+                            <td class="num @(t.ErrorRate > 0.05 ? "bad" : null)">@P(t.ErrorRate)</td></tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        }
+    </Section>
+
+    @if (v.ModelTokens is { } tokens)
+    {
+        <Section Title="@L["DashModelTokens"]" Description="@L["DashAdminOnly"]" Class="model-tokens">
+            @if (tokens.Count == 0)
+            {
+                <EmptyState Compact="true" Icon="@Icons.Material.Outlined.ModelTraining" Title="@L["DashNoTokens"]" />
+            }
+            else
+            {
+                // SVG ignores dir, so in Arabic the days are reversed and time reads right to left like the rest of the page.
+                var days = AuthSetup.IsRightToLeft ? Enumerable.Reverse(Days(DashboardService.ChartDays)).ToList() : Days(DashboardService.ChartDays);
+                var series = tokens.GroupBy(t => t.Role).OrderBy(g => g.Key).Select(g => new ChartSeries
+                {
+                    Name = L["Role_" + g.Key].ResourceNotFound ? g.Key : L["Role_" + g.Key].Value,
+                    Data = days.Select(d => (double)g.Where(t => t.Date == d).Sum(t => t.Tokens)).ToArray(),
+                }).ToList();
+                <MudChart ChartType="ChartType.Line" ChartSeries="series" XAxisLabels="@(days.Select(d => d.ToString("dd", CultureInfo.CurrentCulture)).ToArray())"
+                          Width="100%" Height="240px" aria-label="@L["DashModelTokens"]" />
+            }
+        </Section>
+    }
+
+    <div class="pair">
+        @if (v.JobQueue is { } q)
+        {
+            <Section Title="@L["DashJobQueue"]" Description="@L["DashAdminOnly"]" Class="queue">
+                <dl class="inline">
+                    <div><dt>@L["DashReady"]</dt><dd>@N(q.Ready)</dd></div>
+                    <div><dt>@L["DashRunning"]</dt><dd>@N(q.Running)</dd></div>
+                    <div><dt>@L["DashDead"]</dt><dd class="@(q.Dead > 0 ? "bad" : null)">@N(q.Dead)</dd></div>
+                </dl>
+                @if (q.LastError is { } err)
+                {
+                    <p class="error"><code dir="ltr">@err.Kind</code> <Timestamp Value="err.At" Relative="true" /> <span dir="auto">@err.Message</span></p>
+                }
+            </Section>
+        }
+        <Section Title="@L["DashTokenHealth"]" Description="@L["DashYourTokens"]" Class="token-health">
+            <dl class="inline">
+                <div><dt>@L["DashActiveTokens"]</dt><dd>@N(v.OwnTokens.Active)</dd></div>
+                <div><dt>@L["DashExpiring"]</dt><dd class="@(v.OwnTokens.ExpiringIn7Days > 0 ? "warn" : null)">@N(v.OwnTokens.ExpiringIn7Days)</dd></div>
+                <div><dt>@L["DashUnused"]</dt><dd>@N(v.OwnTokens.UnusedFor30Days)</dd></div>
+                <div><dt>@L["DashExpired"]</dt><dd>@N(v.OwnTokens.Expired)</dd></div>
+            </dl>
+            <MudButton Variant="Variant.Text" Href="/account/tokens" EndIcon="@Icons.Material.Outlined.ChevronRight">@L["DashManageTokens"]</MudButton>
+        </Section>
+    </div>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private Actor actor = default!;
+    private DashboardView? view;
+    private bool org;
+
+    // The categorical palette for clients (DESIGN.md chart colors); a client past the eighth reuses one.
+    private static readonly string[] Palette = ["#2F6F6A", "#C2502E", "#3E5C9A", "#B08A2E", "#7A4E8C", "#4E8A4A", "#9A3E5C", "#5C6670"];
+
+    protected override async Task OnInitializedAsync()
+    {
+        actor = Actor.ForUser((await Auth).User);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync() => view = await Service.GetAsync(actor, org);
+
+    private async Task SwitchAsync(bool all)
+    {
+        org = all;
+        view = null;
+        await LoadAsync();
+    }
+
+    private List<DateOnly> Days(int count)
+    {
+        var today = DateOnly.FromDateTime(view!.At.UtcDateTime);
+        return [.. Enumerable.Range(0, count).Select(i => today.AddDays(i + 1 - count))];
+    }
+
+    private static bool Weekend(DateOnly d) => d.DayOfWeek is DayOfWeek.Friday or DayOfWeek.Saturday;
+    private static int Level(long n, long peak) => n == 0 ? 0 : (int)Math.Ceiling(4.0 * n / peak);
+    private static string Swatch(int i) => Palette[i % Palette.Length];
+    private static string N(long n) => n.ToString("N0", CultureInfo.CurrentCulture);
+    private static string P(double? rate) => rate is { } r ? r.ToString("P0", CultureInfo.CurrentCulture) : "—";
+
+    private string Age(TimeSpan age) => age.TotalDays >= 1 ? L["DashDays", N((long)age.TotalDays)] : age.TotalHours >= 1 ? L["DashHours", N((long)age.TotalHours)] : L["DashMinutes", N(Math.Max(1, (long)age.TotalMinutes))];
+}

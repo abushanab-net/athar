@@ -1,0 +1,229 @@
+@using Athar.Domain.Model
+@using Athar.Web.Services
+@using Athar.Web.Sharing
+@inject WikiSession Session
+@inject IServiceScopeFactory Scopes
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject IDialogService Dialogs
+@inject IJSRuntime JS
+@inject IConfiguration Config
+
+@* Sharing (FR-SH-01..04): the page with people and teams, and read-only external links. Space members live in the
+   space settings (T011). The tab names the panel, so its parts are h3s. *@
+<section aria-label="@T("Share")" class="share-panel">
+    <h3>@T("PeopleWithAccess")</h3>
+    @if (shares.Count == 0)
+    {
+        <EmptyState Icon="@Icons.Material.Outlined.Groups" Title="@T("OnlySpaceMembers")" Compact="true" />
+    }
+    else
+    {
+        <ul class="rows">
+            @foreach (var s in shares)
+            {
+                <li class="row" @key="s.Id">
+                    <span class="avatar" aria-hidden="true">
+                        @if (s.TeamId is null) { @Initials(s.Name) } else { <MudIcon Icon="@Icons.Material.Outlined.Groups" Size="Size.Small" /> }
+                    </span>
+                    <span class="who athar-truncate" title="@s.Name"><bdi>@s.Name</bdi>@if (s.TeamId is not null) { <span class="team"> · @T("Team")</span> }</span>
+                    <Seal Kind="Seal.Kinds.Quiet">@T($"Level_{s.Level}")</Seal>
+                    <IconAction Icon="@Icons.Material.Outlined.PersonRemove" Label="@($"{T("RemoveAccess")}: {s.Name}")" OnClick="() => UnshareAsync(s)" />
+                </li>
+            }
+        </ul>
+    }
+
+    <div class="share-form">
+        <MudAutocomplete T="SharePrincipal" @bind-Value="who" Label="@T("SharePerson")" SearchFunc="SearchAsync" ToStringFunc="@(p => p?.Name)" DebounceInterval="200" />
+        <div class="share-row">
+            <MudSelect T="ShareLevel" @bind-Value="level" Label="@T("Level")" Class="level">
+                @foreach (var l in Enum.GetValues<ShareLevel>())
+                {
+                    <MudSelectItem Value="l">@T($"Level_{l.ToString().ToLowerInvariant()}")</MudSelectItem>
+                }
+            </MudSelect>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" Disabled="who is null" OnClick="ShareAsync">@T("Share")</MudButton>
+        </div>
+        @if (CanManageSpace)
+        {
+            <a class="quiet-link" href="@($"/wiki/s/{SpaceId}/settings")">@T("SpaceMembers")</a>
+        }
+    </div>
+
+    <div class="links-head">
+        <h3>@T("ExternalLinks")</h3>
+        <MudButton Size="Size.Small" StartIcon="@(adding ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.Add)" OnClick="() => adding = !adding"
+                   aria-expanded="@(adding ? "true" : "false")" aria-controls="share-link-form">@T("AddLink")</MudButton>
+    </div>
+
+    @if (created is not null)
+    {
+        <MudAlert Severity="Severity.Success" Dense="true" Class="created">
+            <span class="created-text">@T("LinkCreated")</span>
+            <span class="created-link">
+                <MudLink Href="@created" Target="_blank" Class="athar-truncate"><bdi>@created</bdi></MudLink>
+                <IconAction Icon="@Icons.Material.Outlined.ContentCopy" Label="@T("CopyLink")" OnClick="CopyAsync" />
+            </span>
+        </MudAlert>
+    }
+
+    @if (adding)
+    {
+        <div class="link-form" id="share-link-form">
+            <MudCheckBox T="bool" @bind-Value="includeDescendants" Label="@T("IncludeSubpages")" Disabled="wholeSpace" />
+            @if (CanManageSpace)
+            {
+                <MudCheckBox T="bool" @bind-Value="wholeSpace" Label="@T("WholeSpace")" />
+            }
+            <MudDatePicker @bind-Date="expires" Label="@T("ExpiresOn")" AdornmentAriaLabel="@T("ExpiresOn")" Clearable="true" MinDate="DateTime.Today" />
+            <MudTextField T="string" @bind-Value="password" Label="@T("PasswordOptional")" InputType="InputType.Password" Immediate="true" />
+            <div class="form-actions">
+                <MudButton Size="Size.Small" OnClick="() => adding = false">@T("Cancel")</MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateLinkAsync">@T("CreateLink")</MudButton>
+            </div>
+        </div>
+    }
+
+    @if (links.Count == 0)
+    {
+        <EmptyState Icon="@Icons.Material.Outlined.Link" Title="@T("NoLinks")" Compact="true" />
+    }
+    else
+    {
+        <ul class="rows">
+            @foreach (var l in links)
+            {
+                var state = LinkState(l);
+                <li class="row link @(l.RevokedAt is null ? null : "revoked")" @key="l.Id">
+                    <MudIcon Icon="@(l.SpaceId is null ? Icons.Material.Outlined.Link : Icons.Material.Outlined.FolderShared)" Size="Size.Small" Class="link-icon" />
+                    <span class="link-text">
+                        <span class="athar-truncate">@LinkKind(l)</span>
+                        <span class="link-meta">
+                            @if (l.HasPassword)
+                            {
+                                <span class="with-password"><MudIcon Icon="@Icons.Material.Outlined.Lock" Size="Size.Small" />@T("PasswordProtected")</span>
+                            }
+                            @if (l.ExpiresAt is { } e)
+                            {
+                                <span>@T("ExpiresLabel") <Timestamp Value="e" DateOnly="true" /></span>
+                            }
+                        </span>
+                    </span>
+                    <Seal Kind="@state.Kind">@state.Label</Seal>
+                    @if (l.RevokedAt is null)
+                    {
+                        <IconAction Icon="@Icons.Material.Outlined.LinkOff" Label="@($"{T("RevokeLink")}: {LinkKind(l)}")" OnClick="() => RevokeAsync(l)" />
+                    }
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public Guid PageId { get; set; }
+    [Parameter, EditorRequired] public Guid SpaceId { get; set; }
+    /// <summary>Space admins also manage space links and members (FR-SH-04).</summary>
+    [Parameter] public bool CanManageSpace { get; set; }
+
+    private List<PageShareRow> shares = [];
+    private List<ShareLinkRow> links = [];
+    private SharePrincipal? who;
+    private ShareLevel level = ShareLevel.View;
+    private bool includeDescendants, wholeSpace, adding;
+    private DateTime? expires;
+    private string? password, created;
+
+    private string T(string key) => Session.T(key);
+
+    protected override Task OnParametersSetAsync() => LoadAsync();
+
+    private Task LoadAsync() => Run(async x =>
+    {
+        shares = await x.ListSharesAsync(Session.AsActor(), PageId);
+        links = await x.ListLinksAsync(Session.AsActor(), PageId, null);
+        if (CanManageSpace) links = [.. links.Concat((await x.ListLinksAsync(Session.AsActor(), null, SpaceId)).Where(l => l.SpaceId is not null))];
+    }, reload: false);
+
+    private async Task<IEnumerable<SharePrincipal>> SearchAsync(string? query, CancellationToken ct)
+    {
+        await using var scope = Scopes.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<ShareService>().PrincipalsAsync(Session.AsActor(), query ?? "", ct: ct);
+    }
+
+    private async Task ShareAsync()
+    {
+        var target = who!;
+        if (await Run(x => x.ShareAsync(Session.AsActor(), PageId, target.UserId, target.TeamId, level))) who = null;
+    }
+
+    private async Task UnshareAsync(PageShareRow s)
+    {
+        if (await Confirm(T("RemoveAccess"), string.Format(T("ConfirmRemoveAccess"), s.Name)))
+            await Run(x => x.UnshareAsync(Session.AsActor(), s.Id));
+    }
+
+    private async Task CreateLinkAsync()
+    {
+        DateTimeOffset? until = expires is { } d ? new DateTimeOffset(d.Date.AddDays(1), TimeZoneInfo.Local.GetUtcOffset(d)) : null;
+        await Run(async x =>
+        {
+            var link = wholeSpace
+                ? await x.CreateLinkAsync(Session.AsActor(), null, SpaceId, false, until, password)
+                : await x.CreateLinkAsync(Session.AsActor(), PageId, null, includeDescendants, until, password);
+            // Links go to people outside: the public share host when there is one (Athar:ShareUrl), else this host.
+            created = Config["Athar:ShareUrl"] is { Length: > 0 } host ? host.TrimEnd('/') + link.Path : Nav.ToAbsoluteUri(link.Path).ToString();
+            (password, adding) = (null, false);
+        });
+    }
+
+    private async Task RevokeAsync(ShareLinkRow l)
+    {
+        if (await Confirm(T("RevokeLink"), T("ConfirmRevokeLink")))
+            await Run(x => x.RevokeLinkAsync(Session.AsActor(), l.Id));
+    }
+
+    private async Task CopyAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", created);
+            Snackbar.Add(T("LinkCopied"), Severity.Success);
+        }
+        catch (JSException)
+        {
+            Snackbar.Add(T("CopyFailed"), Severity.Warning);
+        }
+    }
+
+    private async Task<bool> Confirm(string action, string message) =>
+        await Dialogs.ShowMessageBox(action, message, yesText: action, cancelText: T("Cancel")) == true;
+
+    private string LinkKind(ShareLinkRow l) =>
+        l.SpaceId is null ? (l.IncludeDescendants ? T("LinkPageAndBelow") : T("LinkPage")) : T("LinkSpace");
+
+    private (Seal.Kinds Kind, string Label) LinkState(ShareLinkRow l) =>
+        l.RevokedAt is not null ? (Seal.Kinds.Quiet, T("LinkRevoked"))
+        : l.ExpiresAt is { } e && e <= DateTimeOffset.UtcNow ? (Seal.Kinds.Warn, T("LinkExpired"))
+        : (Seal.Kinds.Ink, T("LinkActive"));
+
+    private static string Initials(string name) =>
+        string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => char.ToUpperInvariant(w[0])));
+
+    private async Task<bool> Run(Func<ShareService, Task> work, bool reload = true)
+    {
+        try
+        {
+            await using (var scope = Scopes.CreateAsyncScope())
+                await work(scope.ServiceProvider.GetRequiredService<ShareService>());
+            if (reload) await LoadAsync();
+            return true;
+        }
+        catch (AtharError e)
+        {
+            Snackbar.Add(e.Message, Severity.Error);
+            return false;
+        }
+    }
+}

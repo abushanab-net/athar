@@ -1,0 +1,26 @@
+@* A sortable column header for DataTable (every column sorts unless sorting means nothing for it). Client lists pass By;
+   server-paged lists pass OnSort instead and reload in the new order, so sorting covers every row, not just one page. *@
+@typeparam T
+
+<MudTh Class="@Class" Style="@(Width is null ? null : $"inline-size:{Width}")">
+    @if (OnSort.HasDelegate)
+    {
+        <MudTableSortLabel T="T" InitialDirection="@Initial" SortDirectionChanged="@OnSort" UserAttributes="@Keyboard">@ChildContent</MudTableSortLabel>
+    }
+    else
+    {
+        <MudTableSortLabel T="T" SortBy="@By" InitialDirection="@Initial" UserAttributes="@Keyboard">@ChildContent</MudTableSortLabel>
+    }
+</MudTh>
+
+@code {
+    [Parameter] public Func<T, object?>? By { get; set; }
+    [Parameter] public EventCallback<SortDirection> OnSort { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public SortDirection Initial { get; set; } = SortDirection.None;
+    [Parameter] public string? Width { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    // MudBlazor's sort label is a clickable span: make it a keyboard control (athar.js turns Enter and Space into a click).
+    private static readonly Dictionary<string, object> Keyboard = new() { ["role"] = "button", ["tabindex"] = "0" };
+}

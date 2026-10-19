@@ -1,0 +1,22 @@
+.space {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.space a {
+    color: var(--mud-palette-text-primary);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.space a:hover { color: var(--mud-palette-primary); text-decoration: underline }
+.space ::deep .space-icon { color: var(--athar-muted); flex: none }
+
+.ai {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--athar-muted);
+}

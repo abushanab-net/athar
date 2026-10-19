@@ -1,0 +1,219 @@
+@page "/sessions"
+@attribute [Authorize]
+@using System.Text.Json
+@inject SessionService Sessions
+@inject CaptureSettingsService Settings
+@inject MemoryService Memories
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+@inject IStringLocalizer<SharedResource> L
+
+@* T138 (AT-62): what your agents and chats sent, grouped by project; your capture settings; Undo for auto-accepted memories. *@
+<PageHeader Help="my-sessions" Title="@L["MySessions"]" Description="@L["MySessionsHelp"]" />
+
+<Section Title="@L["CaptureSettings"]" Description="@L["CaptureSettingsHelp"]" Class="settings">
+    @if (settings is null)
+    {
+        <LoadingState Rows="3" />
+    }
+    else
+    {
+        <MudSwitch T="bool" @bind-Value="settings.Paused" Color="Color.Warning" Label="@L["CapturePaused"]" />
+        <p class="hint">@L["CapturePausedHelp"]</p>
+
+        <h3>@L["CaptureRepos"]</h3>
+        <p class="hint">@L["CaptureReposHelp"]</p>
+        @if (settings.Repos.Count == 0) { <p class="athar-muted">@L["NoCaptureRepos"]</p> }
+        <div class="repos">
+            @foreach (var r in settings.Repos)
+            {
+                <span class="repo" dir="ltr" @key="r">
+                    <code>@r</code>
+                    <IconAction Icon="@Icons.Material.Filled.Close" Label="@L["RemoveRepo", r]" OnClick="() => settings.Repos.Remove(r)" />
+                </span>
+            }
+        </div>
+        <div class="add-repo">
+            <MudTextField @bind-Value="newRepo" Label="@L["RepoRemote"]" Immediate="true" dir="ltr" OnKeyDown="@(e => e.Key == "Enter" ? AddRepo() : Task.CompletedTask)" />
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" Disabled="string.IsNullOrWhiteSpace(newRepo)" OnClick="AddRepo">@L["AddRepo"]</MudButton>
+        </div>
+
+        <MudSwitch T="bool" @bind-Value="settings.Personal" Color="Color.Primary" Label="@L["AutoAcceptPersonal"]" />
+        <p class="hint">@L["AutoAcceptPersonalHelp"]</p>
+        <MudSwitch T="bool" @bind-Value="settings.Shared" Color="Color.Primary" Label="@L["AutoAcceptShared"]" />
+        <p class="hint">@L["AutoAcceptSharedHelp"]</p>
+
+        <div class="save">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="busy" OnClick="SaveSettingsAsync">@L["Save"]</MudButton>
+        </div>
+    }
+</Section>
+
+@if (sessions is null)
+{
+    <LoadingState Rows="6" />
+}
+else if (sessions.Count == 0)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.History" Title="@L["SessionsEmptyTitle"]" Text="@L["SessionsEmptyText"]">
+        <MudButton Variant="Variant.Outlined" Href="/agents" StartIcon="@Icons.Material.Outlined.SmartToy">@L["ConnectAgent"]</MudButton>
+    </EmptyState>
+}
+else
+{
+    @foreach (var group in sessions.GroupBy(s => s.ProjectName).OrderBy(g => g.Key is null).ThenBy(g => g.Key))
+    {
+        <Section Title="@(group.Key ?? L["NoProjectGroup"].Value)" Class="group">
+            <div class="sessions">
+                @foreach (var s in group)
+                {
+                    var waiting = s.Candidates.Count(c => c.Status == "new");
+                    <article class="session" @key="s.SessionId" aria-label="@Name(s)">
+                        <div class="head">
+                            <h3 dir="auto">@Name(s)</h3>
+                            <Seal Kind="Seal.Kinds.Quiet">@L[s.Source == "chat" ? "SourceChat" : "SourceHook"]</Seal>
+                            <span class="athar-muted client">@s.Client</span>
+                            <Timestamp Value="s.LastActivityAt" Relative="true" Class="when" />
+                        </div>
+                        <p class="meta athar-muted">
+                            @if (s.Records > 0) { @L["SessionRecords", s.Records, s.PurgeAfter?.ToString("d") ?? "—"] }
+                            else { @L["TranscriptGone"] }
+                        </p>
+
+                        @if (waiting > 0)
+                        {
+                            <a class="waiting" href="/review/inbox">@L["CandidatesWaiting", waiting]</a>
+                        }
+                        @if (s.Candidates.Any(c => c.Status != "new"))
+                        {
+                            <ul class="results">
+                                @foreach (var c in s.Candidates.Where(c => c.Status != "new"))
+                                {
+                                    <li @key="c.Id">
+                                        <ScopeChip Scope="@c.Scope" />
+                                        @if (c.MemoryId is { } m && c.Status != "discarded") { <a href="@($"/memories/{m}")" dir="auto">@c.Title</a> }
+                                        else if (c.ProposalId is not null) { <a href="/review/proposals" dir="auto">@c.Title</a> }
+                                        else { <span dir="auto">@c.Title</span> }
+                                        <span class="athar-muted">@L["CandidateStatus_" + c.Status]</span>
+                                        @if (c.Status == "auto_accepted")
+                                        {
+                                            <MudButton Size="Size.Small" Variant="Variant.Text" Disabled="busy" OnClick="() => UndoAsync(c)">@L["Undo"]</MudButton>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        }
+
+                        <div class="actions">
+                            @if (s.Records > 0)
+                            {
+                                <MudButton Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Outlined.Article" OnClick="() => ToggleTranscriptAsync(s)">
+                                    @L[transcripts.ContainsKey(s.SessionId) ? "HideTranscript" : "ShowTranscript"]
+                                </MudButton>
+                                <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Outlined.DeleteForever" Disabled="busy" OnClick="() => DeleteAsync(s)">@L["DeleteNow"]</MudButton>
+                            }
+                        </div>
+                        @if (transcripts.TryGetValue(s.SessionId, out var lines))
+                        {
+                            <ol class="transcript">
+                                @foreach (var (role, text) in lines) { <li><span class="role">@role</span> <span dir="auto">@text</span></li> }
+                            </ol>
+                        }
+                    </article>
+                }
+            </div>
+        </Section>
+    }
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private Actor actor = default!;
+    private IReadOnlyList<MySessionView>? sessions;
+    private Draft? settings;
+    private string newRepo = "";
+    private bool busy;
+    private readonly Dictionary<Guid, List<(string Role, string Text)>> transcripts = [];
+
+    private sealed class Draft { public List<string> Repos = []; public bool Paused, Personal, Shared; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        actor = Actor.ForUser((await Auth).User);
+        var s = await Settings.GetAsync(actor, default);
+        settings = new() { Repos = [.. s.Repos], Paused = s.Paused, Personal = s.AutoAccept.Personal, Shared = s.AutoAccept.Shared };
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync() => sessions = await Sessions.MySessionsAsync(actor, default);
+
+    private string Name(MySessionView s) => s.Title ?? s.RepoRemote ?? s.Client;
+
+    private Task AddRepo()
+    {
+        if (!string.IsNullOrWhiteSpace(newRepo) && !settings!.Repos.Contains(newRepo.Trim())) settings.Repos.Add(newRepo.Trim());
+        newRepo = "";
+        return Task.CompletedTask;
+    }
+
+    private Task SaveSettingsAsync() => Run(async () =>
+    {
+        var saved = await Settings.PutAsync(actor, new([.. settings!.Repos], settings.Paused, new(settings.Personal, settings.Shared)), default);
+        settings.Repos = [.. saved.Repos]; // normalized by the server
+        Snackbar.Add(L["SettingsSaved"], Severity.Success);
+    });
+
+    private Task UndoAsync(SessionCandidateView c) => Run(async () =>
+    {
+        await Memories.UndoAutoAcceptAsync(actor, c.Id, default);
+        Snackbar.Add(L["AutoAcceptUndone"], Severity.Success);
+        await LoadAsync();
+    });
+
+    private async Task DeleteAsync(MySessionView s)
+    {
+        if (await Dialogs.ShowMessageBox(L["DeleteNow"].Value, L["DeleteTranscriptConfirm"].Value, yesText: L["DeleteNow"].Value, cancelText: L["Cancel"].Value) != true) return;
+        await Run(async () =>
+        {
+            await Sessions.DeleteTranscriptAsync(actor, s.SessionId, default);
+            transcripts.Remove(s.SessionId);
+            Snackbar.Add(L["TranscriptDeleted"], Severity.Success);
+            await LoadAsync();
+        });
+    }
+
+    private async Task ToggleTranscriptAsync(MySessionView s)
+    {
+        if (transcripts.Remove(s.SessionId)) return;
+        await Run(async () =>
+        {
+            var detail = await Sessions.GetAsync(actor, s.SessionId, default);
+            transcripts[s.SessionId] = [.. detail.Records.Select(r => Line(r.Data))];
+        });
+    }
+
+    /// <summary>A record as "role: text": the text and string content fields of the hook's redacted JSON (Claude Code and Codex shapes).</summary>
+    private static (string Role, string Text) Line(JsonElement e)
+    {
+        var texts = new List<string>();
+        void Collect(JsonElement x)
+        {
+            if (x.ValueKind == JsonValueKind.Array) foreach (var i in x.EnumerateArray()) Collect(i);
+            if (x.ValueKind != JsonValueKind.Object) return;
+            foreach (var p in x.EnumerateObject())
+                if (p.Name is "text" or "content" && p.Value.ValueKind == JsonValueKind.String) texts.Add(p.Value.GetString()!);
+                else Collect(p.Value);
+        }
+        Collect(e);
+        var role = e.ValueKind == JsonValueKind.Object && e.TryGetProperty("role", out var r) && r.ValueKind == JsonValueKind.String ? r.GetString()! : "";
+        return (role, texts.Count > 0 ? string.Join(" ", texts) : e.GetRawText());
+    }
+
+    private async Task Run(Func<Task> action)
+    {
+        busy = true;
+        try { await action(); }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Error); }
+        finally { busy = false; }
+    }
+}

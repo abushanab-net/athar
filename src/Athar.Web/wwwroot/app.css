@@ -1,0 +1,287 @@
+/* "The Public Record" (DESIGN.md). Colors come from MudBlazor's theme variables (AtharTheme.cs), so light and dark
+   follow the theme; the few extra tokens below derive from them. Component styles live next to their components. */
+:root {
+    --athar-seal: var(--mud-palette-secondary);
+    --athar-fill: var(--mud-palette-background-gray);
+    --athar-rule: var(--mud-palette-lines-default);
+    --athar-stroke: var(--mud-palette-lines-inputs);
+    --athar-muted: var(--mud-palette-text-secondary);
+    --athar-floating: 0 8px 24px rgb(20 33 61 / 0.14);
+    --athar-sans: "Public Sans", "Noto Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --athar-gutter: 24px;
+    --athar-radius: 6px;
+}
+@media (max-width: 599.98px) { :root { --athar-gutter: 16px } }
+
+html, body { font-family: var(--athar-sans); font-size: 16px; -webkit-font-smoothing: antialiased }
+body { font-size: 0.875rem; line-height: 1.5; background: var(--mud-palette-background); color: var(--mud-palette-text-primary) }
+h1:focus { outline: none }
+bdi, [dir=auto] { unicode-bidi: plaintext }
+
+/* The Flat Record Rule: in-page surfaces are flat and separated by hairlines (the theme zeroes elevations below 8). */
+.mud-paper.mud-elevation-1, .mud-paper.mud-elevation-2, .mud-paper.mud-elevation-3, .mud-paper.mud-elevation-4 { border: 1px solid var(--athar-rule) }
+.mud-paper.mud-paper-outlined { border-color: var(--athar-rule) }
+
+/* Buttons: 32px, sentence case, gently squared. */
+.mud-button-root.mud-button { min-height: 32px; padding: 5px 14px; border-radius: var(--athar-radius); letter-spacing: normal }
+.mud-button-root.mud-button-size-small { min-height: 28px; padding: 3px 10px }
+.mud-button-outlined { border-color: var(--athar-stroke) }
+.mud-icon-button { border-radius: var(--athar-radius) }
+
+/* Tabs: sentence case, quiet. */
+.mud-tab { text-transform: none; font-weight: 500; letter-spacing: normal; min-height: 40px }
+
+/* Ledger tables (DataTable): hairline rules, slate 12px header, no stripes, the fill on hover. */
+.mud-table .mud-table-head .mud-table-cell { font-size: 0.75rem; font-weight: 600; color: var(--athar-muted); white-space: nowrap; letter-spacing: 0.02em }
+.mud-table .mud-table-cell { padding: 8px 12px; font-variant-numeric: tabular-nums }
+.mud-table-dense .mud-table-cell { padding: 6px 12px }
+.mud-table .mud-table-sort-label { color: inherit }
+.mud-table .mud-table-sort-label-icon { font-size: 1rem }
+
+/* Positioned bits in cells (tooltips, menu anchors) must scroll with the table, not widen the page on phones. */
+.mud-table-container { position: relative }
+.mud-table .actions-col { inline-size: 1%; text-align: end; white-space: nowrap; position: sticky; inset-inline-end: 0; background: var(--mud-palette-surface) }
+.mud-table-hover .mud-table-row:hover .actions-col { background: var(--mud-palette-table-hover) }
+
+/* Tooltips never take the pointer (one that lands under it would hide and reopen in a loop) and size to their text
+   instead of wrapping against the viewport edge. */
+.mud-tooltip { pointer-events: none; inline-size: max-content; max-inline-size: min(280px, 90vw); white-space: normal }
+
+/* Touch screens: every icon action gets a 44px target (DESIGN.md Icon actions). */
+@media (pointer: coarse) {
+    .icon-action, .mud-menu .mud-icon-button { min-inline-size: 44px; min-block-size: 44px }
+}
+
+/* MenuButton: the menu's activator is the button; its face looks like an IconAction (30px, slate icon, fill on hover). */
+.menu-button-face { display: inline-grid; place-items: center; inline-size: 30px; block-size: 30px; border-radius: var(--athar-radius);
+    color: var(--mud-palette-action-default); cursor: pointer }
+.menu-button-face.medium { inline-size: 40px; block-size: 40px }
+.menu-button-face:hover, .mud-menu-activator:focus-visible .menu-button-face { background: var(--athar-fill) }
+.menu-button .mud-menu-activator { border-radius: var(--athar-radius) }
+
+/* Destructive menu items (RowActions): menus render in the popover layer, outside any page's scoped CSS. */
+.mud-menu-item.danger, .mud-menu-item.danger .mud-icon-root { color: var(--mud-palette-error) }
+
+/* Fields: outlined, labels above (MudGlobal.InputDefaults). */
+.mud-input-outlined-border { border-color: var(--athar-stroke) }
+.mud-input-label { font-weight: 500 }
+
+/* Single-line text: truncate with an ellipsis; the element carries a title tooltip. */
+.athar-truncate { display: inline-block; max-inline-size: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom }
+/* Grid and flex children stretch; keep mixed-direction text at the start of its track instead of its own text's edge. */
+.athar-truncate[dir=auto] { justify-self: start; align-self: center }
+
+/* Seals (ScopeChip/StatusSeal): stamped pills. */
+.athar-seal { display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; min-height: 22px; border-radius: 999px; border: 1.5px solid currentColor;
+    font-size: 0.75rem; font-weight: 600; line-height: 1; white-space: nowrap; color: var(--athar-seal); background: transparent }
+.athar-seal.ink { color: var(--mud-palette-primary) }
+.athar-seal.quiet { border-color: transparent; background: var(--athar-fill); color: var(--mud-palette-text-primary) }
+/* Warn is a flag, not a stamp: tinted, no border, so it never reads as a decision. */
+.athar-seal.warn { color: var(--mud-palette-warning); border-color: transparent; background: color-mix(in srgb, var(--mud-palette-warning) 14%, transparent) }
+.athar-seal .mud-icon-root { font-size: 0.875rem }
+
+/* Plain inputs for the static SSR account forms (MudBlazor inputs need interactivity); they match MudBlazor's dense outlined field. */
+.athar-field { display: grid; gap: 4px; margin-block-end: 16px }
+.athar-field label { font-size: 0.75rem; font-weight: 500; color: var(--mud-palette-text-primary) }
+.athar-input { display: block; inline-size: 100%; block-size: 38px; padding: 0 12px; border: 1px solid var(--athar-stroke); border-radius: var(--athar-radius);
+    font: inherit; font-size: 0.875rem; background: var(--mud-palette-surface); color: var(--mud-palette-text-primary) }
+.athar-input:hover { border-color: var(--mud-palette-text-secondary) }
+.athar-input:focus-visible { outline: 2px solid var(--mud-palette-primary); outline-offset: 0; border-color: var(--mud-palette-primary) }
+
+.visually-hidden { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap }
+
+/* T086: a clear keyboard focus ring everywhere (MudBlazor only tints the background). */
+a:focus-visible, button:focus-visible, [role=button]:focus-visible, [role=combobox]:focus-visible, [role=menuitem]:focus-visible, [role=tab]:focus-visible {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+/* Blazor's own error surfaces, in the theme's error color (white on light yellow was unreadable). */
+#blazor-error-ui { color-scheme: light; background: var(--mud-palette-error); color: var(--mud-palette-error-text, #fff); bottom: 0; box-shadow: var(--athar-floating);
+    display: none; inset-inline: 0; padding: 10px 20px; position: fixed; z-index: 2000; font-size: 0.875rem }
+#blazor-error-ui a { color: inherit; font-weight: 600 }
+#blazor-error-ui .dismiss { cursor: pointer; position: absolute; inset-inline-end: 16px; top: 8px }
+.blazor-error-boundary { background: var(--mud-palette-error); padding: 1rem 1.25rem; color: #fff; border-radius: var(--athar-radius) }
+.blazor-error-boundary::after { content: "An error has occurred." }
+.valid.modified:not([type=checkbox]) { outline: 1px solid var(--mud-palette-success) }
+.invalid { outline: 1px solid var(--mud-palette-error) }
+.validation-message { color: var(--mud-palette-error); font-size: 0.75rem }
+
+/* ---- Motion (T150, T133): motion explains state, feedback and continuity, never decoration. Routine changes take 140–220 ms
+   with one ease-out curve; the reduced-motion rule below zeroes all of it. Content is visible without the animation. ---- */
+:root { --athar-ease: cubic-bezier(0.16, 1, 0.3, 1); --athar-fast: 140ms; --athar-base: 220ms }
+/* A count that changed (sidebar, tabs, bell): one short tick so the eye catches it. */
+@keyframes athar-tick { from { transform: scale(1.4) } to { transform: none } }
+/* Something that just arrived from the server (a new comment, a restored version, a fresh row). */
+@keyframes athar-arrive { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: none } }
+@keyframes athar-flash { from { background-color: color-mix(in srgb, var(--mud-palette-primary) 14%, transparent) } to { background-color: transparent } }
+/* Something leaving because it was handled (accepted, discarded, approved): fade and fold, then the row is removed. */
+@keyframes athar-leave { to { opacity: 0; transform: translateX(12px); } }
+.athar-arrive { animation: athar-arrive var(--athar-base) var(--athar-ease) }
+.athar-flash { animation: athar-flash 1.4s ease-out }
+.athar-leaving { animation: athar-leave var(--athar-base) var(--athar-ease) forwards; pointer-events: none }
+[dir=rtl] .athar-leaving { animation-name: athar-leave-rtl }
+@keyframes athar-leave-rtl { to { opacity: 0; transform: translateX(-12px); } }
+
+/* Tabs that are pages (LinkTabs): an ink underline slides in under the open tab. */
+.link-tabs { display: flex; gap: 4px; margin-block: -8px 24px; border-block-end: 1px solid var(--athar-rule); overflow-x: auto; scrollbar-width: none }
+.link-tabs .tab { position: relative; display: inline-flex; align-items: center; gap: 8px; flex: none; padding: 0 12px; min-block-size: 40px; border-radius: var(--athar-radius) var(--athar-radius) 0 0;
+    color: var(--athar-muted); font-size: 0.875rem; font-weight: 500; text-decoration: none; white-space: nowrap;
+    transition: color var(--athar-fast) var(--athar-ease), background-color var(--athar-fast) var(--athar-ease) }
+.link-tabs .tab:hover { color: var(--mud-palette-text-primary); background: var(--athar-fill) }
+.link-tabs .tab:focus-visible { outline-offset: -2px }
+.link-tabs .tab::after { content: ""; position: absolute; inset-inline: 8px; inset-block-end: -1px; block-size: 2px; border-radius: 2px; background: var(--mud-palette-primary);
+    transform: scaleX(0); transition: transform var(--athar-base) var(--athar-ease) }
+.link-tabs .tab.active { color: var(--mud-palette-text-primary); font-weight: 600 }
+.link-tabs .tab.active::after { transform: scaleX(1) }
+.link-tabs .tab .mud-icon-root { font-size: 1.25rem }
+/* Phones: the labels carry the tabs, so the icons go and every tab fits without a hidden scroll. */
+@media (max-width: 599.98px) { .link-tabs .tab { padding: 0 10px } .link-tabs .tab .mud-icon-root { display: none } }
+.link-tabs .count, .athar-count { min-inline-size: 20px; padding: 0 6px; border-radius: 999px; background: var(--athar-seal); color: var(--mud-palette-secondary-text);
+    font-size: 0.75rem; font-weight: 700; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; animation: athar-tick var(--athar-base) var(--athar-ease) }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important } }
+
+/* ---- App shell (MainLayout, SideNav) ---- */
+.skip-link { position: absolute; inset-inline-start: 8px; inset-block-start: -48px; z-index: 2100; padding: 8px 14px; border-radius: var(--athar-radius);
+    background: var(--mud-palette-primary); color: var(--mud-palette-primary-text); font-weight: 600; text-decoration: none }
+.skip-link:focus { inset-block-start: 8px }
+.athar-drawer { border-inline-end: 1px solid var(--athar-rule) }
+.athar-drawer .mud-drawer-content { display: flex; flex-direction: column }
+.athar-topbar { border-block-end: 1px solid var(--athar-rule) }
+.athar-topbar .mud-toolbar { gap: 8px; padding-inline: 12px 16px; min-block-size: 56px; block-size: 56px }
+.athar-topbar .search { position: relative; flex: 1 1 auto; max-inline-size: 520px; min-inline-size: 0; display: flex; align-items: center }
+.athar-topbar .search .search-icon { position: absolute; inset-inline-start: 10px; font-size: 1.25rem; color: var(--mud-palette-text-secondary); pointer-events: none }
+.athar-topbar .search input { inline-size: 100%; block-size: 36px; padding-inline: 36px 36px; border: 1px solid var(--athar-rule); border-radius: var(--athar-radius);
+    background: var(--athar-fill); color: var(--mud-palette-text-primary); font: inherit; font-size: 0.875rem }
+.athar-topbar .search input::placeholder { color: var(--mud-palette-text-secondary); opacity: 1 }
+.athar-topbar .search input:hover { border-color: var(--athar-stroke) }
+.athar-topbar .search input:focus-visible { outline: 2px solid var(--mud-palette-primary); outline-offset: 0; background: var(--mud-palette-surface) }
+.athar-topbar .search .hint { position: absolute; inset-inline-end: 8px; padding: 0 6px; border: 1px solid var(--athar-stroke); border-radius: 4px;
+    font: 500 0.75rem/18px var(--athar-sans); color: var(--mud-palette-text-secondary); background: var(--mud-palette-surface) }
+.athar-topbar .account { display: inline-flex; align-items: center; gap: 8px; padding: 4px 6px 4px 4px; border-radius: 999px; cursor: pointer; color: var(--mud-palette-text-primary) }
+.athar-topbar .account:hover { background: var(--athar-fill) }
+.athar-topbar .avatar { inline-size: 30px; block-size: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--mud-palette-primary);
+    color: var(--mud-palette-primary-text); font-size: 0.75rem; font-weight: 700 }
+.athar-topbar .who { font-size: 0.875rem; font-weight: 500; max-inline-size: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.brand-inline { display: inline-flex; align-items: center; gap: 8px; color: var(--mud-palette-text-primary); text-decoration: none; font-weight: 700; font-size: 1rem }
+.account-popover .menu-label { margin: 8px 16px 2px; font-size: 0.75rem; font-weight: 600; color: var(--mud-palette-text-secondary) }
+.account-popover .menu-form { margin: 0 }
+.account-popover .menu-button { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 12px; inline-size: 100%; padding: 6px 16px; cursor: pointer;
+    font-size: 0.875rem; color: var(--mud-palette-text-primary) }
+.account-popover .menu-button:hover, .account-popover .menu-button:focus-visible { background: var(--athar-fill) }
+.account-popover .menu-button:focus-visible { outline: 2px solid var(--mud-palette-primary); outline-offset: -2px }
+.athar-main { min-block-size: 100vh }
+.athar-main .content { box-sizing: border-box; inline-size: 100%; max-inline-size: 1248px; margin-inline: auto; padding: 24px var(--athar-gutter) 48px }
+.athar-main .content:focus { outline: none }
+.athar-main .content:has(.athar-full-bleed) { max-inline-size: none; padding: 0 }
+[dir=rtl] .flip-rtl { transform: scaleX(-1) }
+.athar-topbar .search-link { display: none }
+@media (max-width: 599.98px) {
+    .athar-topbar .who, .athar-topbar .search .hint { display: none }
+    .athar-topbar .search { display: none }
+    .athar-topbar .search-link { display: inline-flex }
+}
+/* The rail: MudDrawer reads its width once, so the 64px comes from here (wins over the layout's inline variable). */
+@media (min-width: 960px) {
+    .mud-layout:has(.athar-drawer.rail) { --mud-drawer-width-left: 64px !important; --mud-drawer-width-right: 64px !important }
+    .athar-drawer, .athar-main { transition: width var(--athar-base) var(--athar-ease), margin var(--athar-base) var(--athar-ease) }
+}
+
+/* ---- Signed-out pages (AuthLayout + AccountCard) ---- */
+.auth-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(380px, 1fr); min-block-size: 100vh; background: var(--mud-palette-background) }
+.auth-art { position: relative; overflow: hidden; background: #14213d }
+.auth-art img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; filter: saturate(.9) }
+.auth-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgb(15 20 32 / .78), rgb(15 20 32 / .05) 55%) }
+.auth-art-caption { position: absolute; inset-inline: 40px; inset-block-end: 36px; z-index: 1; color: #fff; display: grid; gap: 6px; max-inline-size: 44ch }
+.auth-art-name { margin: 0; display: flex; gap: 12px; align-items: baseline; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em }
+.auth-art-name [lang=ar] { font-weight: 600; opacity: .9 }
+.auth-art-line { margin: 0; font-size: 0.875rem; line-height: 1.5; opacity: .92; text-wrap: balance }
+.auth-main { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 48px 24px 24px; gap: 32px }
+.auth-panel { inline-size: 100%; max-inline-size: 380px; display: grid; align-content: start }
+.auth-brand { display: inline-flex; align-items: center; gap: 10px; margin-block-end: 32px; color: var(--mud-palette-text-primary); text-decoration: none; font-size: 1rem; font-weight: 700; justify-self: start }
+.auth-title { margin: 0 0 6px; font-size: 1.25rem; font-weight: 600; line-height: 1.3 }
+.auth-lead { margin: 0 0 20px; color: var(--mud-palette-text-secondary) }
+.auth-title + .mud-alert, .auth-title + form, .auth-title + .athar-field { margin-block-start: 16px }
+.auth-panel .help { margin: -10px 0 16px; font-size: 0.75rem; color: var(--mud-palette-text-secondary) }
+.auth-panel .links { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-block-start: 16px; font-size: 0.875rem }
+.auth-panel .links a { color: var(--mud-palette-primary); text-decoration: none }
+.auth-panel .links a:hover { text-decoration: underline }
+.auth-panel .scopes { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 8px; border: 1px solid var(--athar-rule); border-radius: var(--athar-radius); padding: 12px 14px }
+.auth-panel .scopes li { display: flex; gap: 10px; align-items: flex-start }
+.auth-panel .scopes .mud-icon-root { color: var(--mud-palette-success); font-size: 1.25rem; margin-block-start: 1px }
+.auth-panel .client { display: flex; gap: 12px; align-items: center; padding: 12px 14px; margin-block-end: 16px; border-radius: var(--athar-radius); background: var(--athar-fill) }
+.auth-panel .client .badge { inline-size: 36px; block-size: 36px; border-radius: 8px; display: grid; place-items: center; background: var(--mud-palette-primary); color: var(--mud-palette-primary-text); font-weight: 700 }
+.auth-panel .actions { display: flex; gap: 8px; flex-wrap: wrap }
+/* LanguageSwitch (auth footer, public page header). */
+.language-switch { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--mud-palette-text-secondary) }
+.language-switch form { margin: 0 }
+.language-switch button { all: unset; cursor: pointer; padding: 2px 8px; border-radius: 4px; color: var(--mud-palette-primary) }
+.language-switch button[aria-current] { color: var(--mud-palette-text-primary); font-weight: 600; cursor: default }
+.language-switch button:focus-visible { outline: 2px solid var(--mud-palette-primary) }
+@media (max-width: 599.98px) { .top-lang > span { display: none } }
+@media (max-width: 899.98px) {
+    .auth-layout { grid-template-columns: 1fr; grid-template-rows: 180px auto }
+    .auth-art-caption { inset-inline: 20px; inset-block-end: 16px }
+    .auth-art-name { font-size: 1.25rem }
+    .auth-art-line { display: none }
+    .auth-main { justify-content: flex-start; padding-block-start: 32px }
+    .auth-brand { display: none }
+}
+
+/* Utilities shared by pages: secondary text, and a title link in a table row. */
+.athar-muted { color: var(--mud-palette-text-secondary) }
+.athar-row-link { color: var(--mud-palette-text-primary); text-decoration: none; font-weight: 500 }
+.athar-row-link:hover { color: var(--mud-palette-primary); text-decoration: underline }
+
+/* The editor's `/` command menu (src/editor slashMenu), appended to <body>: grouped entries with an icon, a title and help. */
+.slash-menu {
+    position: absolute;
+    z-index: 2000;
+    inline-size: 18rem;
+    max-block-size: 360px;
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid var(--athar-rule, #dfe3ea);
+    border-radius: 10px;
+    background: var(--mud-palette-surface, #fff);
+    color: var(--mud-palette-text-primary, #14213d);
+    box-shadow: 0 12px 32px rgb(20 33 61 / 0.16);
+}
+.slash-menu .slash-group {
+    padding: 6px 8px 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--athar-muted, #5b6478);
+}
+.slash-menu .slash-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* a global button style centres flex content; every row starts at the same edge */
+    gap: 10px;
+    inline-size: 100%;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+.slash-menu .slash-item[aria-selected="true"], .slash-menu .slash-item:hover { background: var(--athar-fill, #eef1f5) }
+.slash-menu .slash-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    inline-size: 36px;
+    block-size: 36px;
+    border: 1px solid var(--athar-rule, #dfe3ea);
+    border-radius: 8px;
+    background: var(--mud-palette-surface, #fff);
+}
+.slash-menu .slash-icon svg { inline-size: 20px; block-size: 20px; fill: currentColor }
+.slash-menu .slash-item span:last-child { display: grid; flex: 1 1 auto; min-width: 0; text-align: start }
+.slash-menu strong { font-size: 0.875rem; font-weight: 600 }
+.slash-menu small { font-size: 0.75rem; color: var(--athar-muted, #5b6478); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.slash-menu .slash-empty { padding: 8px; color: var(--athar-muted, #5b6478) }

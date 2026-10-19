@@ -1,0 +1,76 @@
+ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    padding-inline-start: 12px;
+}
+
+.tree-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-block-size: 32px;
+    padding-inline: 0 2px;
+    border-radius: var(--athar-radius);
+}
+
+.tree-row:hover { background: var(--athar-fill) }
+
+.tree-row.selected {
+    background: var(--athar-fill);
+    font-weight: 600;
+}
+
+.tree-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--mud-palette-text-primary);
+    text-decoration: none;
+    line-height: 32px;
+}
+
+.tree-title:hover { text-decoration: underline }
+
+/* The ⋮ stays out of the way until the row is hovered or focused (always visible on touch screens). */
+@media (hover: hover) {
+    .tree-row ::deep .tree-menu { opacity: 0 }
+    .tree-row:hover ::deep .tree-menu, .tree-row:focus-within ::deep .tree-menu, .tree-row.selected ::deep .tree-menu { opacity: 1 }
+}
+
+@media (pointer: coarse) {
+    .tree-row { min-block-size: 44px }
+    .tree-title { line-height: 44px }
+}
+
+/* Mixed-direction titles stay at the start of the tree, not their own text's edge. */
+[dir=ltr] .tree-title { text-align: left }
+[dir=rtl] .tree-title { text-align: right }
+
+/* Drag and drop (WikiPage.razor.js): a line above or below the row for "before" and "after", a tint for "inside". */
+.tree-row[draggable="true"] { cursor: grab }
+.tree-row.dragging { opacity: 0.5 }
+.tree-row.drop-before { box-shadow: inset 0 2px 0 var(--mud-palette-primary) }
+.tree-row.drop-after { box-shadow: inset 0 -2px 0 var(--mud-palette-primary) }
+.tree-row.drop-inside {
+    background: color-mix(in srgb, var(--mud-palette-primary) 14%, transparent);
+    outline: 1px dashed var(--mud-palette-primary);
+    outline-offset: -1px;
+}
+/* T100: expand toggles and paged siblings. The leaf spacer keeps titles aligned with their expandable siblings. */
+.tree-leaf { flex: 0 0 30px }
+/* The toggle takes exactly the spacer's width, so folder and page icons line up in both directions; a closed chevron points
+   into the row (flip-rtl mirrors it in Arabic). */
+.tree-row ::deep .tree-toggle-node { flex: 0 0 30px; inline-size: 30px; block-size: 30px; padding: 0 }
+.tree-more { margin-block: 2px; margin-inline-start: 38px; padding: 4px 8px; border: 0; border-radius: var(--athar-radius);
+    background: none; color: var(--mud-palette-primary); font: inherit; font-size: 12px; cursor: pointer }
+.tree-more:hover { background: var(--athar-fill) }
+
+/* T116: page icons and the row's + (shown on hover or focus, like the ⋮). */
+.tree-row ::deep .tree-icon { flex: 0 0 auto; color: var(--mud-palette-text-secondary); margin-inline-end: 4px }
+@media (hover: hover) {
+    .tree-row ::deep .tree-add { opacity: 0 }
+    .tree-row:hover ::deep .tree-add, .tree-row:focus-within ::deep .tree-add { opacity: 1 }
+}

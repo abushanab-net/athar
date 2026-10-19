@@ -1,0 +1,27 @@
+@page "/error"
+@layout PublicLayout
+@using System.Diagnostics
+@inject IStringLocalizer<SharedResource> L
+
+@* The production error page: plain words, a way back, and the request id for whoever investigates. *@
+<PageTitle>@L["ErrorTitle"] · Athar</PageTitle>
+<main id="content" class="error-page">
+    <EmptyState Icon="@Icons.Material.Outlined.ErrorOutline" Title="@L["ErrorTitle"]" Text="@L["ErrorText"]">
+        <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">@L["BackHome"]</MudButton>
+        @if (ShowRequestId)
+        {
+            <p class="athar-muted mt-4">@L["RequestId"]: <code dir="ltr">@RequestId</code></p>
+        }
+    </EmptyState>
+</main>
+
+@code{
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private string? RequestId { get; set; }
+    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+    protected override void OnInitialized() =>
+        RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+}

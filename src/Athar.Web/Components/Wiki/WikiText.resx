@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Wiki" xml:space="preserve">
+    <value>Wiki</value>
+  </data>
+  <data name="Spaces" xml:space="preserve">
+    <value>Spaces</value>
+  </data>
+  <data name="NoSpaces" xml:space="preserve">
+    <value>You aren't a member of any space yet.</value>
+  </data>
+  <data name="NewPage" xml:space="preserve">
+    <value>New page</value>
+  </data>
+  <data name="NewSubpage" xml:space="preserve">
+    <value>New subpage</value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>Untitled</value>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="MoveTo" xml:space="preserve">
+    <value>Move to…</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="TargetSpace" xml:space="preserve">
+    <value>Space</value>
+  </data>
+  <data name="TargetParent" xml:space="preserve">
+    <value>Parent page</value>
+  </data>
+  <data name="TopLevel" xml:space="preserve">
+    <value>(top level)</value>
+  </data>
+  <data name="Trash" xml:space="preserve">
+    <value>Trash</value>
+  </data>
+  <data name="MoveToTrash" xml:space="preserve">
+    <value>Move to trash</value>
+  </data>
+  <data name="TrashEmpty" xml:space="preserve">
+    <value>The trash is empty.</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="RestoreUntil" xml:space="preserve">
+    <value>Restorable until</value>
+  </data>
+  <data name="PageActions" xml:space="preserve">
+    <value>Page actions</value>
+  </data>
+  <data name="EmptySpace" xml:space="preserve">
+    <value>No pages yet.</value>
+  </data>
+  <data name="PickAPage" xml:space="preserve">
+    <value>Pick a page from the tree, or create one.</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="Formatting" xml:space="preserve">
+    <value>Formatting</value>
+  </data>
+  <data name="PageContent" xml:space="preserve">
+    <value>Page content</value>
+  </data>
+  <data name="Connecting" xml:space="preserve">
+    <value>Connecting…</value>
+  </data>
+  <data name="Unsynced" xml:space="preserve">
+    <value>Not synced</value>
+  </data>
+  <data name="Synced" xml:space="preserve">
+    <value>Synced</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Saved</value>
+  </data>
+  <data name="ReadOnly" xml:space="preserve">
+    <value>Read only</value>
+  </data>
+  <data name="Bold" xml:space="preserve">
+    <value>Bold</value>
+  </data>
+  <data name="Italic" xml:space="preserve">
+    <value>Italic</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Heading</value>
+  </data>
+  <data name="BulletList" xml:space="preserve">
+    <value>Bulleted list</value>
+  </data>
+  <data name="OrderedList" xml:space="preserve">
+    <value>Numbered list</value>
+  </data>
+  <data name="TaskList" xml:space="preserve">
+    <value>Task list</value>
+  </data>
+  <data name="CodeBlock" xml:space="preserve">
+    <value>Code block</value>
+  </data>
+  <data name="Table" xml:space="preserve">
+    <value>Table</value>
+  </data>
+  <data name="Callout" xml:space="preserve">
+    <value>Callout</value>
+  </data>
+  <data name="Image" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="Link" xml:space="preserve">
+    <value>Link</value>
+  </data>
+  <data name="PageLink" xml:space="preserve">
+    <value>Link to a page</value>
+  </data>
+  <data name="Url" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Insert</value>
+  </data>
+  <data name="Editors" xml:space="preserve">
+    <value>On this page</value>
+  </data>
+  <data name="You" xml:space="preserve">
+    <value>you</value>
+  </data>
+  <data name="Comments" xml:space="preserve">
+    <value>Comments</value>
+  </data>
+  <data name="ShowResolved" xml:space="preserve">
+    <value>Show resolved</value>
+  </data>
+  <data name="AddComment" xml:space="preserve">
+    <value>Add a comment</value>
+  </data>
+  <data name="CommentOnPage" xml:space="preserve">
+    <value>Comment on page</value>
+  </data>
+  <data name="CommentOnSelection" xml:space="preserve">
+    <value>Comment on selection</value>
+  </data>
+  <data name="SelectTextFirst" xml:space="preserve">
+    <value>Select some text in one paragraph first.</value>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>Reply</value>
+  </data>
+  <data name="Resolve" xml:space="preserve">
+    <value>Resolve</value>
+  </data>
+  <data name="Reopen" xml:space="preserve">
+    <value>Reopen</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Comment deleted</value>
+  </data>
+  <data name="Edited" xml:space="preserve">
+    <value>edited</value>
+  </data>
+  <data name="NoComments" xml:space="preserve">
+    <value>No comments yet.</value>
+  </data>
+  <data name="StatusResolved" xml:space="preserve">
+    <value>Resolved</value>
+  </data>
+  <data name="StatusOrphaned" xml:space="preserve">
+    <value>Text removed</value>
+  </data>
+  <data name="StatusAnchorFailed" xml:space="preserve">
+    <value>Couldn't anchor</value>
+  </data>
+  <data name="StatusPending" xml:space="preserve">
+    <value>Anchoring…</value>
+  </data>
+  <data name="CommentActions" xml:space="preserve">
+    <value>Comment actions</value>
+  </data>
+  <data name="MentionSomeone" xml:space="preserve">
+    <value>Mention someone</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="MarkAllRead" xml:space="preserve">
+    <value>Mark all read</value>
+  </data>
+  <data name="NoNotifications" xml:space="preserve">
+    <value>Nothing new.</value>
+  </data>
+  <data name="Kind_mention" xml:space="preserve">
+    <value>mentioned you</value>
+  </data>
+  <data name="Kind_reply" xml:space="preserve">
+    <value>replied in your thread</value>
+  </data>
+  <data name="Kind_anchor_failed" xml:space="preserve">
+    <value>couldn't anchor your comment; it's on the page instead</value>
+  </data>
+  <data name="Kind_shadow_stale" xml:space="preserve">
+    <value>a memory you shadow changed</value>
+  </data>
+  <data name="Kind_share" xml:space="preserve">
+    <value>shared a page with you</value>
+  </data>
+  <data name="Kind_page_updated" xml:space="preserve">
+    <value>made changes</value>
+  </data>
+  <data name="Kind_page_trashed" xml:space="preserve">
+    <value>moved a page you watch to the trash</value>
+  </data>
+  <data name="Kind_watch_comment" xml:space="preserve">
+    <value>commented</value>
+  </data>
+  <data name="Kind_watch_reply" xml:space="preserve">
+    <value>replied to a comment</value>
+  </data>
+  <data name="Kind_watch_resolved" xml:space="preserve">
+    <value>resolved a comment</value>
+  </data>
+  <data name="Watch" xml:space="preserve">
+    <value>Watch this page</value>
+  </data>
+  <data name="Unwatch" xml:space="preserve">
+    <value>Stop watching this page</value>
+  </data>
+  <data name="Versions" xml:space="preserve">
+    <value>Versions</value>
+  </data>
+  <data name="SaveSnapshot" xml:space="preserve">
+    <value>Save a snapshot</value>
+  </data>
+  <data name="NoVersions" xml:space="preserve">
+    <value>No versions yet.</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="RestoreVersion" xml:space="preserve">
+    <value>Restore this version</value>
+  </data>
+  <data name="ConfirmRestore" xml:space="preserve">
+    <value>Replace the current content with this version? It becomes the next revision; nothing is lost.</value>
+  </data>
+  <data name="Restored" xml:space="preserve">
+    <value>Restored as</value>
+  </data>
+  <data name="Reason_auto" xml:space="preserve">
+    <value>auto</value>
+  </data>
+  <data name="Reason_manual" xml:space="preserve">
+    <value>snapshot</value>
+  </data>
+  <data name="Reason_restore" xml:space="preserve">
+    <value>restore</value>
+  </data>
+  <data name="Share" xml:space="preserve">
+    <value>Share</value>
+  </data>
+  <data name="PeopleWithAccess" xml:space="preserve">
+    <value>Shared with</value>
+  </data>
+  <data name="Team" xml:space="preserve">
+    <value>team</value>
+  </data>
+  <data name="RemoveAccess" xml:space="preserve">
+    <value>Remove access</value>
+  </data>
+  <data name="SharePerson" xml:space="preserve">
+    <value>Share with a person or team</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Access</value>
+  </data>
+  <data name="Level_view" xml:space="preserve">
+    <value>Can view</value>
+  </data>
+  <data name="Level_comment" xml:space="preserve">
+    <value>Can comment</value>
+  </data>
+  <data name="Level_edit" xml:space="preserve">
+    <value>Can edit</value>
+  </data>
+  <data name="SpaceMembers" xml:space="preserve">
+    <value>Manage the space's members</value>
+  </data>
+  <data name="ExternalLinks" xml:space="preserve">
+    <value>Read-only links</value>
+  </data>
+  <data name="LinkPage" xml:space="preserve">
+    <value>This page</value>
+  </data>
+  <data name="LinkPageAndBelow" xml:space="preserve">
+    <value>This page and its subpages</value>
+  </data>
+  <data name="LinkSpace" xml:space="preserve">
+    <value>Whole space</value>
+  </data>
+  <data name="WithPassword" xml:space="preserve">
+    <value>password</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>expires</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>active</value>
+  </data>
+  <data name="Expired" xml:space="preserve">
+    <value>expired</value>
+  </data>
+  <data name="Revoked" xml:space="preserve">
+    <value>revoked</value>
+  </data>
+  <data name="Revoke" xml:space="preserve">
+    <value>Revoke</value>
+  </data>
+  <data name="LinkCreated" xml:space="preserve">
+    <value>Copy this link now; it won't be shown again.</value>
+  </data>
+  <data name="IncludeSubpages" xml:space="preserve">
+    <value>Include subpages</value>
+  </data>
+  <data name="WholeSpace" xml:space="preserve">
+    <value>Share the whole space</value>
+  </data>
+  <data name="ExpiresOn" xml:space="preserve">
+    <value>Expires on (optional)</value>
+  </data>
+  <data name="PasswordOptional" xml:space="preserve">
+    <value>Password (optional)</value>
+  </data>
+  <data name="CreateLink" xml:space="preserve">
+    <value>Create link</value>
+  </data>
+  <data name="AttachFile" xml:space="preserve">
+    <value>Attach a file (image, PDF, DOCX)</value>
+  </data>
+  <data name="FileTooLarge" xml:space="preserve">
+    <value>Files are limited to 25 MB.</value>
+  </data>
+  <data name="OnPage" xml:space="preserve"><value>on</value></data>
+  <data name="WikiIntro" xml:space="preserve"><value>Spaces you belong to, grouped by workspace.</value></data>
+  <data name="NoSpacesHelp" xml:space="preserve"><value>Ask a workspace admin to add you to a space.</value></data>
+  <data name="Space" xml:space="preserve"><value>Space</value></data>
+  <data name="YourRole" xml:space="preserve"><value>Your role</value></data>
+  <data name="Role_Viewer" xml:space="preserve"><value>Viewer</value></data>
+  <data name="Role_Commenter" xml:space="preserve"><value>Commenter</value></data>
+  <data name="Role_Editor" xml:space="preserve"><value>Editor</value></data>
+  <data name="Role_Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="AiAccess" xml:space="preserve"><value>AI access</value></data>
+  <data name="AiNone" xml:space="preserve"><value>Agents have no access</value></data>
+  <data name="AiRead" xml:space="preserve"><value>Agents can read</value></data>
+  <data name="AiWrite" xml:space="preserve"><value>Agents can write</value></data>
+  <data name="AiDelete" xml:space="preserve"><value>Agents can move pages to the trash</value></data>
+  <data name="Confidential" xml:space="preserve"><value>Confidential</value></data>
+  <data name="PageUnavailable" xml:space="preserve"><value>Page not available</value></data>
+  <data name="PageUnavailableText" xml:space="preserve"><value>This page doesn't exist, or you don't have access to it. Ask the space's admin if you need it.</value></data>
+  <data name="BackToWiki" xml:space="preserve"><value>Back to wiki</value></data>
+  <data name="Pages" xml:space="preserve"><value>Pages</value></data>
+  <data name="ClosePages" xml:space="preserve"><value>Close pages</value></data>
+  <data name="PagePanels" xml:space="preserve"><value>Comments, versions and sharing</value></data>
+  <data name="MovePage" xml:space="preserve"><value>Move page</value></data>
+  <data name="InsertImage" xml:space="preserve"><value>Insert an image</value></data>
+  <data name="InsertLink" xml:space="preserve"><value>Insert a link</value></data>
+  <data name="RevisionN" xml:space="preserve"><value>Revision {0}</value></data>
+  <data name="CommentAction" xml:space="preserve"><value>Comment</value></data>
+  <data name="AnchorToSelection" xml:space="preserve"><value>Anchor to selection</value></data>
+  <data name="OpenThreads" xml:space="preserve"><value>Open threads</value></data>
+  <data name="AllThreads" xml:space="preserve"><value>All threads</value></data>
+  <data name="ShowInPage" xml:space="preserve"><value>Show in the page</value></data>
+  <data name="SendReply" xml:space="preserve"><value>Send reply</value></data>
+  <data name="EditComment" xml:space="preserve"><value>Edit comment</value></data>
+  <data name="ConfirmDeleteComment" xml:space="preserve"><value>Delete this comment? This can't be undone.</value></data>
+  <data name="OnlySpaceMembers" xml:space="preserve"><value>Only space members</value></data>
+  <data name="ConfirmRemoveAccess" xml:space="preserve"><value>Remove {0}'s access to this page?</value></data>
+  <data name="AddLink" xml:space="preserve"><value>Add link</value></data>
+  <data name="NoLinks" xml:space="preserve"><value>No links yet</value></data>
+  <data name="PasswordProtected" xml:space="preserve"><value>Password</value></data>
+  <data name="ExpiresLabel" xml:space="preserve"><value>Expires</value></data>
+  <data name="LinkActive" xml:space="preserve"><value>Active</value></data>
+  <data name="LinkExpired" xml:space="preserve"><value>Expired</value></data>
+  <data name="LinkRevoked" xml:space="preserve"><value>Revoked</value></data>
+  <data name="RevokeLink" xml:space="preserve"><value>Revoke link</value></data>
+  <data name="ConfirmRevokeLink" xml:space="preserve"><value>Revoke this link? Anyone using it loses access.</value></data>
+  <data name="CopyLink" xml:space="preserve"><value>Copy link</value></data>
+  <data name="LinkCopied" xml:space="preserve"><value>Link copied</value></data>
+  <data name="CopyFailed" xml:space="preserve"><value>Couldn't copy. Select the link and copy it instead.</value></data>
+  <data name="History" xml:space="preserve"><value>History</value></data>
+  <data name="PreviewRevision" xml:space="preserve"><value>Preview revision {0}</value></data>
+  <data name="RestoreRevision" xml:space="preserve"><value>Restore revision {0}</value></data>
+  <data name="ClosePreview" xml:space="preserve"><value>Close preview</value></data>
+  <data name="ReasonLabel_auto" xml:space="preserve"><value>Automatic</value></data>
+  <data name="ReasonLabel_manual" xml:space="preserve"><value>Snapshot</value></data>
+  <data name="ReasonLabel_restore" xml:space="preserve"><value>Restore</value></data>
+  <data name="Undo" xml:space="preserve"><value>Undo</value></data>
+  <data name="Redo" xml:space="preserve"><value>Redo</value></data>
+  <data name="Underline" xml:space="preserve"><value>Underline</value></data>
+  <data name="Strikethrough" xml:space="preserve"><value>Strikethrough</value></data>
+  <data name="InlineCode" xml:space="preserve"><value>Inline code</value></data>
+  <data name="ClearFormatting" xml:space="preserve"><value>Clear formatting</value></data>
+  <data name="TextStyle" xml:space="preserve"><value>Text style</value></data>
+  <data name="Paragraph" xml:space="preserve"><value>Normal text</value></data>
+  <data name="Heading1" xml:space="preserve"><value>Heading 1</value></data>
+  <data name="Heading2" xml:space="preserve"><value>Heading 2</value></data>
+  <data name="Heading3" xml:space="preserve"><value>Heading 3</value></data>
+  <data name="Quote" xml:space="preserve"><value>Quote</value></data>
+  <data name="Divider" xml:space="preserve"><value>Divider</value></data>
+  <data name="TableActions" xml:space="preserve"><value>Table rows and columns</value></data>
+  <data name="AddRow" xml:space="preserve"><value>Add row below</value></data>
+  <data name="AddColumn" xml:space="preserve"><value>Add column after</value></data>
+  <data name="DeleteRow" xml:space="preserve"><value>Delete row</value></data>
+  <data name="DeleteColumn" xml:space="preserve"><value>Delete column</value></data>
+  <data name="DeleteTable" xml:space="preserve"><value>Delete table</value></data>
+  <data name="FilterAll" xml:space="preserve"><value>All</value></data>
+  <data name="FilterOpen" xml:space="preserve"><value>Open</value></data>
+  <data name="FilterResolved" xml:space="preserve"><value>Resolved</value></data>
+  <data name="CommentFilter" xml:space="preserve"><value>Show comments</value></data>
+  <data name="Favorite" xml:space="preserve"><value>Add to favorites</value></data>
+  <data name="Expand" xml:space="preserve">
+    <value>Expand</value>
+  </data>
+  <data name="Collapse" xml:space="preserve">
+    <value>Collapse</value>
+  </data>
+  <data name="ShowMorePages" xml:space="preserve">
+    <value>Show {0} more</value>
+  </data>
+  <data name="SlashBasic" xml:space="preserve"><value>Basic</value></data>
+  <data name="SlashInsert" xml:space="preserve"><value>Insert</value></data>
+  <data name="Text" xml:space="preserve"><value>Text</value></data>
+  <data name="Todo" xml:space="preserve"><value>To-do list</value></data>
+  <data name="Slash_text" xml:space="preserve"><value>Just start typing with plain text.</value></data>
+  <data name="Slash_todo" xml:space="preserve"><value>Track tasks with a to-do list.</value></data>
+  <data name="Slash_h1" xml:space="preserve"><value>Big section heading.</value></data>
+  <data name="Slash_h2" xml:space="preserve"><value>Medium section heading.</value></data>
+  <data name="Slash_h3" xml:space="preserve"><value>Small section heading.</value></data>
+  <data name="Slash_bullet" xml:space="preserve"><value>Create a simple bullet list.</value></data>
+  <data name="Slash_numbered" xml:space="preserve"><value>Create a list with numbering.</value></data>
+  <data name="Slash_quote" xml:space="preserve"><value>Capture a quote.</value></data>
+  <data name="Slash_code" xml:space="preserve"><value>Capture a code snippet.</value></data>
+  <data name="Slash_callout" xml:space="preserve"><value>Make a note stand out.</value></data>
+  <data name="Slash_divider" xml:space="preserve"><value>Visually divide blocks.</value></data>
+  <data name="Slash_table" xml:space="preserve"><value>Insert a table.</value></data>
+  <data name="Slash_image" xml:space="preserve"><value>Insert an image from a link.</value></data>
+  <data name="Slash_pageLink" xml:space="preserve"><value>Link to another page.</value></data>
+  <data name="ShowOlderVersions" xml:space="preserve"><value>Show older versions</value></data>
+  <data name="ShowMoreThreads" xml:space="preserve"><value>Show {0} more</value></data>
+  <data name="SpaceSettings" xml:space="preserve"><value>Space settings</value></data>
+  <data name="Read" xml:space="preserve"><value>Read</value></data>
+  <data name="PageMode" xml:space="preserve"><value>Page mode</value></data>
+  <data name="ReadMode" xml:space="preserve"><value>Reading</value></data>
+  <data name="Draft" xml:space="preserve"><value>Draft</value></data>
+  <data name="Publish" xml:space="preserve"><value>Publish</value></data>
+  <data name="Unpublish" xml:space="preserve"><value>Back to draft</value></data>
+  <data name="PublishedNow" xml:space="preserve"><value>Published: readers can see this page.</value></data>
+  <data name="UnpublishedNow" xml:space="preserve"><value>Back to draft: only editors can see this page.</value></data>
+  <data name="CommentsPanel" xml:space="preserve"><value>Comments</value></data>
+  <data name="Outline" xml:space="preserve"><value>Outline</value></data>
+  <data name="NoHeadings" xml:space="preserve"><value>No headings on this page yet.</value></data>
+  <data name="MorePageActions" xml:space="preserve"><value>More page actions</value></data>
+  <data name="CopyMarkdown" xml:space="preserve"><value>Copy as Markdown</value></data>
+  <data name="FullWidth" xml:space="preserve"><value>Full width</value></data>
+  <data name="PageHistory" xml:space="preserve"><value>Page history</value></data>
+  <data name="PrintPdf" xml:space="preserve"><value>Print or save as PDF</value></data>
+  <data name="WordCount" xml:space="preserve"><value>{0} words</value></data>
+  <data name="CreatedBy" xml:space="preserve"><value>Created by</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>Created</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>Updated</value></data>
+  <data name="Copied" xml:space="preserve"><value>Copied</value></data>
+  <data name="ConfirmTrash" xml:space="preserve"><value>Move this page and its subpages to the trash? You can restore them for 30 days.</value></data>
+  <data name="Overview" xml:space="preserve"><value>Overview</value></data>
+  <data name="SearchLink" xml:space="preserve"><value>Search</value></data>
+  <data name="AddPage" xml:space="preserve"><value>Add a page</value></data>
+  <data name="AddSubpage" xml:space="preserve"><value>Add a subpage</value></data>
+  <data name="PagesMenu" xml:space="preserve"><value>Page tree options</value></data>
+  <data name="CollapseAll" xml:space="preserve"><value>Collapse all</value></data>
+  <data name="ShowTrash" xml:space="preserve"><value>Show trash</value></data>
+  <data name="HideTrash" xml:space="preserve"><value>Hide trash</value></data>
+  <data name="Duplicate" xml:space="preserve"><value>Duplicate</value></data>
+  <data name="CopyToSpace" xml:space="preserve"><value>Copy to space…</value></data>
+  <data name="CopyOfTitle" xml:space="preserve"><value>{0} (copy)</value></data>
+  <data name="Duplicated" xml:space="preserve"><value>Duplicated as a draft</value></data>
+  <data name="CopiedToSpace" xml:space="preserve"><value>Copied to {0} as a draft</value></data>
+  <data name="CopyPagesCount" xml:space="preserve"><value>Copies {0} page(s) with subpages, as drafts. At most 200 at once.</value></data>
+  <data name="NoCopyTargets" xml:space="preserve"><value>You aren't an editor of another space in this workspace.</value></data>
+  <data name="Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="By By" xml:space="preserve"><value></value></data>
+  <data name="Breadcrumb" xml:space="preserve"><value>Breadcrumb</value></data>
+  <data name="ShowPath" xml:space="preserve"><value>Show the full path</value></data>
+  <data name="SeeAllNotifications" xml:space="preserve"><value>See all notifications</value></data>
+  <data name="NotificationsHelp" xml:space="preserve"><value>Mentions, replies, shares and changes to pages and memories you follow.</value></data>
+  <data name="AllNotifications" xml:space="preserve"><value>All</value></data>
+  <data name="UnreadNotifications" xml:space="preserve"><value>Unread</value></data>
+  <data name="NoUnreadNotifications" xml:space="preserve"><value>You're all caught up</value></data>
+  <data name="NotificationsEmptyHelp" xml:space="preserve"><value>You'll hear here when someone mentions you, replies in your threads, shares a page with you or changes a page you watch.</value></data>
+  <data name="Unread" xml:space="preserve"><value>unread</value></data>
+  <data name="Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Kind_source_paused" xml:space="preserve"><value>a GitHub source was paused: its token was refused</value></data>
+  <data name="ManageWorkspaces" xml:space="preserve"><value>Manage workspaces</value></data>
+  <data name="TourTreeTitle" xml:space="preserve"><value>The pages of this space</value></data>
+  <data name="TourTreeText" xml:space="preserve"><value>Open a page, or use + on a row to add a page under it. The ⋮ menu moves, duplicates and shares.</value></data>
+  <data name="TourModeTitle" xml:space="preserve"><value>Edit or read</value></data>
+  <data name="TourModeText" xml:space="preserve"><value>Read hides the toolbar. Your choice is remembered in this browser.</value></data>
+  <data name="TourToolbarTitle" xml:space="preserve"><value>Write together</value></data>
+  <data name="TourToolbarText" xml:space="preserve"><value>Changes save as you type and others see them live. Type / at the start of a line for headings, lists, tables and diagrams.</value></data>
+  <data name="TourCommentsTitle" xml:space="preserve"><value>Comment and mention</value></data>
+  <data name="TourCommentsText" xml:space="preserve"><value>Select text to comment on it, or comment on the whole page. Type @ to notify someone.</value></data>
+  <data name="TourShareTitle" xml:space="preserve"><value>Share it</value></data>
+  <data name="TourShareText" xml:space="preserve"><value>Give people or teams access, or make a read-only link for someone outside, with a password and an expiry if you like.</value></data>
+  <data name="TourMenuTitle" xml:space="preserve"><value>More for this page</value></data>
+  <data name="TourMenuText" xml:space="preserve"><value>Watch it for changes, see its history and restore a version, move it, or print it.</value></data>
+  <data name="NewCommentActivity" xml:space="preserve"><value>{0} comment threads have new activity</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="ResolveComment" xml:space="preserve"><value>Resolve comment</value></data>
+  <data name="ReopenComment" xml:space="preserve"><value>Reopen comment</value></data>
+  <data name="DeleteComment" xml:space="preserve"><value>Delete comment</value></data>
+  <data name="ReplyHint" xml:space="preserve"><value>Reply…</value></data>
+  <data name="AddCommentHint" xml:space="preserve"><value>Add a comment…</value></data>
+  <data name="CommentKeysHint" xml:space="preserve"><value>Ctrl+Enter to send</value></data>
+  <data name="ImportPages" xml:space="preserve"><value>Import pages…</value></data>
+  <data name="ImportHere" xml:space="preserve"><value>Import here…</value></data>
+  <data name="ImportHelp" xml:space="preserve"><value>A Markdown or HTML file, a zip of them (subpages in a folder named like their page), or a Confluence export (HTML, or XML).</value></data>
+  <data name="ChooseImportFile" xml:space="preserve"><value>Choose a file</value></data>
+  <data name="Importing" xml:space="preserve"><value>Importing…</value></data>
+  <data name="ImportedCount" xml:space="preserve"><value>Imported {0} pages and {1} files. They're published and appear in search shortly.</value></data>
+  <data name="ImportSkipped" xml:space="preserve"><value>Skipped:</value></data>
+  <data name="OpenImported" xml:space="preserve"><value>Open</value></data>
+  <data name="ImportTooLarge" xml:space="preserve"><value>Imports are limited to 200 MB.</value></data>
+  <data name="ExportSpace" xml:space="preserve"><value>Export space (.zip)</value></data>
+  <data name="ExportMarkdown" xml:space="preserve"><value>Export as Markdown</value></data>
+  <data name="ExportHtml" xml:space="preserve"><value>Export as HTML</value></data>
+  <data name="ExportZip" xml:space="preserve"><value>Export with subpages (.zip)</value></data>
+  <data name="Kind_import_done" xml:space="preserve"><value>your import finished</value></data>
+  <data name="Kind_import_failed" xml:space="preserve"><value>your import failed (open the import dialog again to see why)</value></data>
+</root>

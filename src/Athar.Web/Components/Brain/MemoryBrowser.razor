@@ -1,0 +1,142 @@
+@page "/memories"
+@attribute [Authorize]
+@inject MemoryService Memories
+@inject ProjectService Projects
+@inject IStringLocalizer<SharedResource> L
+
+<PageHeader Help="memories" Title="@L["Memories"]" Description="@L["MemoriesHelp"]" />
+
+@* FR-MM-09: filter by scope, type, status, project and stale. *@
+@* T152: replayed from the help button; it doesn't start by itself. *@
+<PageTour Id="memories" Help="memories" Steps="@([
+    new(".filter-bar", L["TourFiltersTitle"], L["TourFiltersText"]),
+    new(".mud-table .athar-seal", L["TourScopeChipTitle"], L["TourScopeChipText"]),
+    new(".side-nav a[href='/review']", L["TourReviewTitle"], L["TourReviewText"]),
+])" />
+<FilterBar Label="@L["Filters"]" Fold="true">
+    <MudSelect T="string" Value="scope" ValueChanged="v => Filter(() => scope = v)" Label="@L["Scope"]" Clearable="true" ToStringFunc="@(s => Label("Scope_", s))">
+        @foreach (var s in ScopeValues) { <MudSelectItem Value="s">@L["Scope_" + s]</MudSelectItem> }
+    </MudSelect>
+    <MudSelect T="string" Value="type" ValueChanged="v => Filter(() => type = v)" Label="@L["Type"]" Clearable="true" ToStringFunc="@(t => Label("Type_", t))">
+        @foreach (var t in TypeValues) { <MudSelectItem Value="t">@L["Type_" + t]</MudSelectItem> }
+    </MudSelect>
+    <MudSelect T="string" Value="status" ValueChanged="v => Filter(() => status = v)" Label="@L["Status"]" ToStringFunc="@(s => Label("Status_", s))">
+        @foreach (var s in StatusValues) { <MudSelectItem Value="s">@L["Status_" + s]</MudSelectItem> }
+    </MudSelect>
+    <MudSelect T="Guid?" Value="project" ValueChanged="v => Filter(() => project = v)" Label="@L["Project"]" Clearable="true"
+               ToStringFunc="@(id => projects.FirstOrDefault(p => p.Id == id)?.Name)">
+        @foreach (var p in projects) { <MudSelectItem T="Guid?" Value="p.Id"><bdi>@p.Name</bdi></MudSelectItem> }
+    </MudSelect>
+    <MudCheckBox T="bool" Value="staleOnly" ValueChanged="v => Filter(() => staleOnly = v)" Label="@L["OnlyStaleOverrides"]" />
+</FilterBar>
+
+@if (page is null)
+{
+    <LoadingState Rows="6" />
+}
+else
+{
+    <div class="memories">
+    <DataTable T="MemoryListItem" Items="page.Items" Loading="loading" EmptyIcon="@Icons.Material.Outlined.FilterAltOff" EmptyTitle="@L["NoMemories"]">
+        <HeaderContent>
+            <SortTh T="MemoryListItem" OnSort="@(d => SortAsync("title", d))">@L["Title"]</SortTh>
+            <SortTh T="MemoryListItem" OnSort="@(d => SortAsync("scope", d))">@L["Scope"]</SortTh>
+            <SortTh T="MemoryListItem" OnSort="@(d => SortAsync("type", d))">@L["Type"]</SortTh>
+            <MudTh>@L["Status"]</MudTh>
+            <SortTh T="MemoryListItem" OnSort="@(d => SortAsync("revision", d))" Class="num">@L["Revision"]</SortTh>
+            <SortTh T="MemoryListItem" OnSort="@(d => SortAsync("updated", d))" Initial="SortDirection.Descending">@L["Updated"]</SortTh>
+            <ActionsTh />
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd Class="title-cell">
+                <span class="title-line">
+                    <a href="@($"/memories/{context.Id}")" class="athar-truncate" title="@context.Title" dir="auto">@context.Title</a>
+                    @if (context.Stale == true) { <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.Update" Tooltip="@L["StaleHelp"]">@L["Stale"]</Seal> }
+                </span>
+            </MudTd>
+            <MudTd><ScopeChip Scope="@context.Scope" /></MudTd>
+            <MudTd><Seal Kind="Seal.Kinds.Quiet">@L["Type_" + context.Type]</Seal></MudTd>
+            <MudTd>
+                @* The decision is the seal: an active company memory was approved by its knowledge owner. *@
+                @if (context.Status == "active" && context.Scope == "company")
+                {
+                    <Seal Icon="@Icons.Material.Filled.Verified">@L["Approved"]</Seal>
+                }
+                else
+                {
+                    <Seal Kind="Seal.Kinds.Quiet">@L["Status_" + context.Status]</Seal>
+                }
+            </MudTd>
+            <MudTd Class="num">@context.Revision</MudTd>
+            <MudTd><Timestamp Value="context.UpdatedAt" Relative="true" /></MudTd>
+            <MudTd Class="actions-col"><RowActions Done="StateHasChanged" Actions="@([new RowAction(L["Open"], Icons.Material.Outlined.Visibility, Href: $"/memories/{context.Id}")])" /></MudTd>
+        </RowTemplate>
+    </DataTable>
+    <Pager Skip="skip" PageSize="PageSize" Total="page.Total" OnPage="GoTo" />
+    </div>
+}
+
+@code {
+    private const int PageSize = 25;
+    private static readonly string[] ScopeValues = ["personal", "team", "project", "company"];
+    private static readonly string[] TypeValues = ["fact", "decision", "convention", "procedure", "policy", "preference", "incident", "glossary"];
+    private static readonly string[] StatusValues = ["active", "archived", "superseded"];
+
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private Actor actor = default!;
+    // Initial filters can come from the URL (/memories?scope=project&type=decision), so a filtered view is linkable.
+    [SupplyParameterFromQuery(Name = "scope")] private string? scope { get; set; }
+    [SupplyParameterFromQuery(Name = "type")] private string? type { get; set; }
+    [SupplyParameterFromQuery(Name = "status")] private string? statusQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "stale")] private bool? staleQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "project")] private Guid? projectQuery { get; set; }
+    private string status = "active";
+    private Guid? project;
+    private bool staleOnly, loading;
+    private int skip;
+    // Sorting happens on the server, before paging, so it covers every memory and not just this page.
+    private string sort = "updated";
+    private bool descending = true;
+    private MemoryPage? page;
+    private IReadOnlyList<ProjectView> projects = [];
+
+    // Selects show the localized label of the chosen value, never the raw "active".
+    private string? Label(string prefix, string? value) => value is null ? null : L[prefix + value].Value;
+
+    protected override async Task OnInitializedAsync()
+    {
+        actor = Actor.ForUser((await Auth).User);
+        status = statusQuery ?? status;
+        staleOnly = staleQuery == true;
+        project = projectQuery; // a project page links to its memories (T151)
+        projects = await Projects.ListAsync(actor, default);
+        await LoadAsync();
+    }
+
+    private Task Filter(Action set)
+    {
+        set();
+        skip = 0;
+        return LoadAsync();
+    }
+
+    private Task SortAsync(string column, SortDirection direction)
+    {
+        (sort, descending) = direction == SortDirection.None ? ("updated", true) : (column, direction == SortDirection.Descending);
+        skip = 0;
+        return LoadAsync();
+    }
+
+    private Task GoTo(int newSkip)
+    {
+        skip = newSkip;
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        try { page = await Memories.ListAsync(actor, new(scope, type, status, project, staleOnly ? true : null, skip, PageSize, sort, descending), default); }
+        finally { loading = false; }
+    }
+}

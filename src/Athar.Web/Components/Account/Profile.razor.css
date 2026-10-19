@@ -1,0 +1,26 @@
+.photo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+}
+
+.email { margin: 8px 0 0; color: var(--athar-muted) }
+
+/* The crop panel: a round window over the image; drag, arrow keys or the slider. */
+.crop { display: grid; gap: 12px; justify-items: start; margin-block-start: 16px }
+.crop-help { margin: 0; color: var(--athar-muted) }
+.crop-stage {
+    position: relative;
+    inline-size: 256px;
+    block-size: 256px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--athar-fill);
+    cursor: grab;
+    touch-action: none;
+    box-shadow: 0 0 0 1px var(--athar-rule);
+}
+.crop-stage:active { cursor: grabbing }
+.crop-stage:focus-visible { outline: 2px solid var(--mud-palette-primary); outline-offset: 3px }
+.crop ::deep .crop-zoom { inline-size: 256px }

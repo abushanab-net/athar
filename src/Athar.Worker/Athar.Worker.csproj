@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Athar.Worker-cfbf11d1-5179-4a63-9ad5-7cfeca15325c</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="PdfPig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Athar.ServiceDefaults\Athar.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Athar.Domain\Athar.Domain.csproj" />
+    <ProjectReference Include="..\Athar.Data\Athar.Data.csproj" />
+  </ItemGroup>
+</Project>

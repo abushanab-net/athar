@@ -1,0 +1,39 @@
+@* The ledger table (DESIGN.md signature component): dense hairline rows, sortable headers (SortTh), an actions column
+   (ActionsTh + RowActions), the empty state inside the frame, and a pager only for long client-side lists. *@
+@typeparam T
+
+<MudTable T="T" Items="@Items" Dense="true" Hover="true" Elevation="0" Outlined="true" Breakpoint="@Breakpoint"
+          Loading="@Loading" LoadingProgressColor="Color.Primary" RowsPerPage="@(PageSize > 0 ? PageSize : int.MaxValue)"
+          HorizontalScrollbar="true" RowClassFunc="@RowClass" OnRowClick="@OnRowClick" Class="@($"ledger {Class}")"
+          AllowUnsorted="false" UserAttributes="@Attributes" ToolBarContent="@ToolBar"
+          PagerContent="@(PageSize > 0 && Items?.Count() > PageSize ? Pager : null)">
+    <HeaderContent>@HeaderContent</HeaderContent>
+    <RowTemplate>@RowTemplate(context)</RowTemplate>
+    <NoRecordsContent>
+        <EmptyState Icon="@EmptyIcon" Title="@(EmptyTitle ?? L["NothingHereYet"])" Text="@EmptyText" Compact="true">@EmptyAction</EmptyState>
+    </NoRecordsContent>
+    <LoadingContent><span class="visually-hidden">@L["Loading"]</span></LoadingContent>
+
+</MudTable>
+
+@code {
+    [Inject] private IStringLocalizer<SharedResource> L { get; set; } = default!;
+    [Parameter, EditorRequired] public IEnumerable<T>? Items { get; set; }
+    [Parameter, EditorRequired] public RenderFragment HeaderContent { get; set; } = default!;
+    [Parameter, EditorRequired] public RenderFragment<T> RowTemplate { get; set; } = default!;
+    [Parameter] public RenderFragment? ToolBar { get; set; }
+    [Parameter] public bool Loading { get; set; }
+    /// <summary>Rows per page for a long client-side list; 0 shows every row.</summary>
+    [Parameter] public int PageSize { get; set; }
+    [Parameter] public string EmptyIcon { get; set; } = Icons.Material.Outlined.Inbox;
+    [Parameter] public string? EmptyTitle { get; set; }
+    [Parameter] public string? EmptyText { get; set; }
+    [Parameter] public RenderFragment? EmptyAction { get; set; }
+    [Parameter] public Func<T, int, string>? RowClass { get; set; }
+    [Parameter] public EventCallback<TableRowClickEventArgs<T>> OnRowClick { get; set; }
+    [Parameter] public Breakpoint Breakpoint { get; set; } = Breakpoint.None; // DESIGN.md: tables scroll sideways on phones, never stack
+    [Parameter] public string? Class { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attributes { get; set; }
+
+    private static readonly RenderFragment Pager = b => { b.OpenComponent<MudTablePager>(0); b.AddAttribute(1, nameof(MudTablePager.HideRowsPerPage), true); b.CloseComponent(); };
+}

@@ -1,0 +1,17 @@
+# T100 (AT-41): the formal NFR-01 run on the pilot host, as a separate Compose project beside the real stack and apart from
+# its data. Use it with `-p athar-perf` (own volumes) and its own ports (see tests/perf/README.md, "Formal run").
+services:
+  web:
+    environment:
+      Athar__Seed: perf       # qa plus 10k pages, 5k memories and their vectors, stamped with the active model (#80)
+      # Not Production: web refuses any seed but minimal there (the qa users' password is public). Same app behaviour.
+      ASPNETCORE_ENVIRONMENT: Perf
+      DOTNET_ENVIRONMENT: Perf
+    healthcheck:              # seeding perf takes 11-15 min before /health answers; the image allows ~2 min
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30m
+  backup:
+    profiles: [never]         # perf data never goes to the backup bucket

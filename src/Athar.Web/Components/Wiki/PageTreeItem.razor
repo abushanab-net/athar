@@ -1,0 +1,106 @@
+@using Athar.Web.Services
+@inject WikiSession Session
+
+<li>
+    @* Editors drag rows to move pages (WikiPage.razor.js); the ⋮ menu does the same from the keyboard. *@
+    <div class="tree-row @(Node.Id == SelectedId ? "selected" : null)" data-page-id="@Node.Id" draggable="@(CanEdit ? "true" : "false")">
+        @if (kids.Count > 0)
+        {
+            <IconAction Icon="@(open ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ChevronRight)" Class="@(open ? "tree-toggle-node" : "tree-toggle-node flip-rtl")"
+                        Label="@($"{T(open ? "Collapse" : "Expand")}: {Node.Title}")" aria-expanded="@(open ? "true" : "false")"
+                        OnClick="() => OnToggle.InvokeAsync(Node.Id)" />
+        }
+        else
+        {
+            <span class="tree-leaf" aria-hidden="true"></span>
+        }
+        @* T116: a folder (open or closed) for a page with subpages, a document otherwise. *@
+        <MudIcon Class="tree-icon" Size="Size.Small" aria-hidden="true"
+                 Icon="@(kids.Count == 0 ? Icons.Material.Outlined.Description : open ? Icons.Material.Outlined.FolderOpen : Icons.Material.Outlined.Folder)" />
+        @* One line: long titles end in an ellipsis, the full title is the tooltip. *@
+        <a href="@($"/wiki/p/{Node.Id}")" class="tree-title" title="@Node.Title" dir="auto" aria-current="@(Node.Id == SelectedId ? "page" : null)">@Node.Title</a>
+        @if (CanEdit)
+        {
+            <IconAction Icon="@Icons.Material.Filled.Add" Class="tree-add" Label="@($"{T("AddSubpage")}: {Node.Title}")" OnClick="() => Act(TreeAction.NewChild)" />
+        }
+        <MenuButton Icon="@Icons.Material.Filled.MoreVert" Class="tree-menu" Label="@T("PageActions")" AriaLabel="@($"{T("PageActions")}: {Node.Title}")">
+            <MudMenuItem Icon="@Icons.Material.Outlined.Link" OnClick="() => Act(TreeAction.CopyLink)">@T("CopyLink")</MudMenuItem>
+            @if (CanEdit)
+            {
+                <MudMenuItem Icon="@Icons.Material.Outlined.PersonAdd" OnClick="() => Act(TreeAction.Share)">@T("Share")</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.FileCopy" OnClick="() => Act(TreeAction.Duplicate)">@T("Duplicate")</MudMenuItem>
+                @* Keyboard reorder: drag and drop has no keyboard path. *@
+                <MudMenuItem Icon="@Icons.Material.Outlined.ArrowUpward" OnClick="() => Act(TreeAction.Up)">@T("MoveUp")</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.ArrowDownward" OnClick="() => Act(TreeAction.Down)">@T("MoveDown")</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.DriveFileMove" OnClick="() => Act(TreeAction.Move)">@T("MoveTo")</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.CopyAll" OnClick="() => Act(TreeAction.CopyToSpace)">@T("CopyToSpace")</MudMenuItem>
+                @if (CanImport)
+                {
+                    <MudMenuItem Icon="@Icons.Material.Outlined.FileUpload" OnClick="() => Act(TreeAction.Import)">@T("ImportHere")</MudMenuItem>
+                }
+                <MudDivider />
+                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" IconColor="Color.Error" OnClick="() => Act(TreeAction.Trash)">@T("MoveToTrash")</MudMenuItem>
+            }
+        </MenuButton>
+    </div>
+    @if (open)
+    {
+        <ul>
+            @foreach (var child in kids.Take(shown))
+            {
+                <PageTreeItem @key="child.Id" Node="child" Children="Children" SelectedId="SelectedId" CanEdit="CanEdit" CanImport="CanImport" OnAction="OnAction"
+                              Expanded="Expanded" OnToggle="OnToggle" Stamp="Stamp" />
+            }
+            @if (kids.Count > shown)
+            {
+                <li><button type="button" class="tree-more" @onclick="ShowMore">@string.Format(T("ShowMorePages"), kids.Count - shown)</button></li>
+            }
+        </ul>
+    }
+</li>
+
+@code {
+    public enum TreeAction { NewChild, Up, Down, Move, Trash, CopyLink, Share, Duplicate, CopyToSpace, Import }
+    /// <summary>Siblings shown at once; the rest come in steps through "Show more" (a space may hold thousands, T100).</summary>
+    public const int Step = 100;
+
+    [Parameter, EditorRequired] public PageNode Node { get; set; } = null!;
+    [Parameter, EditorRequired] public ILookup<Guid?, PageNode> Children { get; set; } = null!;
+    [Parameter] public Guid? SelectedId { get; set; }
+    [Parameter] public bool CanEdit { get; set; }
+    /// <summary>Import is for the space's managers (T161).</summary>
+    [Parameter] public bool CanImport { get; set; }
+    [Parameter] public EventCallback<(TreeAction Action, PageNode Node)> OnAction { get; set; }
+    /// <summary>The expanded pages. Children of collapsed pages aren't rendered at all.</summary>
+    [Parameter, EditorRequired] public ISet<Guid> Expanded { get; set; } = null!;
+    [Parameter] public EventCallback<Guid> OnToggle { get; set; }
+    /// <summary>
+    /// Bumped by the page whenever the tree, the selection or the expanded set changes. Rows skip every other re-render
+    /// (save state, presence), which would otherwise re-diff the whole tree on each keystroke batch.
+    /// </summary>
+    [Parameter] public int Stamp { get; set; }
+
+    private List<PageNode> kids = [];
+    private bool open;
+    private int shown = Step, rendered = -1;
+
+    private string T(string key) => Session.T(key);
+
+    protected override void OnParametersSet()
+    {
+        kids = [.. Children[Node.Id]];
+        open = kids.Count > 0 && Expanded.Contains(Node.Id);
+    }
+
+    protected override bool ShouldRender() => Stamp != rendered;
+
+    protected override void OnAfterRender(bool firstRender) => rendered = Stamp;
+
+    private void ShowMore()
+    {
+        shown += Step;
+        rendered = -1; // our own change: render once more
+    }
+
+    private Task Act(TreeAction action) => OnAction.InvokeAsync((action, Node));
+}

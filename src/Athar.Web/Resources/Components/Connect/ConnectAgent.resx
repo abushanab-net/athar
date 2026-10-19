@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Agents</value>
+  </data>
+  <data name="Intro" xml:space="preserve">
+    <value>Set up Claude Code, Codex, the Claude apps or VS Code with Athar: search the wiki and the brain, recall memories, and capture sessions you opt into.</value>
+  </data>
+  <data name="ServerTitle" xml:space="preserve">
+    <value>Server</value>
+  </data>
+  <data name="ServerHelp" xml:space="preserve">
+    <value>Agents talk to this address. The hooks use the same host.</value>
+  </data>
+  <data name="McpUrl" xml:space="preserve">
+    <value>MCP address</value>
+  </data>
+  <data name="TokenTitle" xml:space="preserve">
+    <value>1. Create a token</value>
+  </data>
+  <data name="TokenHelp" xml:space="preserve">
+    <value>Your agent signs in with a personal access token. It acts as you, with only the scopes below, and like every agent it never sees confidential content.</value>
+  </data>
+  <data name="TokenName" xml:space="preserve">
+    <value>Token name</value>
+  </data>
+  <data name="AllowEdits" xml:space="preserve">
+    <value>Also let the agent edit pages and comment</value>
+  </data>
+  <data name="CreateToken" xml:space="preserve">
+    <value>Create token</value>
+  </data>
+  <data name="TokenScopes" xml:space="preserve">
+    <value>Scopes: read, memory:write (capture), and write if you allow edits. It expires in 90 days.</value>
+  </data>
+  <data name="ManageTokens" xml:space="preserve">
+    <value>Manage your tokens</value>
+  </data>
+  <data name="CopyTokenNow" xml:space="preserve">
+    <value>Copy the token now: it won't be shown again. The setup below already includes it.</value>
+  </data>
+  <data name="YourToken" xml:space="preserve">
+    <value>Your token</value>
+  </data>
+  <data name="TokenFailed" xml:space="preserve">
+    <value>The token couldn't be created. Check the name and try again.</value>
+  </data>
+  <data name="CaptureTitle" xml:space="preserve">
+    <value>2. Opt-in capture</value>
+  </data>
+  <data name="CaptureHelp" xml:space="preserve">
+    <value>The hooks can send your agent sessions to Athar, which suggests memories from them. Nothing is captured unless you list the repository.</value>
+  </data>
+  <data name="CaptureOptIn" xml:space="preserve">
+    <value>Capture runs only for the repositories you choose on My sessions, for all your machines at once. Pause there stops everything.</value>
+  </data>
+  <data name="CaptureSent" xml:space="preserve">
+    <value>A captured session sends its transcript when it ends or compacts. Pending batches wait in ~/.athar/outbox until they're sent.</value>
+  </data>
+  <data name="CaptureRedacted" xml:space="preserve">
+    <value>Secrets such as passwords and keys are redacted on your machine and again on the server.</value>
+  </data>
+  <data name="CaptureReview" xml:space="preserve">
+    <value>Athar extracts suggested memories into your inbox. Nothing becomes a team or company memory without review.</value>
+  </data>
+  <data name="CaptureStop" xml:space="preserve">
+    <value>To stop one repository, remove it on My sessions, or list it in capture_exclude on a machine. Revoking the token stops that machine.</value>
+  </data>
+  <data name="Repos" xml:space="preserve">
+    <value>Repositories to capture (optional)</value>
+  </data>
+  <data name="ReposHelp" xml:space="preserve">
+    <value>Optional, this machine only: more repositories to capture (capture_repos). One per line, as in github.com/org/repo</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>Home folder in hook commands</value>
+  </data>
+  <data name="HomeHelp" xml:space="preserve">
+    <value>Hook commands don't expand ~ on Windows: use the full path, e.g. C:/Users/you</value>
+  </data>
+  <data name="ClaudeHelp" xml:space="preserve">
+    <value>Needs Node 22.15 or later for the hooks.</value>
+  </data>
+  <data name="CodexHelp" xml:space="preserve">
+    <value>Codex uses the same hook script and skill.</value>
+  </data>
+  <data name="StepFiles" xml:space="preserve">
+    <value>Download the hook script and the athar-brain skill, and save them here:</value>
+  </data>
+  <data name="StepConfig" xml:space="preserve">
+    <value>Save the hook settings:</value>
+  </data>
+  <data name="StepMcp" xml:space="preserve">
+    <value>Add the MCP server:</value>
+  </data>
+  <data name="StepHooks" xml:space="preserve">
+    <value>Add the hooks (merge with what's already there):</value>
+  </data>
+  <data name="CodexTrust" xml:space="preserve">
+    <value>Codex runs only hooks you trust: start an interactive codex session once and approve both hooks, or nothing is captured.</value>
+  </data>
+  <data name="Terminal" xml:space="preserve">
+    <value>Terminal</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Copied</value>
+  </data>
+  <data name="CopyFailed" xml:space="preserve">
+    <value>Couldn't copy. Select the text and copy it yourself.</value>
+  </data>
+  <data name="StatusTitle" xml:space="preserve">
+    <value>Connection status</value>
+  </data>
+  <data name="StatusHelp" xml:space="preserve">
+    <value>When Athar last heard from your agents.</value>
+  </data>
+  <data name="LastCommit" xml:space="preserve">
+    <value>Last session commit</value>
+  </data>
+  <data name="TokenLastUsed" xml:space="preserve">
+    <value>Access token last used</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="AppsConnected" xml:space="preserve">
+    <value>Connected apps</value>
+  </data>
+  <data name="NoApps" xml:space="preserve">
+    <value>None yet</value>
+  </data>
+  <data name="ClientsLabel" xml:space="preserve">
+    <value>Agent clients</value>
+  </data>
+  <data name="AppsTab" xml:space="preserve">
+    <value>Claude apps</value>
+  </data>
+  <data name="AppsHelp" xml:space="preserve">
+    <value>claude.ai, Claude Desktop and Claude mobile share one connector. It signs in with your Athar account, so you don't need an access token.</value>
+  </data>
+  <data name="AppsAdd" xml:space="preserve">
+    <value>Add a custom connector. On a Team or Enterprise plan the Owner does this once, in Organization settings › Connectors › Add › Custom › Web. On Free, Pro or Max, add it yourself in Customize › Connectors › Add custom connector.</value>
+  </data>
+  <data name="AppsUrl" xml:space="preserve">
+    <value>MCP server URL: use exactly this address.</value>
+  </data>
+  <data name="AppsAuth" xml:space="preserve">
+    <value>Authentication: Sign in now. OAuth client: use your own OAuth client, with this client ID and the secret left blank.</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>OAuth client ID</value>
+  </data>
+  <data name="AppsConnect" xml:space="preserve">
+    <value>Click Connect, sign in to Athar and choose Allow. Then ask Claude something your wiki answers.</value>
+  </data>
+  <data name="AppsExternal" xml:space="preserve">
+    <value>Connector sessions count as external agents: they never see confidential content.</value>
+  </data>
+  <data name="AppsRevoke" xml:space="preserve">
+    <value>To disconnect, remove the connector in Claude, or revoke it in Athar under</value>
+  </data>
+  <data name="VsCodeHelp" xml:space="preserve">
+    <value>GitHub Copilot in agent mode uses Athar's tools. VS Code signs in with your Athar account and doesn't capture sessions.</value>
+  </data>
+  <data name="VsStepMcp" xml:space="preserve">
+    <value>Add the server to your user mcp.json (Command Palette › MCP: Open User Configuration). VS Code opens the browser to sign in the first time you start it.</value>
+  </data>
+  <data name="VsStepSkill" xml:space="preserve">
+    <value>Optional: save the skill in a repository so Copilot knows when to use Athar.</value>
+  </data>
+  <data name="VsStepCheck" xml:space="preserve">
+    <value>Open Copilot Chat in Agent mode, start the athar server from the tools list and ask something your wiki answers.</value>
+  </data>
+  <data name="QuickTitle" xml:space="preserve">
+    <value>Quick setup</value>
+  </data>
+  <data name="QuickHelp" xml:space="preserve">
+    <value>One command sets up every agent it finds on this computer: the Claude Code plugin (skill, capture hooks, Athar over OAuth), Codex (Athar, the skill and the hooks) and VS Code. It asks for your access token without showing it, and saves it only in ~/.athar/config.json for the capture hooks. Needs Node 22.15 or later.</value>
+  </data>
+  <data name="QuickAfter" xml:space="preserve">
+    <value>Then sign in once in each agent: /mcp in Claude Code, codex mcp login athar for Codex, and the athar server in VS Code. The tabs below do the same by hand.</value>
+  </data>
+  <data name="CodexLogin" xml:space="preserve">
+    <value>Sign in to Athar in the browser:</value>
+  </data>
+  <data name="VsStepPat" xml:space="preserve">
+    <value>No browser on that machine? Use an access token instead. VS Code asks for it once and keeps it in its secret storage, not in the file.</value>
+  </data>
+  <data name="OpenSessions" xml:space="preserve">
+    <value>Choose repositories on My sessions</value>
+  </data>
+  <data name="QuickIngest" xml:space="preserve">
+    <value>Then, to add a folder of documents to a project: athar ingest &lt;folder&gt; --project &lt;project id&gt;. It sends Markdown, text and HTML files (skipping what .gitignore ignores), and later runs send only what changed.</value>
+  </data>
+  <data name="CaptureWhat" xml:space="preserve"><value>What capture sends, and what it never sends</value></data>
+</root>

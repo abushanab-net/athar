@@ -1,0 +1,11 @@
+.filter-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-block-end: 16px }
+.filter-bar ::deep > .mud-input-control, .filter-bar ::deep > .mud-select { flex: 1 1 180px; max-width: 260px; margin: 0 }
+.filter-bar ::deep > .grow { flex: 2 1 260px; max-width: none }
+.filter-toggle { display: none }
+@media (max-width: 599.98px) {
+    .filter-bar ::deep > .mud-input-control, .filter-bar ::deep > .mud-select { max-width: none }
+    .filter-toggle { display: inline-flex; align-items: center; gap: 6px; min-block-size: 36px; padding: 0 12px; border: 1px solid var(--athar-stroke);
+        border-radius: var(--athar-radius); background: var(--mud-palette-surface); color: var(--mud-palette-text-primary); font: inherit; font-weight: 500; cursor: pointer }
+    .filter-toggle[aria-expanded=true] { background: var(--athar-fill) }
+    .filter-bar.fold:not(.open) ::deep > :not(.filter-toggle) { display: none }
+}

@@ -1,0 +1,65 @@
+shared	HomeLead	Here is what is waiting for you, and where you left off.	هذا ما ينتظرك، ومن حيث توقفت.
+shared	WaitingForYou	Waiting for you	بانتظارك
+shared	NothingWaiting	Nothing is waiting for you	لا شيء بانتظارك
+shared	NothingWaitingText	New captures and proposals you can decide on will show up here.	ستظهر هنا الالتقاطات الجديدة والمقترحات التي يمكنك البتّ فيها.
+shared	RecentlyEdited	Recently edited	عُدِّلت مؤخرًا
+shared	NoRecentPages	No pages yet	لا توجد صفحات بعد
+shared	YourSpaces	Your spaces	مساحاتك
+shared	AllSpaces	All spaces	كل المساحات
+shared	RecentMemories	Recent memories	ذاكرات حديثة
+shared	AllMemories	All memories	كل الذاكرات
+shared	GoodMorning	Good morning, {0}	صباح الخير يا {0}
+shared	GoodAfternoon	Good afternoon, {0}	مساء الخير يا {0}
+shared	GoodEvening	Good evening, {0}	مساء الخير يا {0}
+shared	WaitingInbox	{0} captured from agent sessions, waiting for your review	{0} مُلتقَطة من جلسات الوكلاء بانتظار مراجعتك
+shared	WaitingProposals	{0} proposals waiting for a decision	{0} مقترحات بانتظار قرار
+shared	WaitingStale	{0} project overrides are out of date with the company memory	{0} من تجاوزات المشاريع لم تعد متوافقة مع ذاكرة الشركة
+shared	Review	Review	مراجعة
+shared	WelcomeTabTitle	The team wiki and the memory your agents share	ويكي الفريق والذاكرة التي يتشاركها وكلاؤك
+shared	HowItWorks	How it works	كيف يعمل
+shared	Governance	Governance	الحوكمة
+shared	ForAgents	For agents	للوكلاء
+shared	WelcomeHeadline	Your team's wiki. Your agents' memory. One record.	ويكي فريقك. ذاكرة وكلائك. سجل واحد.
+shared	WelcomeLead	Pages, decisions and agent sessions, filed by scope and approved by the people who own them. Ask in Arabic or English and get answers with their sources.	صفحات وقرارات وجلسات وكلاء، مصنّفة حسب النطاق ومعتمدة من أصحابها. اسأل بالعربية أو الإنجليزية واحصل على إجابات مع مصادرها.
+shared	ConnectAnAgent	Connect an agent	اربط وكيلًا
+shared	ExampleLedger	Example of the memory register	مثال على سجل الذاكرة
+shared	MemoryRegister	Memory register	سجل الذاكرة
+shared	Example	Example	مثال
+shared	Memory	Memory	الذاكرة
+shared	Approved	Approved	معتمدة
+shared	Proposed	Proposed	مقترحة
+shared	ExDeploys	Production deploys need two approvals	النشر إلى الإنتاج يحتاج موافقتين
+shared	ExByOwner	Approved by the DevOps knowledge owner	اعتمدها مسؤول معرفة DevOps
+shared	ExPnpm	Use pnpm for Node packages	استخدم pnpm لحزم Node
+shared	ExByClaude	Remembered by Claude Code	تذكّرها Claude Code
+shared	ExRetention	Session transcripts are kept 30 days	تُحفظ سجلات الجلسات 30 يومًا
+shared	ExByCodex	Proposed by Codex, waiting for HR	اقترحها Codex، بانتظار الموارد البشرية
+shared	ExOnCall	Platform on-call handover	تسليم المناوبة في فريق المنصة
+shared	ExByMember	Written by a team member	كتبها أحد أعضاء الفريق
+shared	StepWriteTitle	Write together	اكتبوا معًا
+shared	StepWriteText	Specs, runbooks and decisions live in one wiki, edited live with comments, versions and sharing.	المواصفات وأدلة التشغيل والقرارات في ويكي واحد، يُحرَّر مباشرة مع التعليقات والإصدارات والمشاركة.
+shared	StepRememberTitle	Remember by scope	التذكّر حسب النطاق
+shared	StepRememberText	Agents remember what a session learned, filed as personal, project, team or company knowledge. Sessions are captured into a review inbox.	يتذكّر الوكلاء ما تعلّمته الجلسة، مصنّفًا معرفةً شخصية أو للمشروع أو للفريق أو للشركة. وتُلتقط الجلسات في صندوق للمراجعة.
+shared	StepAnswerTitle	Answer with sources	إجابات مع مصادرها
+shared	StepAnswerText	Agents and people search the wiki, GitHub and memories together, in Arabic and English, and every answer cites where it came from.	يبحث الوكلاء والناس في الويكي وGitHub والذاكرات معًا، بالعربية والإنجليزية، وكل إجابة تذكر مصدرها.
+shared	GovernanceLead	Every memory has a scope, and the scope decides who may change it.	لكل ذاكرة نطاق، والنطاق يحدد من يحق له تغييرها.
+shared	RuleCompany	Read-only for everyone except knowledge owners. Agents and members propose; owners approve.	للقراءة فقط للجميع عدا مسؤولي المعرفة. يقترح الوكلاء والأعضاء ويعتمد المسؤولون.
+shared	RuleProject	Project members write. A project can override a company memory locally without changing it.	يكتب أعضاء المشروع. ويمكن للمشروع تجاوز ذاكرة الشركة محليًا دون تغييرها.
+shared	RuleTeam	Team members write and share it with their agents.	يكتب أعضاء الفريق ويشاركونها مع وكلائهم.
+shared	RulePersonal	Only you and your agents.	لك ولوكلائك فقط.
+shared	AgentsLead	Claude Code and Codex connect over MCP with a personal access token or OAuth. Every change they make is audited.	يتصل Claude Code وCodex عبر MCP برمز وصول شخصي أو OAuth. وكل تغيير يجرونه مسجَّل في سجل التدقيق.
+shared	McpEndpoint	MCP endpoint	عنوان MCP
+shared	AgentsNote	Sign in and create an access token under your account menu, then add this endpoint to your agent.	سجّل الدخول وأنشئ رمز وصول من قائمة حسابك، ثم أضف هذا العنوان إلى وكيلك.
+shared	FooterLine	A knowledge platform for your team and its agents.	منصة معرفة لفريقك ووكلائه.
+shared	NotFoundTitle	This page doesn't exist	هذه الصفحة غير موجودة
+shared	NotFoundText	The link may be old, or the page was moved or deleted.	ربما يكون الرابط قديمًا، أو نُقلت الصفحة أو حُذفت.
+shared	ErrorTitle	Something went wrong	حدث خطأ ما
+shared	ErrorText	The request couldn't be completed. Try again, or go back to the home page.	تعذّر إكمال الطلب. حاول مرة أخرى أو عد إلى الصفحة الرئيسية.
+shared	RequestId	Request ID	معرّف الطلب
+shared	Reconnecting	Reconnecting to the server…	جارٍ إعادة الاتصال بالخادم…
+shared	ReconnectRetry	Couldn't reconnect. Trying again in (seconds):	تعذّرت إعادة الاتصال. محاولة جديدة بعد (ثوانٍ):
+shared	ReconnectFailed	Couldn't reconnect. Retry, or reload the page.	تعذّرت إعادة الاتصال. أعد المحاولة أو أعد تحميل الصفحة.
+shared	Retry	Retry	إعادة المحاولة
+shared	SessionPaused	The server paused this session.	أوقف الخادم هذه الجلسة مؤقتًا.
+shared	ResumeFailed	Couldn't resume the session. Retry, or reload the page.	تعذّر استئناف الجلسة. أعد المحاولة أو أعد تحميل الصفحة.
+shared	Resume	Resume	استئناف

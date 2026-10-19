@@ -1,0 +1,20 @@
+@* The content of a signed-out page inside AuthLayout: a 20px title, an optional lead line, the outcome, then the form. *@
+<h1 class="auth-title">@Title</h1>
+@if (Lead is not null) { <p class="auth-lead" dir="auto">@Lead</p> }
+@if (Error is not null)
+{
+    <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4"><span role="alert">@Error</span></MudAlert>
+}
+@if (Message is not null)
+{
+    <MudAlert Severity="Severity.Success" Dense="true" Class="mb-4"><span role="status">@Message</span></MudAlert>
+}
+@ChildContent
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Lead { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

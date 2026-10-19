@@ -1,0 +1,155 @@
+@page "/account/profile"
+@attribute [Authorize]
+@inject ProfileService Profiles
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+@* T113 (U-4): a person's display name and profile photo. *@
+<PageHeader Title="@L["Profile"]" />
+
+@if (profile is null)
+{
+    <LoadingState />
+}
+else
+{
+    <Section Title="@L["ProfilePhoto"]" Description="@L["ProfilePhotoHelp"]">
+        <div class="photo">
+            <Avatar UserId="me" Name="@profile.DisplayName" Size="large" Version="@version" />
+            @* Picking a file opens the crop panel (Profile.razor.js); only the cropped square is uploaded. *@
+            <input type="file" accept=".png,.jpg,.jpeg,.webp" class="visually-hidden" tabindex="-1" aria-hidden="true" @ref="fileInput" />
+            <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Upload" Disabled="busy" OnClick="PickAsync">@L["UploadPhoto"]</MudButton>
+                @if (profile.HasAvatar)
+                {
+                    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Delete" Disabled="busy" OnClick="RemoveAsync">@L["RemovePhoto"]</MudButton>
+                }
+            </MudStack>
+        </div>
+        @if (cropping)
+        {
+            <div class="crop" role="group" aria-label="@L["CropPhoto"]">
+                <p class="crop-help">@L["CropHelp"]</p>
+                <div class="crop-stage" @ref="stage" tabindex="0" aria-label="@L["CropArea"]"></div>
+                <MudSlider T="double" Value="zoom" ValueChanged="ZoomAsync" Min="1" Max="4" Step="0.05" Class="crop-zoom">@L["Zoom"]</MudSlider>
+                <MudStack Row="true" Spacing="2">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="busy" OnClick="SaveCropAsync">@L["SavePhoto"]</MudButton>
+                    <MudButton Variant="Variant.Outlined" Disabled="busy" OnClick="CancelCropAsync">@L["Cancel"]</MudButton>
+                </MudStack>
+            </div>
+        }
+    </Section>
+
+    <Section Title="@L["DisplayName"]">
+        <MudStack Row="true" AlignItems="AlignItems.End" Spacing="2">
+            <MudTextField T="string" @bind-Value="name" Label="@L["DisplayName"]" Immediate="true" dir="auto" Style="max-inline-size: 24rem" />
+            <MudButton Variant="Variant.Outlined" Disabled="@(string.IsNullOrWhiteSpace(name) || name.Trim() == profile.DisplayName)" OnClick="SaveNameAsync">@L["Save"]</MudButton>
+        </MudStack>
+        <p class="email" dir="ltr">@profile.Email</p>
+    </Section>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private Guid org, me;
+    private ProfileService.Profile? profile;
+    private string name = "";
+    private string? version;
+    private bool busy, cropping, shown;
+    private double zoom = 1;
+    private ElementReference fileInput, stage;
+    private IJSObjectReference? module;
+    private DotNetObjectReference<Profile>? self;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (profile is not null && module is null)
+        {
+            self = DotNetObjectReference.Create(this);
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Account/Profile.razor.js");
+            await module.InvokeVoidAsync("attach", fileInput, self);
+        }
+        if (cropping && !shown && module is not null)
+        {
+            shown = true;
+            await module.InvokeVoidAsync("show", stage);
+        }
+    }
+
+    private async Task PickAsync()
+    {
+        if (module is not null) await module.InvokeVoidAsync("pick", fileInput);
+    }
+
+    /// <summary>A file was chosen and loaded in the browser: show the crop panel.</summary>
+    [JSInvokable]
+    public Task Picked() => InvokeAsync(() => { (cropping, shown, zoom) = (true, false, 1); StateHasChanged(); });
+
+    private async Task ZoomAsync(double value)
+    {
+        zoom = value;
+        if (module is not null) await module.InvokeVoidAsync("zoom", value);
+    }
+
+    private async Task SaveCropAsync()
+    {
+        if (module is null) return;
+        busy = true;
+        try
+        {
+            await using var cropped = await module.InvokeAsync<IJSStreamReference>("crop");
+            await using var content = await cropped.OpenReadStreamAsync(ProfileService.MaxAvatarBytes);
+            var refused = await Profiles.SetAvatarAsync(org, me, content);
+            Snackbar.Add(refused is null ? L["Saved"] : L[refused == "too_large" ? "PhotoTooLarge" : "PhotoNotAnImage"], refused is null ? Severity.Success : Severity.Error);
+            version = DateTime.UtcNow.Ticks.ToString();
+            await LoadAsync();
+        }
+        finally
+        {
+            busy = false;
+            await CancelCropAsync();
+        }
+    }
+
+    private async Task CancelCropAsync()
+    {
+        cropping = false;
+        if (module is not null) await module.InvokeVoidAsync("cancel");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try { if (module is not null) await module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
+        self?.Dispose();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await Auth).User;
+        (org, me) = (user.OrgId(), user.UserId());
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        profile = await Profiles.GetAsync(org, me);
+        name = profile?.DisplayName ?? "";
+    }
+
+
+    private async Task RemoveAsync()
+    {
+        await Profiles.RemoveAvatarAsync(org, me);
+        version = DateTime.UtcNow.Ticks.ToString();
+        await LoadAsync();
+    }
+
+    private async Task SaveNameAsync()
+    {
+        Snackbar.Add(await Profiles.SetDisplayNameAsync(org, me, name) ? L["Saved"] : L["InvalidInput"], Severity.Info);
+        await LoadAsync();
+    }
+}

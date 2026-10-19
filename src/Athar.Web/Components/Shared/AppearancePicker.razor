@@ -1,0 +1,47 @@
+@using Athar.Domain.Wiki
+@inject IStringLocalizer<SharedResource> L
+
+@* A workspace's or space's badge (Appearance): a color and an icon, each with an automatic choice. Saves on every pick. *@
+<div class="appearance">
+    <div class="preview">
+        <SpaceBadge Name="@Name" Id="Id" Color="@Color" Icon="@Icon" Large="true" />
+        <span class="name" dir="auto">@Name</span>
+    </div>
+
+    <p class="label" id="@($"colors-{Id}")">@L["Color"]</p>
+    <div class="choices" role="group" aria-labelledby="@($"colors-{Id}")">
+        <button type="button" class="swatch auto @(Color is null ? "on" : null)" aria-pressed="@(Color is null ? "true" : "false")"
+                title="@L["AutomaticColor"]" aria-label="@L["AutomaticColor"]" disabled="@Disabled" @onclick="() => Pick(null, Icon)">
+            <MudIcon Icon="@Icons.Material.Outlined.AutoAwesome" Size="Size.Small" />
+        </button>
+        @foreach (var (key, hex) in Appearance.Colors)
+        {
+            <button type="button" class="swatch @(Color == key ? "on" : null)" style="background: @hex" aria-pressed="@(Color == key ? "true" : "false")"
+                    title="@L["Color_" + key]" aria-label="@L["Color_" + key]" disabled="@Disabled" @onclick="() => Pick(key, Icon)"></button>
+        }
+    </div>
+
+    <p class="label" id="@($"icons-{Id}")">@L["Icon"]</p>
+    <div class="choices" role="group" aria-labelledby="@($"icons-{Id}")">
+        <button type="button" class="glyph initials @(Icon is null ? "on" : null)" aria-pressed="@(Icon is null ? "true" : "false")"
+                title="@L["Initials"]" aria-label="@L["Initials"]" disabled="@Disabled" @onclick="() => Pick(Color, null)">@Appearance.Initials(Name)</button>
+        @foreach (var key in Appearance.Icons)
+        {
+            <button type="button" class="glyph @(Icon == key ? "on" : null)" aria-pressed="@(Icon == key ? "true" : "false")"
+                    title="@L["Icon_" + key]" aria-label="@L["Icon_" + key]" disabled="@Disabled" @onclick="() => Pick(Color, key)">
+                <MudIcon Icon="@SpaceBadge.Glyphs[key]" Size="Size.Small" />
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+    [Parameter, EditorRequired] public Guid Id { get; set; }
+    [Parameter] public string? Color { get; set; }
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback<(string? Color, string? Icon)> OnChange { get; set; }
+
+    private Task Pick(string? color, string? icon) => OnChange.InvokeAsync((color, icon));
+}

@@ -1,0 +1,131 @@
+h3 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.rows {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-block-size: 40px;
+    padding-block: 4px;
+    border-block-end: 1px solid var(--athar-rule);
+}
+
+.row:last-child { border-block-end: 0 }
+
+.avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: 24px;
+    block-size: 24px;
+    border-radius: 50%;
+    background: var(--athar-fill);
+    color: var(--mud-palette-text-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.who { flex: 1 1 auto }
+.team { color: var(--athar-muted) }
+
+.share-form {
+    display: grid;
+    gap: 8px;
+    margin-block-end: 24px;
+}
+
+.share-form ::deep .mud-input-control { margin: 0 }
+
+.share-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.share-row ::deep .level { flex: 1 1 auto }
+
+.quiet-link {
+    justify-self: start;
+    font-size: 0.75rem;
+    color: var(--mud-palette-primary);
+    text-decoration: none;
+}
+
+.quiet-link:hover { text-decoration: underline }
+
+.links-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-block-start: 16px;
+    border-block-start: 1px solid var(--athar-rule);
+    margin-block-end: 8px;
+}
+
+.links-head h3 { margin: 0 }
+
+.share-panel ::deep .created { margin-block-end: 12px }
+.created-text { display: block }
+
+.created-link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+}
+
+.link-form {
+    display: grid;
+    gap: 8px;
+    margin-block-end: 16px;
+    padding: 12px;
+    border: 1px solid var(--athar-rule);
+    border-radius: var(--athar-radius);
+}
+
+.link-form ::deep .mud-input-control { margin: 0 }
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.row.link ::deep .link-icon { color: var(--athar-muted); flex: none }
+
+.link-text {
+    display: grid;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.link-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 8px;
+    font-size: 0.75rem;
+    color: var(--athar-muted);
+}
+
+.link-meta:empty { display: none }
+
+.with-password {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.with-password ::deep .mud-icon-root { font-size: 0.875rem }
+
+.row.revoked .link-text { color: var(--athar-muted) }

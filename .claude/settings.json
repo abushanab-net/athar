@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "Bash(grep -v \"^\\\\s*$\")",
+      "Bash(grep -v \"^\\\\s*$\" src/Athar.Domain/Model/Common.cs)",
+      "ClaudeInChromeDomain(github.com)",
+      "mcp__claude-in-chrome__tabs_create_mcp",
+      "ClaudeInChromeDomain(studio.youtube.com)"
+    ]
+  }
+}

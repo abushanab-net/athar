@@ -1,0 +1,268 @@
+@page "/agents"
+@attribute [Authorize]
+@using System.Text.Json
+@inject TokenService Tokens
+@inject IConfiguration Config
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject Athar.Web.Services.SessionService Sessions
+@inject IStringLocalizer<ConnectAgent> L
+
+@* T097, T131 (FR-AG-08): the Agents hub, one tab per supported client, with this person's connection status. *@
+<PageHeader Help="agents" Title="@L["Title"]" Description="@L["Intro"]" />
+
+<div class="connect">
+@* Status and the server address in one panel: the two things people check before anything else. *@
+<Section Title="@L["StatusTitle"]" Description="@L["StatusHelp"]">
+    <div class="conn">
+    <dl class="status">
+        <dt>Claude Code</dt><dd>@LastCommit("claude-code")</dd>
+        <dt>Codex</dt><dd>@LastCommit("codex")</dd>
+        <dt>@L["TokenLastUsed"]</dt><dd><Timestamp Value="@tokenLastUsed" Relative="true" Empty="@L["Never"]" /></dd>
+        <dt>@L["AppsConnected"]</dt>
+        <dd>@(grants.Count == 0 ? L["NoApps"] : string.Join(", ", grants.Select(g => g.Client).Distinct()))</dd>
+    </dl>
+    <div class="server">
+        @Code(L["McpUrl"], mcp)
+        <p class="athar-muted">@L["ServerHelp"]</p>
+    </div>
+    </div>
+</Section>
+
+<Section Title="@L["TokenTitle"]" Description="@L["TokenHelp"]">
+    @if (token is null)
+    {
+        <div class="token-form">
+            <MudTextField @bind-Value="tokenName" Immediate="true" Label="@L["TokenName"]" Variant="Variant.Outlined" Margin="Margin.Dense" dir="auto" />
+            <MudCheckBox T="bool" @bind-Value="canEdit" Color="Color.Primary" Dense="true" Label="@L["AllowEdits"]" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="string.IsNullOrWhiteSpace(tokenName)" OnClick="CreateTokenAsync">@L["CreateToken"]</MudButton>
+        </div>
+        <MudText Typo="Typo.body2" Class="athar-muted mt-2">@L["TokenScopes"] <MudLink Href="/account/tokens">@L["ManageTokens"]</MudLink></MudText>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-3"><span role="status">@L["CopyTokenNow"]</span></MudAlert>
+        @Code(L["YourToken"], token)
+    }
+</Section>
+
+@* One command for every client on this computer: folded, since the tabs below are the full walk-through. *@
+<details class="fold section-like">
+    <summary><MudIcon Icon="@Icons.Material.Outlined.Bolt" Size="Size.Small" /><span>@L["QuickTitle"]</span></summary>
+    <div class="fold-body">
+        <p class="athar-muted">@L["QuickHelp"]</p>
+        @Code("macOS / Linux", $"curl -fsSL {Base}/agent/setup.sh | bash")
+        @Code("Windows (PowerShell)", $"irm {Base}/agent/setup.ps1 | iex")
+        <p class="athar-muted">@L["QuickAfter"]</p>
+        <p class="athar-muted">@L["QuickIngest"]</p>
+    </div>
+</details>
+
+<MudTabs Elevation="0" PanelClass="pt-4" MinimumTabWidth="0" aria-label="@L["ClientsLabel"]">
+    <MudTabPanel Text="Claude Code">
+        <MudText Typo="Typo.body2" Class="athar-muted mb-3">@L["ClaudeHelp"]</MudText>
+        @Capture
+        <ol class="steps">
+            <li>@Files(".claude/skills")</li>
+            <li>@L["StepConfig"] @Code($"{Home}/.athar/config.json", HookConfig)</li>
+            <li>@L["StepMcp"] @Code(L["Terminal"], $"claude mcp add --transport http athar {mcp} --client-id claude-code --callback-port 3118")</li>
+            <li>@L["StepHooks"] @Code("~/.claude/settings.json", Hooks(("SessionStart", "start", 10), ("PreCompact", "commit", 30), ("SessionEnd", "commit", 30)).Replace("{agent}", "claude-code"))</li>
+        </ol>
+    </MudTabPanel>
+    <MudTabPanel Text="Codex">
+        <MudText Typo="Typo.body2" Class="athar-muted mb-3">@L["CodexHelp"]</MudText>
+        @Capture
+        <ol class="steps">
+            <li>@Files(".agents/skills")</li>
+            <li>@L["StepConfig"] @Code($"{Home}/.athar/config.json", HookConfig)</li>
+            <li>@L["StepMcp"] @Code("~/.codex/config.toml", $"[mcp_servers.athar]\nurl = \"{mcp}\"\n\n[mcp_servers.athar.oauth]\nclient_id = \"codex\"\ncallback_port = 3119")</li>
+            <li>@L["CodexLogin"] @Code(L["Terminal"], "codex mcp login athar")</li>
+            <li>@L["StepHooks"] @Code("~/.codex/hooks.json", Hooks(("SessionStart", "start", 10), ("Stop", "commit", 30)).Replace("{agent}", "codex"))</li>
+            <li>@L["CodexTrust"]</li>
+        </ol>
+    </MudTabPanel>
+    <MudTabPanel Text="@L["AppsTab"]">
+        <MudText Typo="Typo.body2" Class="athar-muted mb-3">@L["AppsHelp"]</MudText>
+        <ol class="steps">
+            <li>@L["AppsAdd"]</li>
+            <li>@L["AppsUrl"] @Code(L["McpUrl"], mcp)</li>
+            <li>@L["AppsAuth"] @Code(L["ClientId"], "claude-ai")</li>
+            <li>@L["AppsConnect"]</li>
+        </ol>
+        <ul class="facts mt-4">
+            <li>@L["AppsExternal"]</li>
+            <li>@L["AppsRevoke"] <MudLink Href="/account/tokens">@L["ManageTokens"]</MudLink></li>
+        </ul>
+    </MudTabPanel>
+    <MudTabPanel Text="VS Code">
+        <MudText Typo="Typo.body2" Class="athar-muted mb-3">@L["VsCodeHelp"]</MudText>
+        <ol class="steps">
+            <li>@L["VsStepMcp"] @Code("mcp.json", VsCodeMcp)</li>
+            <li>@L["VsStepPat"] @Code("mcp.json (PAT)", VsCodePatMcp)</li>
+            <li>@L["VsStepSkill"] <span class="downloads"><MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Download" Href="@skillFile" download="SKILL.md">SKILL.md</MudButton></span>
+                <span class="paths" dir="ltr"><code>SKILL.md</code> → <code>.github/skills/athar-brain/SKILL.md</code></span></li>
+            <li>@L["VsStepCheck"]</li>
+            </ol>
+    </MudTabPanel>
+</MudTabs>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+
+    private string mcp = "";
+    private string tokenName = "Coding agent";
+    private bool canEdit;
+    private string? token;
+    private string repos = "";
+    private string home = "~";
+    private string hookFile = "", skillFile = "";
+    private Dictionary<string, DateTimeOffset> lastCommits = [];
+    private DateTimeOffset? tokenLastUsed;
+    private List<TokenService.GrantRow> grants = [];
+
+    private string Token => token ?? "athar_pat_…";
+    /// <summary>The host this page was opened on: setup downloads come from here (T132).</summary>
+    private string Base => Nav.BaseUri.TrimEnd('/');
+    private string Home => string.IsNullOrWhiteSpace(home) ? "~" : home.Trim().TrimEnd('/', '\\').Replace('\\', '/');
+    /// <summary>The agent host: MCP and the hooks' REST calls share it (docs/03 §2).</summary>
+    private string Server => mcp.EndsWith("/mcp") ? mcp[..^4] : mcp;
+
+    private string HookConfig => JsonSerializer.Serialize(new
+    {
+        url = Server, token = Token,
+        capture_repos = repos.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+    }, Json);
+
+    // Readable JSON for people to paste: indented, and paths or repo names kept as typed.
+    private static readonly JsonSerializerOptions Json = new() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+
+    /// <summary>VS Code signs in with Athar's pre-registered <c>vscode</c> OAuth client (T133, docs/06 §6.1).</summary>
+    private string VsCodeMcp => $$"""
+        {
+          "servers": {
+            "athar": { "type": "http", "url": "{{mcp}}", "oauth": { "clientId": "vscode" } }
+          }
+        }
+        """;
+
+    /// <summary>The PAT fallback: VS Code asks for the token once and keeps it in its secret storage, never in the file.</summary>
+    private string VsCodePatMcp => $$"""
+        {
+          "servers": {
+            "athar": {
+              "type": "http",
+              "url": "{{mcp}}",
+              "headers": { "Authorization": "Bearer ${input:athar-token}" }
+            }
+          },
+          "inputs": [
+            { "type": "promptString", "id": "athar-token", "description": "Athar access token", "password": true }
+          ]
+        }
+        """;
+
+    protected override async Task OnInitializedAsync()
+    {
+        mcp = Athar.Web.Auth.OAuthSetup.Resource(Config);
+        // The hook script and the skill ship inside web (agent-skills/), offered as downloads from this page.
+        hookFile = DataUrl("agent/athar-hook.mjs", "text/javascript");
+        skillFile = DataUrl("agent/athar-brain/SKILL.md", "text/markdown");
+
+        var user = (await Auth).User;
+        lastCommits = await Sessions.LastCommitsAsync(Athar.Web.Mcp.Actor.ForUser(user), CancellationToken.None);
+        tokenLastUsed = (await Tokens.MineAsync(user.OrgId(), user.UserId())).Where(t => t.RevokedAt is null).Max(t => t.LastUsedAt);
+        grants = await Tokens.GrantsAsync(user.OrgId(), user.UserId());
+    }
+
+    private static string DataUrl(string resource, string mime)
+    {
+        using var s = typeof(ConnectAgent).Assembly.GetManifestResourceStream(resource)
+            ?? throw new InvalidOperationException($"{resource} isn't embedded");
+        using var m = new MemoryStream();
+        s.CopyTo(m);
+        return $"data:{mime};charset=utf-8;base64,{Convert.ToBase64String(m.ToArray())}";
+    }
+
+    /// <summary>Hook settings in the shared Claude Code / Codex format, one line per event (agent-skills/hooks/README.md).</summary>
+    private string Hooks(params (string Event, string Command, int Timeout)[] events)
+    {
+        static string Q(string v) => JsonSerializer.Serialize(v, Json);
+        var lines = events.Select(e =>
+            $"    {Q(e.Event)}: [{{ \"hooks\": [{{ \"type\": \"command\", \"command\": {Q($"node --use-system-ca {Home}/.athar/athar-hook.mjs {e.Command} {{agent}}")}, \"timeout\": {e.Timeout} }}] }}]");
+        return "{\n  \"hooks\": {\n" + string.Join(",\n", lines) + "\n  }\n}";
+    }
+
+    private async Task CreateTokenAsync()
+    {
+        var user = (await Auth).User;
+        // read for search and recall, memory:write for capture; write only when the person lets the agent edit pages.
+        string[] scopes = canEdit ? ["read", "memory:write", "write"] : ["read", "memory:write"];
+        var (decision, created) = await Tokens.CreateAsync(user.OrgId(), user.UserId(), tokenName.Trim(), scopes, TokenService.DefaultDays);
+        if (decision != OrgDecision.Allow || created is null)
+        {
+            Snackbar.Add(L["TokenFailed"], Severity.Warning);
+            return;
+        }
+        token = created.Token;
+    }
+
+    private async Task CopyAsync(string text)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            Snackbar.Add(L["Copied"], Severity.Success);
+        }
+        catch (JSException)
+        {
+            Snackbar.Add(L["CopyFailed"], Severity.Warning); // no clipboard permission: the text stays selectable on screen
+        }
+    }
+
+    private RenderFragment Capture =>
+        @<Section Title="@L["CaptureTitle"]" Description="@L["CaptureHelp"]" Class="mb-6">
+            <details class="fold">
+                <summary><span>@L["CaptureWhat"]</span></summary>
+                <ul class="facts">
+                    <li>@L["CaptureOptIn"]</li>
+                    <li>@L["CaptureSent"]</li>
+                    <li>@L["CaptureRedacted"]</li>
+                    <li>@L["CaptureReview"]</li>
+                    <li>@L["CaptureStop"]</li>
+                </ul>
+            </details>
+            @* T136: the repo list and Pause live on the server (T135, T138); the hook reads them at session start. *@
+            <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Outlined.History" Href="/sessions" Class="mb-4">@L["OpenSessions"]</MudButton>
+            <div class="inputs">
+                <MudTextField @bind-Value="repos" Immediate="true" Lines="3" Label="@L["Repos"]" HelperText="@L["ReposHelp"]" Variant="Variant.Outlined" Margin="Margin.Dense" dir="ltr" />
+                <MudTextField @bind-Value="home" Immediate="true" Label="@L["Home"]" HelperText="@L["HomeHelp"]" Variant="Variant.Outlined" Margin="Margin.Dense" dir="ltr" />
+            </div>
+        </Section>;
+
+    private RenderFragment LastCommit(string client) =>
+        @<span>@L["LastCommit"]: <Timestamp Value="@(lastCommits.TryGetValue(client, out var at) ? at : null)" Relative="true" Empty="@L["Never"]" /></span>;
+
+    private RenderFragment Code(string label, string text) =>
+        @<figure class="snippet">
+            <figcaption>
+                <bdi class="athar-truncate" dir="auto">@label</bdi>
+                <IconAction Icon="@Icons.Material.Outlined.ContentCopy" Label="@($"{L["Copy"]}: {label}")" OnClick="() => CopyAsync(text)" />
+            </figcaption>
+            <pre dir="ltr"><code>@text</code></pre>
+        </figure>;
+
+    private RenderFragment Files(string skillsDir) =>
+        @<span>
+            @L["StepFiles"]
+            <span class="downloads">
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Download" Href="@hookFile" download="athar-hook.mjs">athar-hook.mjs</MudButton>
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Download" Href="@skillFile" download="SKILL.md">SKILL.md</MudButton>
+            </span>
+            <span class="paths" dir="ltr">
+                <code>athar-hook.mjs</code> → <code>@Home/.athar/athar-hook.mjs</code><br />
+                <code>SKILL.md</code> → <code>@Home/@skillsDir/athar-brain/SKILL.md</code>
+            </span>
+        </span>;
+}

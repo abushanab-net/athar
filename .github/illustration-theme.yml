@@ -1,0 +1,36 @@
+schema_version: "1.0"
+active:
+  theme: "brain-teal"
+  mode: "light"
+  font_loading: "remote"
+custom_themes:
+  brain-teal:
+    label: "Brain Teal"
+    description: "Matches the second-brain blueprint report: deep teal accent on cool grey paper, Bricolage display with IBM Plex."
+    typography:
+      sans: "'IBM Plex Sans', 'IBM Plex Sans Arabic', 'Segoe UI', system-ui, sans-serif"
+      serif: "'Bricolage Grotesque', 'IBM Plex Sans Arabic', 'Segoe UI', system-ui, sans-serif"
+      mono: "'IBM Plex Mono', 'IBM Plex Sans Arabic', ui-monospace, Consolas, monospace"
+      remote_css_url: "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    light:
+      paper: "#f2f4f5"
+      paper-2: "#ffffff"
+      ink: "#16202a"
+      muted: "#586674"
+      soft: "#7a8794"
+      rule: "rgba(22,32,42,0.12)"
+      rule-solid: "#d5dce1"
+      accent: "#0e6b68"
+      accent-tint: "rgba(14,107,104,0.10)"
+      link: "#2d5a9b"
+    dark:
+      paper: "#0f1519"
+      paper-2: "#172026"
+      ink: "#e3e9ed"
+      muted: "#94a3ae"
+      soft: "#6f7d88"
+      rule: "rgba(227,233,237,0.12)"
+      rule-solid: "#29363e"
+      accent: "#52c3bc"
+      accent-tint: "rgba(82,195,188,0.14)"
+      link: "#8db4ea"

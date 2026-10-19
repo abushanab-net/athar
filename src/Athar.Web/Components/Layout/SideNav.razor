@@ -1,0 +1,107 @@
+@* The sidebar (DESIGN.md Navigation): the mark, then grouped items with line icons; counts are cinnabar pills. *@
+@inject IStringLocalizer<SharedResource> L
+@inject Athar.Web.Services.FavoriteService Favorites
+@inject Athar.Web.Services.ShellCounts Counts
+@implements IDisposable
+
+<nav class="side-nav @(Rail ? "rail" : null)" aria-label="@L["MainNavigation"]">
+    <a class="brand" href="/" aria-label="Athar · @L["Home"]">
+        <img src="@MainLayout.Mark(Dark)" alt="" width="28" height="28" />
+        <span class="name">@L["Athar"]</span>
+    </a>
+    <CascadingValue Name="NavRail" Value="Rail">
+        <MudNavMenu Dense="true" Class="items">
+            @* Search lives in the top bar (and "/" or Ctrl+K), so it isn't repeated here. *@
+            <NavItem Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Home" Label="@L["Home"]" />
+            <NavItem Href="/wiki" Icon="@Icons.Material.Outlined.MenuBook" Label="@L["Wiki"]" />
+            <NavItem Href="/dashboard" Icon="@Icons.Material.Outlined.Insights" Label="@L["Dashboard"]" /> @* T179 (FR-AG-11): third, after Home and Wiki *@
+
+            @if (favorites.Count > 0)
+            {
+                @* Pinned workspaces and spaces (the star on a space's tree or a workspace), each with its badge. *@
+                <p class="group"><span>@L["Favorites"]</span></p>
+                @foreach (var f in favorites)
+                {
+                    <MudTooltip Text="@f.Name" Placement="Placement.End" Arrow="false" Disabled="!Rail" Inline="false">
+                        <MudNavLink Href="@f.Href" Match="NavLinkMatch.All" Class="favorite">
+                            <span class="fav">
+                                <SpaceBadge Name="@f.Name" Id="f.Id" Color="@f.Color" Icon="@f.Icon" />
+                                <span class="label athar-truncate" dir="auto" title="@f.Name">@f.Name</span>
+                            </span>
+                        </MudNavLink>
+                    </MudTooltip>
+                }
+            }
+
+            <p class="group"><span>@L["NavBrain"]</span></p>
+            <NavItem Href="/memories" Icon="@Icons.Material.Outlined.Hub" Label="@L["Memories"]" />
+            @* One place to decide things (T150): capture inbox, proposals and conflicts are tabs of Review. *@
+            <NavItem Href="/review" Icon="@Icons.Material.Outlined.FactCheck" Label="@L["Review"]">@Count(Counts.Review, "ReviewCount")</NavItem>
+            <NavItem Href="/projects" Icon="@Icons.Material.Outlined.AccountTree" Label="@L["Projects"]" />
+
+            <p class="group"><span>@L["NavAgents"]</span></p>
+            @* Named like the page it opens (Agents), where you connect a client. *@
+            <NavItem Href="/agents" Icon="@Icons.Material.Outlined.SmartToy" Label="@L["NavConnect"]" />
+            <NavItem Href="/skills" Icon="@Icons.Material.Outlined.Extension" Label="@L["NavSkills"]" />
+            <NavItem Href="/sessions" Icon="@Icons.Material.Outlined.History" Label="@L["NavMySessions"]" />
+
+            @if (IsAdmin)
+            {
+                <p class="group"><span>@L["NavAdmin"]</span></p>
+                <NavItem Href="/admin/users" Icon="@Icons.Material.Outlined.Person" Label="@L["Users"]" />
+                <NavItem Href="/admin/teams" Icon="@Icons.Material.Outlined.Groups" Label="@L["Teams"]" />
+                <NavItem Href="/workspaces" Icon="@Icons.Material.Outlined.Workspaces" Label="@L["Workspaces"]" />
+                <NavItem Href="/admin/ai-models" Icon="@Icons.Material.Outlined.ModelTraining" Label="@L["AiModels"]" />
+                <NavItem Href="/admin/tokens" Icon="@Icons.Material.Outlined.Key" Label="@L["AllTokens"]" />
+                <NavItem Href="/admin/audit" Icon="@Icons.Material.Outlined.Policy" Label="@L["Audit"]" />
+            }
+        </MudNavMenu>
+        @* Help sits apart at the foot of the sidebar: it's about the product, not a place in it. *@
+        <MudNavMenu Dense="true" Class="items foot">
+            <NavItem Href="/help" Icon="@Icons.Material.Outlined.HelpOutline" Label="@L["NavHelp"]" />
+        </MudNavMenu>
+    </CascadingValue>
+</nav>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? Auth { get; set; }
+    [Parameter] public bool IsAdmin { get; set; }
+    /// <summary>Collapsed to the 64px icon rail (desktop).</summary>
+    [Parameter] public bool Rail { get; set; }
+    [Parameter] public bool Dark { get; set; }
+
+    private List<Athar.Web.Services.FavoriteItem> favorites = [];
+    private (Guid Org, Guid User)? who;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = Auth is null ? null : (await Auth).User;
+        // Only an app sign-in has both claims (a bearer principal never renders the shell).
+        if (user?.FindFirst(AtharClaims.Org) is null || user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier) is null) return;
+        who = (user.OrgId(), user.UserId());
+        Favorites.Changed += OnFavoritesChanged;
+        Counts.Changed += OnCountsChanged;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (who is { } w) favorites = await Favorites.ListAsync(w.Org, w.User);
+    }
+
+    private void OnFavoritesChanged() => _ = InvokeAsync(async () =>
+    {
+        await LoadAsync();
+        StateHasChanged();
+    });
+
+    private void OnCountsChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Favorites.Changed -= OnFavoritesChanged;
+        Counts.Changed -= OnCountsChanged;
+    }
+
+    private RenderFragment? Count(int n, string labelKey) => n <= 0 ? null : @<span class="count" @key="n" title="@L[labelKey, n]"><span aria-hidden="true">@(n > 99 ? "99+" : n)</span><span class="visually-hidden">@L[labelKey, n]</span></span>;
+}

@@ -1,0 +1,67 @@
+shared	Access	Access	الوصول
+shared	AccessExternalAgent	External agent	وكيل خارجي
+shared	AccessTrustedLocal	Trusted local	محلي موثوق
+shared	Add	Add	إضافة
+shared	After	After	بعد
+shared	App	App	التطبيق
+shared	Before	Before	قبل
+shared	ChangeRole	Change role	تغيير الدور
+shared	ClientAsReported	Client (as reported)	العميل (كما أبلغ عن نفسه)
+shared	Close	Close	إغلاق
+shared	ConnectedOn	Connected on	تاريخ الربط
+shared	Copied	Copied	تم النسخ
+shared	CopyFailed	Couldn't copy. Select the token and copy it yourself.	تعذّر النسخ. حدّد الرمز وانسخه بنفسك.
+shared	CopyToken	Copy token	نسخ الرمز
+shared	DeactivateConfirm	Deactivate {0}? They are signed out and can't sign in until someone reactivates them.	هل تريد تعطيل {0}؟ سيُسجَّل خروجه ولن يتمكن من تسجيل الدخول حتى يعيد أحدٌ تفعيله.
+shared	Deactivated	Deactivated	معطّل
+shared	DeclassifyWhy	External agents can see this space again, as far as its AI policy allows. Your reason is kept in the audit log.	سيتمكن الوكلاء الخارجيون من رؤية هذه المساحة مجددًا في حدود سياسة الذكاء الاصطناعي الخاصة بها. يُحفظ السبب في سجل التدقيق.
+shared	DisconnectConfirm	Disconnect {0}? It can't use Athar as you until you connect it again.	هل تريد فصل {0}؟ لن يتمكن من استخدام أثر باسمك حتى تربطه من جديد.
+shared	Done	Done	تم
+shared	Expired	Expired	منتهي الصلاحية
+shared	Export	Export	تصدير
+shared	ExportCsv	CSV file	ملف CSV
+shared	ExportJson	JSON file	ملف JSON
+shared	Filters	Filters	عوامل التصفية
+shared	IpAddress	IP address	عنوان IP
+shared	MakeExternalHelp	{0} will be treated as an external agent and will no longer see confidential content.	سيُعامَل {0} كوكيل خارجي ولن يرى المحتوى السري بعد الآن.
+shared	MakeKnowledgeOwner	Make knowledge owner	تعيين مالكًا للمعرفة
+shared	MakeKnowledgeOwnerConfirm	Make {0} a knowledge owner? They can approve and change company memory.	هل تريد تعيين {0} مالكًا للمعرفة؟ سيتمكن من اعتماد ذاكرة الشركة وتعديلها.
+shared	MemberCount	Members: {0}	الأعضاء: {0}
+shared	NewSpace	New space	مساحة جديدة
+shared	NewTeam	New team	فريق جديد
+shared	NewWorkspace	New workspace	مساحة عمل جديدة
+shared	NoMembers	No members yet	لا يوجد أعضاء بعد
+shared	NoPeopleMatch	No one matches this search	لا أحد يطابق هذا البحث
+shared	NoSpaces	No spaces yet	لا توجد مساحات بعد
+shared	NoTeams	No teams yet	لا توجد فرق بعد
+shared	NoTeamsHelp	Teams group people so you can give a whole team access to a space at once.	تجمع الفرق الأشخاص لتمنح فريقًا كاملًا صلاحية الوصول إلى مساحة دفعةً واحدة.
+shared	NoTokensHelp	Create a token to connect an agent such as Claude Code.	أنشئ رمزًا لربط وكيل مثل Claude Code.
+shared	NotConfidentialHelp	Not confidential: external agents can see this space as far as its AI policy allows.	غير سرية: يمكن للوكلاء الخارجيين رؤية هذه المساحة في حدود سياسة الذكاء الاصطناعي الخاصة بها.
+shared	OpenInWiki	Open in wiki	فتح في الويكي
+shared	ReactivateConfirm	Reactivate {0}? They can sign in again.	هل تريد إعادة تفعيل {0}؟ سيتمكن من تسجيل الدخول مجددًا.
+shared	RemoveKnowledgeOwner	Remove knowledge owner	إلغاء صفة مالك المعرفة
+shared	RemoveKnowledgeOwnerConfirm	Remove {0} as a knowledge owner? They can no longer approve company memory.	هل تريد إلغاء صفة مالك المعرفة عن {0}؟ لن يتمكن بعد ذلك من اعتماد ذاكرة الشركة.
+shared	RemoveMemberConfirm	Remove {0}? They lose the access this membership gives them.	هل تريد إزالة {0}؟ سيفقد صلاحيات الوصول التي تمنحها هذه العضوية.
+shared	ResourceId	Resource ID	معرّف المورد
+shared	RevokeTokenConfirm	Revoke {0}? Anything using this token loses access right away.	هل تريد إلغاء {0}؟ سيفقد كل ما يستخدم هذا الرمز صلاحية الوصول فورًا.
+shared	SearchPeople	Search by name or email	البحث بالاسم أو البريد الإلكتروني
+shared	ShowDetails	Show details	عرض التفاصيل
+shared	Space	Space	المساحة
+shared	SpaceSettings	Space settings	إعدادات المساحة
+shared	UrlName	URL name	الاسم في الرابط
+shared	UrlNameHelp	Used in links. Lowercase letters, digits and dashes.	يُستخدم في الروابط. أحرف لاتينية صغيرة وأرقام وشرطات.
+shared	UserAgent	User agent	وكيل المستخدم
+shared	ResType_page	Page	صفحة
+shared	ResType_space	Space	مساحة
+shared	ResType_memory	Memory	ذاكرة
+shared	ResType_user	User	مستخدم
+shared	ResType_team	Team	فريق
+shared	ResType_workspace	Workspace	مساحة عمل
+shared	ResType_invitation	Invitation	دعوة
+shared	ResType_organization	Organization	المؤسسة
+shared	ResType_token	Token	رمز وصول
+shared	ScopeShort_read	Read	قراءة
+shared	ScopeShort_write	Edit pages	تعديل الصفحات
+shared	ScopeShort_memory_write	Save memories	حفظ الذكريات
+shared	ScopeShort_pages_delete	Trash pages	نقل الصفحات إلى سلة المحذوفات
+shared	ScopeShort_offline_access	Stay connected	البقاء متصلًا

@@ -1,0 +1,24 @@
+::deep .settings { max-inline-size: 75ch; margin-block-end: 24px }
+h3 { margin: 16px 0 0; font-size: 0.875rem; font-weight: 600 }
+.hint { margin: 0 0 8px; font-size: 0.75rem; color: var(--athar-muted) }
+.repos { display: flex; flex-wrap: wrap; gap: 4px 12px }
+.repo { display: inline-flex; align-items: center; gap: 2px; padding-inline-start: 8px; background: var(--athar-fill); border-radius: var(--athar-radius) }
+.add-repo { display: flex; align-items: flex-end; gap: 8px; max-inline-size: 36rem; margin-block-end: 16px }
+.save { padding-block-start: 8px }
+::deep .group { margin-block-end: 16px }
+.sessions { display: grid; gap: 12px; max-inline-size: 75ch }
+.session { display: grid; gap: 6px; padding: 12px 16px; background: var(--mud-palette-surface); border: 1px solid var(--athar-rule); border-radius: var(--athar-radius) }
+.head { display: flex; align-items: center; gap: 8px; min-inline-size: 0 }
+.head h3 { margin: 0; font-size: 0.9375rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.head .client { font-size: 0.75rem }
+.head ::deep .when { margin-inline-start: auto; font-size: 0.75rem; color: var(--athar-muted) }
+.meta { margin: 0; font-size: 0.75rem }
+.waiting { color: var(--mud-palette-primary); text-decoration: none; font-size: 0.875rem }
+.waiting:hover, .results a:hover { text-decoration: underline }
+.results { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px }
+.results li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.875rem }
+.results a { color: var(--mud-palette-primary); text-decoration: none }
+.actions { display: flex; flex-wrap: wrap; gap: 4px }
+.transcript { margin: 0; padding: 8px 12px; padding-inline-start: 32px; background: var(--athar-fill); border-radius: var(--athar-radius); max-block-size: 24rem; overflow: auto; font-size: 0.75rem; display: grid; gap: 4px }
+.transcript li { white-space: pre-wrap; overflow-wrap: anywhere }
+.transcript .role { font-weight: 600; color: var(--athar-muted) }

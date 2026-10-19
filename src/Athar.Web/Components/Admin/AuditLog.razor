@@ -1,0 +1,130 @@
+@page "/admin/audit"
+@attribute [Authorize]
+@inject AuditService Audit
+@inject OrgAdminService Org
+@inject IStringLocalizer<SharedResource> L
+
+<PageHeader Help="admin-audit-log" Title="@L["Audit"]" Description="@(rows is null ? null : L["AuditHelp"].Value)">
+    <Actions>
+        @if (rows is not null)
+        {
+            <MudMenu Label="@L["Export"]" StartIcon="@Icons.Material.Filled.Download" EndIcon="@Icons.Material.Filled.ArrowDropDown"
+                     Variant="Variant.Outlined" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true">
+                <MudMenuItem Href="@ExportUrl("csv")" Target="_blank">@L["ExportCsv"]</MudMenuItem>
+                <MudMenuItem Href="@ExportUrl("json")" Target="_blank">@L["ExportJson"]</MudMenuItem>
+            </MudMenu>
+        }
+    </Actions>
+</PageHeader>
+
+@if (!loaded)
+{
+    <LoadingState />
+}
+else if (rows is null)
+{
+    <AccessDenied Text="@L["AdminsOnly"]" />
+}
+else
+{
+    <FilterBar Label="@L["Filters"]" Fold="true">
+        <MudTextField @bind-Value="action" Immediate="true" DebounceInterval="400" OnDebounceIntervalElapsed="_ => LoadAsync()" Label="@L["ActionStartsWith"]" />
+        <MudSelect T="string" Value="resourceType" ValueChanged="v => { resourceType = v; return LoadAsync(); }" Label="@L["ResourceType"]" Clearable="true"
+                   ToStringFunc="@(t => t is null ? "" : TypeLabel(t))">
+            @foreach (var t in ResourceTypes)
+            {
+                <MudSelectItem Value="t">@TypeLabel(t)</MudSelectItem>
+            }
+        </MudSelect>
+    </FilterBar>
+
+    <DataTable T="AuditService.Row" Items="@rows" PageSize="50" EmptyIcon="@Icons.Material.Outlined.History" EmptyTitle="@L["NoAuditEvents"]">
+        <HeaderContent>
+            <SortTh T="AuditService.Row" By="r => r.At" Initial="SortDirection.Descending">@L["When"]</SortTh>
+            <SortTh T="AuditService.Row" By="r => r.Action">@L["Action"]</SortTh>
+            <SortTh T="AuditService.Row" By="r => r.ResourceType">@L["ResourceType"]</SortTh>
+            <MudTh>@L["Resource"]</MudTh>
+            <SortTh T="AuditService.Row" By="r => ActorName(r.ActorUserId)">@L["Actor"]</SortTh>
+            <SortTh T="AuditService.Row" By="r => r.ClaimedClient">@L["ClientAsReported"]</SortTh>
+            <ActionsTh />
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd><span class="nowrap"><Timestamp Value="@context.At" /></span></MudTd>
+            <MudTd><code class="athar-truncate cell" title="@context.Action">@context.Action</code></MudTd>
+            <MudTd><span class="nowrap">@TypeLabel(context.ResourceType)</span></MudTd>
+            <MudTd><span class="athar-truncate id" title="@context.ResourceId">@Short(context.ResourceId)</span></MudTd>
+            <MudTd>
+                @if (context.ActorUserId is { } actor)
+                {
+                    <bdi class="athar-truncate cell" title="@(names.ContainsKey(actor) ? $"{names[actor]} ({actor})" : actor.ToString())">@ActorName(actor)</bdi>
+                }
+            </MudTd>
+            <MudTd><bdi class="athar-truncate cell" title="@context.ClaimedClient">@context.ClaimedClient</bdi></MudTd>
+            <MudTd Class="actions-col">
+                <IconAction Icon="@Icons.Material.Outlined.Info" Label="@L["ShowDetails"]" OnClick="() => selected = context" />
+            </MudTd>
+        </RowTemplate>
+    </DataTable>
+}
+
+<MudDialog Visible="@(selected is not null)" VisibleChanged="v => { if (!v) selected = null; }" Options="dialogOptions">
+    <TitleContent><code>@selected?.Action</code></TitleContent>
+    <DialogContent>
+        @if (selected is { } e)
+        {
+            <dl class="details">
+                <dt>@L["When"]</dt><dd><Timestamp Value="@e.At" /></dd>
+                <dt>@L["ResourceType"]</dt><dd>@TypeLabel(e.ResourceType)</dd>
+                <dt>@L["ResourceId"]</dt><dd><code>@e.ResourceId</code></dd>
+                <dt>@L["Actor"]</dt><dd><bdi>@ActorName(e.ActorUserId)</bdi> @if (e.ActorUserId is { } a) { <code>@a</code> }</dd>
+                <dt>@L["Credential"]</dt><dd><code>@(e.CredentialId?.ToString() ?? e.OauthClientId?.ToString() ?? "–")</code></dd>
+                <dt>@L["ClientAsReported"]</dt><dd><bdi>@(e.ClaimedClient ?? "–")</bdi></dd>
+                <dt>@L["IpAddress"]</dt><dd><bdi>@(e.Ip ?? "–")</bdi></dd>
+                <dt>@L["UserAgent"]</dt><dd><bdi>@(e.UserAgent ?? "–")</bdi></dd>
+            </dl>
+            <h3 class="sub">@L["Before"]</h3>
+            <pre class="payload" dir="ltr">@(e.Before ?? "–")</pre>
+            <h3 class="sub">@L["After"]</h3>
+            <pre class="payload" dir="ltr">@(e.After ?? "–")</pre>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => selected = null">@L["Close"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private static readonly string[] ResourceTypes = ["page", "space", "memory", "user", "team", "workspace", "invitation", "organization", "token"];
+    private static readonly DialogOptions dialogOptions = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+    private Guid OrgId, ActorId;
+    private bool loaded;
+    private List<AuditService.Row>? rows;
+    private Dictionary<Guid, string> names = [];
+    private string? action, resourceType;
+    private AuditService.Row? selected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await Auth).User;
+        (OrgId, ActorId) = (user.OrgId(), user.UserId());
+        await LoadAsync();
+        // Actor names for the people in this org (admins only, like the log itself); anyone else shows as a short id.
+        if (rows is not null) names = (await Org.MembersAsync(OrgId, ActorId)).ToDictionary(m => m.UserId, m => m.DisplayName);
+    }
+
+    private async Task LoadAsync()
+    {
+        rows = await Audit.QueryAsync(OrgId, ActorId, new(action, resourceType));
+        loaded = true;
+    }
+
+    private string TypeLabel(string type) => L["ResType_" + type] is { ResourceNotFound: false } s ? s.Value : type;
+
+    private string ActorName(Guid? id) => id is not { } g ? "" : names.TryGetValue(g, out var n) ? n : Short(g.ToString());
+
+    private static string Short(string id) => Guid.TryParse(id, out _) ? id[..8] + "…" : id;
+
+    private string ExportUrl(string format) =>
+        $"/admin/audit/export?format={format}&action={Uri.EscapeDataString(action ?? "")}&resource_type={Uri.EscapeDataString(resourceType ?? "")}";
+}

@@ -1,0 +1,53 @@
+@page "/account/login"
+@layout AuthLayout
+@attribute [ExcludeFromInteractiveRouting]
+@inject AccountService Accounts
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>@L["SignIn"] · Athar</PageTitle>
+
+<AccountCard Title="@L["SignInTitle"]" Lead="@L["SignInLead"]" Error="@error">
+    <EditForm Model="Input" FormName="login" OnValidSubmit="SignInAsync" method="post">
+        <div class="athar-field">
+            <label for="email">@L["Email"]</label>
+            <InputText id="email" @bind-Value="Input.Email" type="email" autocomplete="username" required class="athar-input" dir="ltr" />
+        </div>
+        <div class="athar-field">
+            <label for="password">@L["Password"]</label>
+            <InputText id="password" @bind-Value="Input.Password" type="password" autocomplete="current-password" required class="athar-input" dir="ltr" />
+        </div>
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large">@L["SignIn"]</MudButton>
+    </EditForm>
+    <div class="links"><a href="/account/forgot-password">@L["ForgotPassword"]</a></div>
+</AccountCard>
+
+@code {
+    [SupplyParameterFromForm] private Credentials Input { get; set; } = default!;
+    protected override void OnInitialized() => Input ??= new();
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+    private string? error;
+
+    private async Task SignInAsync()
+    {
+        switch (await Accounts.SignInAsync(Input.Email, Input.Password))
+        {
+            case AccountService.SignInOutcome.Ok:
+                // Local paths only: never an open redirect.
+                Nav.NavigateTo(ReturnUrl is { } r && r.StartsWith('/') && !r.StartsWith("//") ? r : "/", forceLoad: true);
+                break;
+            case AccountService.SignInOutcome.LockedOut:
+                error = L["LockedOut"];
+                break;
+            default:
+                error = L["SignInFailed"];
+                break;
+        }
+    }
+
+    private sealed class Credentials
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+}

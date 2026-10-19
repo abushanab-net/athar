@@ -1,0 +1,48 @@
+@using Markdig
+@using Markdig.Renderers.Html
+@using Markdig.Syntax
+@using Markdig.Syntax.Inlines
+@using System.Text.RegularExpressions
+
+@* Markdown shown as formatted text (memory bodies). Raw HTML is escaped and links keep only http(s), mailto or relative
+   targets, so stored text can't inject script. No Markdig GenericAttributes: it would let text set on* attributes. *@
+<div class="markdown @Class" dir="auto">@((MarkupString)Render(Text, AnchorPrefix))</div>
+
+@code {
+    [Parameter, EditorRequired] public string Text { get; set; } = "";
+    [Parameter] public string? Class { get; set; }
+    /// <summary>When set, headings get GitHub-style ids with this prefix ("" for none), so a page can deep-link to them (/help, T144).</summary>
+    [Parameter] public string? AnchorPrefix { get; set; }
+
+    private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
+        .DisableHtml().UsePipeTables().UseTaskLists().UseAutoLinks().UseEmphasisExtras().Build();
+
+    private static readonly MarkdownPipeline Anchored = new MarkdownPipelineBuilder()
+        .DisableHtml().UsePipeTables().UseTaskLists().UseAutoLinks().UseEmphasisExtras()
+        .UseAutoIdentifiers(Markdig.Extensions.AutoIdentifiers.AutoIdentifierOptions.GitHub).Build();
+
+    private static readonly Regex Scheme = new(@"^[a-z][a-z0-9+.\-]*:", RegexOptions.IgnoreCase);
+
+    public static string Render(string markdown, string? anchorPrefix = null)
+    {
+        var pipeline = anchorPrefix is null ? Pipeline : Anchored;
+        var doc = Markdown.Parse(markdown ?? "", pipeline);
+        if (anchorPrefix is { Length: > 0 })
+            foreach (var h in doc.Descendants<HeadingBlock>())
+                if (h.GetAttributes() is { Id: { } id } attrs) attrs.Id = anchorPrefix + id;
+        foreach (var link in doc.Descendants<LinkInline>())
+            if (!SafeUrl(link.Url)) link.Url = "#";
+        foreach (var link in doc.Descendants<AutolinkInline>())
+            if (!SafeUrl(link.Url)) link.Url = "#";
+        return doc.ToHtml(pipeline);
+    }
+
+    /// <summary>Relative, or http(s)/mailto. Browsers ignore control characters and spaces inside a scheme, so they go first.</summary>
+    public static bool SafeUrl(string? url)
+    {
+        if (string.IsNullOrEmpty(url)) return true;
+        var plain = new string(url.Where(c => c > ' ').ToArray());
+        var m = Scheme.Match(plain);
+        return !m.Success || m.Value.ToLowerInvariant() is "http:" or "https:" or "mailto:";
+    }
+}

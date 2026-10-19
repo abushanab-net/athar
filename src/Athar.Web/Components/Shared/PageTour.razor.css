@@ -1,0 +1,30 @@
+/* The one floating layer of the tour (DESIGN.md: floating shadow only on floating layers). The spotlight is a hole cut in a
+   dim veil with an ink ring; the card arrives with a short rise. Positions come from athar.tour.place. */
+.tour { position: fixed; inset: 0; z-index: 1400; pointer-events: none }
+.tour-scrim { position: absolute; inset: 0; pointer-events: auto }
+/* It glides between targets on transform alone (athar.tour.place sets translate); its size changes without a transition. */
+.tour-spot { position: fixed; top: 0; left: 0; /* physical: the rect from getBoundingClientRect is physical in RTL too */ border-radius: var(--athar-radius);
+    box-shadow: 0 0 0 2px var(--mud-palette-primary), 0 0 0 9999px rgb(15 20 32 / 0.45);
+    transition: transform var(--athar-base) var(--athar-ease); pointer-events: none }
+.tour-card { position: fixed; inline-size: min(340px, calc(100vw - 16px)); box-sizing: border-box; padding: 16px; border-radius: 8px; border: 1px solid var(--athar-rule);
+    background: var(--mud-palette-surface); color: var(--mud-palette-text-primary); box-shadow: var(--athar-floating); pointer-events: auto;
+    animation: athar-arrive var(--athar-base) var(--athar-ease) }
+.tour-card:focus { outline: none }
+.tour-card:focus-visible { outline: 2px solid var(--mud-palette-primary); outline-offset: 2px }
+/* No target on screen: the card sits in the middle and the veil covers everything. */
+.tour-card.centered { top: 50%; left: 50%; translate: -50% -50% }
+.tour-progress { display: flex; align-items: center; gap: 10px; margin: 0 0 10px }
+.tour-dots { display: inline-flex; gap: 5px }
+.tour-dots span { inline-size: 6px; block-size: 6px; border-radius: 999px; background: var(--athar-rule); transition: inline-size var(--athar-base) var(--athar-ease), background var(--athar-base) var(--athar-ease) }
+.tour-dots span.done { background: color-mix(in srgb, var(--mud-palette-primary) 45%, transparent) }
+.tour-dots span.on { inline-size: 18px; background: var(--mud-palette-primary) }
+.tour-count { font-size: 0.75rem; font-weight: 500; color: var(--athar-muted); font-variant-numeric: tabular-nums }
+.tour-skip { padding: 4px 6px; margin-inline-start: -6px; border: 0; border-radius: var(--athar-radius); background: none; color: var(--athar-muted);
+    font: inherit; font-size: 0.875rem; cursor: pointer }
+.tour-skip:hover { background: var(--athar-fill); color: var(--mud-palette-text-primary) }
+.tour-more { font-size: 0.875rem; color: var(--mud-palette-primary); text-decoration: none }
+.tour-more:hover { text-decoration: underline }
+.tour-card h2 { margin: 0 0 6px; font-size: 1rem; font-weight: 600 }
+.tour-card p#tour-text { margin: 0 0 16px; color: var(--mud-palette-text-primary) }
+.tour-actions { display: flex; align-items: center; gap: 8px }
+.tour-actions .grow { flex: 1 1 auto }

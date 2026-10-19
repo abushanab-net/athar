@@ -1,0 +1,18 @@
+shared	ShareNotFoundTitle	Not found	غير موجود
+shared	ShareNotFound	This link doesn't exist.	هذا الرابط غير موجود.
+shared	ShareGoneTitle	Link unavailable	الرابط غير متاح
+shared	ShareGone	This link has expired or was revoked.	انتهت صلاحية هذا الرابط أو أُلغي.
+shared	ShareFileMissing	This file isn't part of the share.	هذا الملف ليس ضمن المشاركة.
+shared	SharePageMissing	This page isn't part of the share.	هذه الصفحة ليست ضمن المشاركة.
+shared	ShareBadRequestTitle	Bad request	طلب غير صالح
+shared	ShareBadRequest	Reload the page and try again.	أعد تحميل الصفحة وحاول مرة أخرى.
+shared	ShareTooManyTitle	Too many attempts	محاولات كثيرة جدًا
+shared	ShareTooMany	Too many wrong passwords. Try again later.	كلمات مرور خاطئة كثيرة. حاول لاحقًا.
+shared	ShareWrongPassword	That password is wrong.	كلمة المرور هذه خاطئة.
+shared	SharePages	Pages	الصفحات
+shared	SharePasswordTitle	Password required	كلمة المرور مطلوبة
+shared	ShareProtected	This page is protected	هذه الصفحة محمية
+shared	ShareProtectedText	Enter the password you were given with the link.	أدخل كلمة المرور التي أُعطيت لك مع الرابط.
+shared	ShareOpen	Open	فتح
+shared	ShareReadOnly	Read-only	للقراءة فقط
+shared	ShareSharedFrom	Shared from a team wiki	مُشارَكة من ويكي فريق

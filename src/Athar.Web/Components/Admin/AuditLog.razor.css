@@ -1,0 +1,10 @@
+.cell { max-inline-size: 14rem }
+.id { max-inline-size: 7rem; font-variant-numeric: tabular-nums }
+.nowrap { white-space: nowrap }
+.details { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0 0 16px }
+.details dt { font-size: 0.75rem; font-weight: 500; color: var(--mud-palette-text-secondary) }
+.details dd { margin: 0; min-width: 0; overflow-wrap: anywhere }
+.sub { margin: 16px 0 6px; font-size: 0.875rem; font-weight: 600 }
+.payload { margin: 0; padding: 8px 12px; max-block-size: 16rem; overflow: auto; border: 1px solid var(--athar-rule); border-radius: var(--athar-radius);
+    background: var(--athar-fill); font-size: 0.75rem; white-space: pre-wrap; overflow-wrap: anywhere }
+@media (max-width: 599.98px) { .details { grid-template-columns: 1fr } }

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Skills</value>
+  </data>
+  <data name="Intro" xml:space="preserve">
+    <value>Skills teach your agents how your team works. Browse the ones you can use, install one into Claude Code or Codex, or publish your own.</value>
+  </data>
+  <data name="Publish" xml:space="preserve">
+    <value>Publish a skill</value>
+  </data>
+  <data name="PublishTitle" xml:space="preserve">
+    <value>Publish a skill</value>
+  </data>
+  <data name="PublishHelp" xml:space="preserve">
+    <value>Upload a SKILL.md, or a zip of one skill folder (SKILL.md and its text files, up to 1 MB). Publishing the same name again in the same place replaces it.</value>
+  </data>
+  <data name="ChooseFile" xml:space="preserve">
+    <value>Choose SKILL.md or .zip</value>
+  </data>
+  <data name="Owner_team" xml:space="preserve">
+    <value>Team</value>
+  </data>
+  <data name="Owner_project" xml:space="preserve">
+    <value>Project</value>
+  </data>
+  <data name="FileCount" xml:space="preserve">
+    <value>{0} file(s)</value>
+  </data>
+  <data name="CompanyNote" xml:space="preserve">
+    <value>A company skill from anyone but a knowledge owner goes to a knowledge owner for approval first.</value>
+  </data>
+  <data name="PublishNow" xml:space="preserve">
+    <value>Publish</value>
+  </data>
+  <data name="Published" xml:space="preserve">
+    <value>Published {0}</value>
+  </data>
+  <data name="TooLarge" xml:space="preserve">
+    <value>The file is larger than 1 MB.</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search skills</value>
+  </data>
+  <data name="NoSkills" xml:space="preserve">
+    <value>No skills here yet</value>
+  </data>
+  <data name="NoSkillsHelp" xml:space="preserve">
+    <value>Publish one, or clear the filters.</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>This skill doesn't exist, or you can't see it.</value>
+  </data>
+  <data name="DownloadZip" xml:space="preserve">
+    <value>Download zip</value>
+  </data>
+  <data name="InstallTitle" xml:space="preserve">
+    <value>Install</value>
+  </data>
+  <data name="InstallHelp" xml:space="preserve">
+    <value>Download the zip, then run the command for your system. Restart the agent to load the skill.</value>
+  </data>
+  <data name="Client" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="Files" xml:space="preserve">
+    <value>Files</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="CopyFailed" xml:space="preserve">
+    <value>Couldn't copy. Select the text and copy it yourself.</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>Version history</value>
+  </data>
+  <data name="HistoryHelp" xml:space="preserve">
+    <value>Each publish is a new revision. Open one to read it as it was.</value>
+  </data>
+  <data name="NoHistory" xml:space="preserve">
+    <value>History starts with the next publish.</value>
+  </data>
+  <data name="Revision" xml:space="preserve">
+    <value>Revision {0}</value>
+  </data>
+  <data name="Proposed" xml:space="preserve">
+    <value>{0} is waiting for a knowledge owner's approval</value>
+  </data>
+  <data name="SeeProposal" xml:space="preserve">
+    <value>See proposal</value>
+  </data>
+</root>

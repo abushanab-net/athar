@@ -1,0 +1,14 @@
+.skill { display: grid; gap: 24px; max-inline-size: 960px }
+.skill > * { min-width: 0 }
+.skill ::deep .client { max-inline-size: 16rem }
+.meta { margin: 0 0 12px }
+.files { margin: 0; padding-inline-start: 20px }
+.files code, .snippet code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.875rem }
+.snippet { margin: 12px 0 0; border: 1px solid var(--athar-rule); border-radius: var(--athar-radius); background: var(--athar-fill); min-width: 0 }
+.snippet figcaption { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 4px 2px 12px;
+    border-block-end: 1px solid var(--athar-rule); font-size: 12px; font-weight: 500; color: var(--athar-muted) }
+.snippet pre { margin: 0; padding: 12px; overflow-x: auto; text-align: left }
+.snippet code { white-space: pre; user-select: all }
+.history { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px }
+.history summary { cursor: pointer }
+.history details[open] { padding-block-end: 8px; border-block-end: 1px solid var(--athar-rule) }

@@ -1,0 +1,54 @@
+@* The one comment field (new comment, reply, edit): a plain textarea that grows with its text, Ctrl/Cmd+Enter sends,
+   Esc cancels. The buttons come from the caller and show only while there is something to act on. The box keeps its own
+   text: every keydown is a server event that re-renders it, and rendering the parent's Value (a round trip behind) there
+   wrote older text over newer typing. A new Value from the parent (cleared after sending, an edit loaded) still wins. *@
+<div class="comment-box @Class">
+    <textarea @ref="box" rows="1" dir="auto" aria-label="@Label" placeholder="@(Placeholder ?? Label)"
+              @bind:get="text" @bind:set="SetAsync" @bind:event="oninput" @onkeydown="KeyAsync"></textarea>
+    @if (ChildContent is not null && (ShowActions || !string.IsNullOrWhiteSpace(text)))
+    {
+        <div class="box-actions">@ChildContent</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    /// <summary>The accessible name; also the placeholder unless one is given.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public bool AutoFocus { get; set; }
+    /// <summary>Show the buttons even while the field is empty (the composer's anchor option, an edit's Cancel).</summary>
+    [Parameter] public bool ShowActions { get; set; }
+    [Parameter] public EventCallback OnSubmit { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private ElementReference box;
+    private string? text, given;
+
+    protected override void OnParametersSet()
+    {
+        if (Value != given) (text, given) = (Value, Value);
+    }
+
+    private Task SetAsync(string? v)
+    {
+        (text, given) = (v, v);
+        return ValueChanged.InvokeAsync(v);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && AutoFocus) await box.FocusAsync();
+    }
+
+    public ValueTask FocusAsync() => box.FocusAsync();
+
+    private async Task KeyAsync(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && (e.CtrlKey || e.MetaKey) && !string.IsNullOrWhiteSpace(text)) await OnSubmit.InvokeAsync();
+        else if (e.Key == "Escape") await OnCancel.InvokeAsync();
+    }
+}

@@ -1,0 +1,23 @@
+@* Tabs that are pages (T150): each tab is its own URL, so it can be bookmarked and linked to from a notification or a
+   runbook. NavLink marks the open one with aria-current="page"; counts use the sidebar's pill and tick when they change. *@
+<nav class="link-tabs" aria-label="@Label">
+    @foreach (var t in Tabs)
+    {
+        <NavLink href="@t.Href" Match="NavLinkMatch.All" class="tab" ActiveClass="active">
+            @if (t.Icon is not null) { <MudIcon Icon="@t.Icon" Size="Size.Small" /> }
+            <span class="text">@t.Label</span>
+            @if (t.Count > 0)
+            {
+                <span class="count" @key="t.Count"><span aria-hidden="true">@(t.Count > 99 ? "99+" : t.Count)</span><span class="visually-hidden">(@t.Count)</span></span>
+            }
+        </NavLink>
+    }
+</nav>
+
+@code {
+    public sealed record Tab(string Label, string Href, string? Icon = null, int Count = 0);
+
+    [Parameter, EditorRequired] public IReadOnlyList<Tab> Tabs { get; set; } = [];
+    /// <summary>The accessible name of the tab bar.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+}

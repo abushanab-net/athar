@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Wiki" xml:space="preserve">
+    <value>الويكي</value>
+  </data>
+  <data name="Spaces" xml:space="preserve">
+    <value>المساحات</value>
+  </data>
+  <data name="NoSpaces" xml:space="preserve">
+    <value>لست عضوًا في أي مساحة بعد.</value>
+  </data>
+  <data name="NewPage" xml:space="preserve">
+    <value>صفحة جديدة</value>
+  </data>
+  <data name="NewSubpage" xml:space="preserve">
+    <value>صفحة فرعية جديدة</value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>بلا عنوان</value>
+  </data>
+  <data name="MoveUp" xml:space="preserve">
+    <value>نقل للأعلى</value>
+  </data>
+  <data name="MoveDown" xml:space="preserve">
+    <value>نقل للأسفل</value>
+  </data>
+  <data name="MoveTo" xml:space="preserve">
+    <value>نقل إلى…</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>نقل</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="TargetSpace" xml:space="preserve">
+    <value>المساحة</value>
+  </data>
+  <data name="TargetParent" xml:space="preserve">
+    <value>الصفحة الأم</value>
+  </data>
+  <data name="TopLevel" xml:space="preserve">
+    <value>(المستوى الأعلى)</value>
+  </data>
+  <data name="Trash" xml:space="preserve">
+    <value>سلة المحذوفات</value>
+  </data>
+  <data name="MoveToTrash" xml:space="preserve">
+    <value>نقل إلى سلة المحذوفات</value>
+  </data>
+  <data name="TrashEmpty" xml:space="preserve">
+    <value>سلة المحذوفات فارغة.</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>استعادة</value>
+  </data>
+  <data name="RestoreUntil" xml:space="preserve">
+    <value>قابلة للاستعادة حتى</value>
+  </data>
+  <data name="PageActions" xml:space="preserve">
+    <value>إجراءات الصفحة</value>
+  </data>
+  <data name="EmptySpace" xml:space="preserve">
+    <value>لا توجد صفحات بعد.</value>
+  </data>
+  <data name="PickAPage" xml:space="preserve">
+    <value>اختر صفحة من الشجرة أو أنشئ واحدة.</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>العنوان</value>
+  </data>
+  <data name="Formatting" xml:space="preserve">
+    <value>التنسيق</value>
+  </data>
+  <data name="PageContent" xml:space="preserve">
+    <value>محتوى الصفحة</value>
+  </data>
+  <data name="Connecting" xml:space="preserve">
+    <value>جارٍ الاتصال…</value>
+  </data>
+  <data name="Unsynced" xml:space="preserve">
+    <value>غير متزامن</value>
+  </data>
+  <data name="Synced" xml:space="preserve">
+    <value>متزامن</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>محفوظ</value>
+  </data>
+  <data name="ReadOnly" xml:space="preserve">
+    <value>للقراءة فقط</value>
+  </data>
+  <data name="Bold" xml:space="preserve">
+    <value>عريض</value>
+  </data>
+  <data name="Italic" xml:space="preserve">
+    <value>مائل</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>عنوان</value>
+  </data>
+  <data name="BulletList" xml:space="preserve">
+    <value>قائمة نقطية</value>
+  </data>
+  <data name="OrderedList" xml:space="preserve">
+    <value>قائمة مرقمة</value>
+  </data>
+  <data name="TaskList" xml:space="preserve">
+    <value>قائمة مهام</value>
+  </data>
+  <data name="CodeBlock" xml:space="preserve">
+    <value>كتلة برمجية</value>
+  </data>
+  <data name="Table" xml:space="preserve">
+    <value>جدول</value>
+  </data>
+  <data name="Callout" xml:space="preserve">
+    <value>تنبيه</value>
+  </data>
+  <data name="Image" xml:space="preserve">
+    <value>صورة</value>
+  </data>
+  <data name="Link" xml:space="preserve">
+    <value>رابط</value>
+  </data>
+  <data name="PageLink" xml:space="preserve">
+    <value>رابط إلى صفحة</value>
+  </data>
+  <data name="Url" xml:space="preserve">
+    <value>الرابط</value>
+  </data>
+  <data name="Insert" xml:space="preserve">
+    <value>إدراج</value>
+  </data>
+  <data name="Editors" xml:space="preserve">
+    <value>في هذه الصفحة</value>
+  </data>
+  <data name="You" xml:space="preserve">
+    <value>أنت</value>
+  </data>
+  <data name="Comments" xml:space="preserve">
+    <value>التعليقات</value>
+  </data>
+  <data name="ShowResolved" xml:space="preserve">
+    <value>إظهار المحلولة</value>
+  </data>
+  <data name="AddComment" xml:space="preserve">
+    <value>أضف تعليقًا</value>
+  </data>
+  <data name="CommentOnPage" xml:space="preserve">
+    <value>تعليق على الصفحة</value>
+  </data>
+  <data name="CommentOnSelection" xml:space="preserve">
+    <value>تعليق على التحديد</value>
+  </data>
+  <data name="SelectTextFirst" xml:space="preserve">
+    <value>حدد نصًا في فقرة واحدة أولًا.</value>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>رد</value>
+  </data>
+  <data name="Resolve" xml:space="preserve">
+    <value>حل</value>
+  </data>
+  <data name="Reopen" xml:space="preserve">
+    <value>إعادة فتح</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>تحرير</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>حذف</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>حفظ</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>تم حذف التعليق</value>
+  </data>
+  <data name="Edited" xml:space="preserve">
+    <value>معدّل</value>
+  </data>
+  <data name="NoComments" xml:space="preserve">
+    <value>لا توجد تعليقات بعد.</value>
+  </data>
+  <data name="StatusResolved" xml:space="preserve">
+    <value>محلول</value>
+  </data>
+  <data name="StatusOrphaned" xml:space="preserve">
+    <value>أزيل النص</value>
+  </data>
+  <data name="StatusAnchorFailed" xml:space="preserve">
+    <value>تعذّر الربط</value>
+  </data>
+  <data name="StatusPending" xml:space="preserve">
+    <value>جارٍ الربط…</value>
+  </data>
+  <data name="CommentActions" xml:space="preserve">
+    <value>إجراءات التعليق</value>
+  </data>
+  <data name="MentionSomeone" xml:space="preserve">
+    <value>اذكر شخصًا</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>الإشعارات</value>
+  </data>
+  <data name="MarkAllRead" xml:space="preserve">
+    <value>تعليم الكل كمقروء</value>
+  </data>
+  <data name="NoNotifications" xml:space="preserve">
+    <value>لا جديد.</value>
+  </data>
+  <data name="Kind_mention" xml:space="preserve">
+    <value>ذكرك</value>
+  </data>
+  <data name="Kind_reply" xml:space="preserve">
+    <value>رد في نقاشك</value>
+  </data>
+  <data name="Kind_anchor_failed" xml:space="preserve">
+    <value>تعذّر ربط تعليقك؛ أصبح على مستوى الصفحة</value>
+  </data>
+  <data name="Kind_shadow_stale" xml:space="preserve">
+    <value>تغيّرت ذاكرة تظللها</value>
+  </data>
+  <data name="Kind_share" xml:space="preserve">
+    <value>شارك صفحة معك</value>
+  </data>
+  <data name="Kind_page_updated" xml:space="preserve">
+    <value>أجرى تعديلات</value>
+  </data>
+  <data name="Kind_page_trashed" xml:space="preserve">
+    <value>نقل صفحة تتابعها إلى سلة المحذوفات</value>
+  </data>
+  <data name="Kind_watch_comment" xml:space="preserve">
+    <value>علّق</value>
+  </data>
+  <data name="Kind_watch_reply" xml:space="preserve">
+    <value>ردّ على تعليق</value>
+  </data>
+  <data name="Kind_watch_resolved" xml:space="preserve">
+    <value>حلّ تعليقًا</value>
+  </data>
+  <data name="Watch" xml:space="preserve">
+    <value>متابعة هذه الصفحة</value>
+  </data>
+  <data name="Unwatch" xml:space="preserve">
+    <value>إيقاف متابعة هذه الصفحة</value>
+  </data>
+  <data name="Versions" xml:space="preserve">
+    <value>النسخ</value>
+  </data>
+  <data name="SaveSnapshot" xml:space="preserve">
+    <value>حفظ لقطة</value>
+  </data>
+  <data name="NoVersions" xml:space="preserve">
+    <value>لا توجد نسخ بعد.</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>معاينة</value>
+  </data>
+  <data name="RestoreVersion" xml:space="preserve">
+    <value>استعادة هذه النسخة</value>
+  </data>
+  <data name="ConfirmRestore" xml:space="preserve">
+    <value>استبدال المحتوى الحالي بهذه النسخة؟ ستصبح المراجعة التالية ولن يُفقد شيء.</value>
+  </data>
+  <data name="Restored" xml:space="preserve">
+    <value>استُعيدت بوصفها</value>
+  </data>
+  <data name="Reason_auto" xml:space="preserve">
+    <value>تلقائية</value>
+  </data>
+  <data name="Reason_manual" xml:space="preserve">
+    <value>لقطة</value>
+  </data>
+  <data name="Reason_restore" xml:space="preserve">
+    <value>استعادة</value>
+  </data>
+  <data name="Share" xml:space="preserve">
+    <value>مشاركة</value>
+  </data>
+  <data name="PeopleWithAccess" xml:space="preserve">
+    <value>مشاركة مع</value>
+  </data>
+  <data name="Team" xml:space="preserve">
+    <value>فريق</value>
+  </data>
+  <data name="RemoveAccess" xml:space="preserve">
+    <value>إزالة الوصول</value>
+  </data>
+  <data name="SharePerson" xml:space="preserve">
+    <value>شارك مع شخص أو فريق</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>الوصول</value>
+  </data>
+  <data name="Level_view" xml:space="preserve">
+    <value>يمكنه العرض</value>
+  </data>
+  <data name="Level_comment" xml:space="preserve">
+    <value>يمكنه التعليق</value>
+  </data>
+  <data name="Level_edit" xml:space="preserve">
+    <value>يمكنه التحرير</value>
+  </data>
+  <data name="SpaceMembers" xml:space="preserve">
+    <value>إدارة أعضاء المساحة</value>
+  </data>
+  <data name="ExternalLinks" xml:space="preserve">
+    <value>روابط للقراءة فقط</value>
+  </data>
+  <data name="LinkPage" xml:space="preserve">
+    <value>هذه الصفحة</value>
+  </data>
+  <data name="LinkPageAndBelow" xml:space="preserve">
+    <value>هذه الصفحة وصفحاتها الفرعية</value>
+  </data>
+  <data name="LinkSpace" xml:space="preserve">
+    <value>المساحة كاملة</value>
+  </data>
+  <data name="WithPassword" xml:space="preserve">
+    <value>كلمة مرور</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>تنتهي</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>نشط</value>
+  </data>
+  <data name="Expired" xml:space="preserve">
+    <value>منتهٍ</value>
+  </data>
+  <data name="Revoked" xml:space="preserve">
+    <value>ملغى</value>
+  </data>
+  <data name="Revoke" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="LinkCreated" xml:space="preserve">
+    <value>انسخ هذا الرابط الآن؛ لن يظهر مرة أخرى.</value>
+  </data>
+  <data name="IncludeSubpages" xml:space="preserve">
+    <value>تضمين الصفحات الفرعية</value>
+  </data>
+  <data name="WholeSpace" xml:space="preserve">
+    <value>مشاركة المساحة كاملة</value>
+  </data>
+  <data name="ExpiresOn" xml:space="preserve">
+    <value>ينتهي في (اختياري)</value>
+  </data>
+  <data name="PasswordOptional" xml:space="preserve">
+    <value>كلمة المرور (اختيارية)</value>
+  </data>
+  <data name="CreateLink" xml:space="preserve">
+    <value>إنشاء رابط</value>
+  </data>
+  <data name="AttachFile" xml:space="preserve">
+    <value>إرفاق ملف (صورة أو PDF أو DOCX)</value>
+  </data>
+  <data name="FileTooLarge" xml:space="preserve">
+    <value>الحد الأقصى لحجم الملف 25 ميغابايت.</value>
+  </data>
+  <data name="OnPage" xml:space="preserve"><value>في</value></data>
+  <data name="WikiIntro" xml:space="preserve"><value>المساحات التي تنتمي إليها، مجمّعة حسب مساحة العمل.</value></data>
+  <data name="NoSpacesHelp" xml:space="preserve"><value>اطلب من مسؤول مساحة العمل إضافتك إلى مساحة.</value></data>
+  <data name="Space" xml:space="preserve"><value>المساحة</value></data>
+  <data name="YourRole" xml:space="preserve"><value>دورك</value></data>
+  <data name="Role_Viewer" xml:space="preserve"><value>قارئ</value></data>
+  <data name="Role_Commenter" xml:space="preserve"><value>معلّق</value></data>
+  <data name="Role_Editor" xml:space="preserve"><value>محرّر</value></data>
+  <data name="Role_Admin" xml:space="preserve"><value>مسؤول</value></data>
+  <data name="AiAccess" xml:space="preserve"><value>وصول الذكاء الاصطناعي</value></data>
+  <data name="AiNone" xml:space="preserve"><value>لا يصل الوكلاء إلى هذه المساحة</value></data>
+  <data name="AiRead" xml:space="preserve"><value>يمكن للوكلاء القراءة</value></data>
+  <data name="AiWrite" xml:space="preserve"><value>يمكن للوكلاء الكتابة</value></data>
+  <data name="AiDelete" xml:space="preserve"><value>يمكن للوكلاء نقل الصفحات إلى سلة المحذوفات</value></data>
+  <data name="Confidential" xml:space="preserve"><value>سرّي</value></data>
+  <data name="PageUnavailable" xml:space="preserve"><value>الصفحة غير متاحة</value></data>
+  <data name="PageUnavailableText" xml:space="preserve"><value>هذه الصفحة غير موجودة أو ليس لديك صلاحية الوصول إليها. اطلبها من مسؤول المساحة إن كنت تحتاج إليها.</value></data>
+  <data name="BackToWiki" xml:space="preserve"><value>العودة إلى الويكي</value></data>
+  <data name="Pages" xml:space="preserve"><value>الصفحات</value></data>
+  <data name="ClosePages" xml:space="preserve"><value>إغلاق الصفحات</value></data>
+  <data name="PagePanels" xml:space="preserve"><value>التعليقات والنسخ والمشاركة</value></data>
+  <data name="MovePage" xml:space="preserve"><value>نقل الصفحة</value></data>
+  <data name="InsertImage" xml:space="preserve"><value>إدراج صورة</value></data>
+  <data name="InsertLink" xml:space="preserve"><value>إدراج رابط</value></data>
+  <data name="RevisionN" xml:space="preserve"><value>المراجعة {0}</value></data>
+  <data name="CommentAction" xml:space="preserve"><value>تعليق</value></data>
+  <data name="AnchorToSelection" xml:space="preserve"><value>ربط بالنص المحدد</value></data>
+  <data name="OpenThreads" xml:space="preserve"><value>النقاشات المفتوحة</value></data>
+  <data name="AllThreads" xml:space="preserve"><value>كل النقاشات</value></data>
+  <data name="ShowInPage" xml:space="preserve"><value>إظهار في الصفحة</value></data>
+  <data name="SendReply" xml:space="preserve"><value>إرسال الرد</value></data>
+  <data name="EditComment" xml:space="preserve"><value>تعديل التعليق</value></data>
+  <data name="ConfirmDeleteComment" xml:space="preserve"><value>حذف هذا التعليق؟ لا يمكن التراجع عن ذلك.</value></data>
+  <data name="OnlySpaceMembers" xml:space="preserve"><value>أعضاء المساحة فقط</value></data>
+  <data name="ConfirmRemoveAccess" xml:space="preserve"><value>إزالة وصول {0} إلى هذه الصفحة؟</value></data>
+  <data name="AddLink" xml:space="preserve"><value>إضافة رابط</value></data>
+  <data name="NoLinks" xml:space="preserve"><value>لا توجد روابط بعد</value></data>
+  <data name="PasswordProtected" xml:space="preserve"><value>بكلمة مرور</value></data>
+  <data name="ExpiresLabel" xml:space="preserve"><value>تنتهي في</value></data>
+  <data name="LinkActive" xml:space="preserve"><value>نشط</value></data>
+  <data name="LinkExpired" xml:space="preserve"><value>منتهٍ</value></data>
+  <data name="LinkRevoked" xml:space="preserve"><value>ملغى</value></data>
+  <data name="RevokeLink" xml:space="preserve"><value>إلغاء الرابط</value></data>
+  <data name="ConfirmRevokeLink" xml:space="preserve"><value>إلغاء هذا الرابط؟ سيفقد كل من يستخدمه إمكانية الوصول.</value></data>
+  <data name="CopyLink" xml:space="preserve"><value>نسخ الرابط</value></data>
+  <data name="LinkCopied" xml:space="preserve"><value>تم نسخ الرابط</value></data>
+  <data name="CopyFailed" xml:space="preserve"><value>تعذّر النسخ. حدّد الرابط وانسخه يدويًا.</value></data>
+  <data name="History" xml:space="preserve"><value>السجل</value></data>
+  <data name="PreviewRevision" xml:space="preserve"><value>معاينة المراجعة {0}</value></data>
+  <data name="RestoreRevision" xml:space="preserve"><value>استعادة المراجعة {0}</value></data>
+  <data name="ClosePreview" xml:space="preserve"><value>إغلاق المعاينة</value></data>
+  <data name="ReasonLabel_auto" xml:space="preserve"><value>تلقائية</value></data>
+  <data name="ReasonLabel_manual" xml:space="preserve"><value>لقطة</value></data>
+  <data name="ReasonLabel_restore" xml:space="preserve"><value>استعادة</value></data>
+  <data name="Undo" xml:space="preserve"><value>تراجع</value></data>
+  <data name="Redo" xml:space="preserve"><value>إعادة</value></data>
+  <data name="Underline" xml:space="preserve"><value>تسطير</value></data>
+  <data name="Strikethrough" xml:space="preserve"><value>يتوسطه خط</value></data>
+  <data name="InlineCode" xml:space="preserve"><value>رمز برمجي ضمن السطر</value></data>
+  <data name="ClearFormatting" xml:space="preserve"><value>مسح التنسيق</value></data>
+  <data name="TextStyle" xml:space="preserve"><value>نمط النص</value></data>
+  <data name="Paragraph" xml:space="preserve"><value>نص عادي</value></data>
+  <data name="Heading1" xml:space="preserve"><value>عنوان 1</value></data>
+  <data name="Heading2" xml:space="preserve"><value>عنوان 2</value></data>
+  <data name="Heading3" xml:space="preserve"><value>عنوان 3</value></data>
+  <data name="Quote" xml:space="preserve"><value>اقتباس</value></data>
+  <data name="Divider" xml:space="preserve"><value>فاصل</value></data>
+  <data name="TableActions" xml:space="preserve"><value>صفوف الجدول وأعمدته</value></data>
+  <data name="AddRow" xml:space="preserve"><value>إضافة صف أسفل</value></data>
+  <data name="AddColumn" xml:space="preserve"><value>إضافة عمود بعد</value></data>
+  <data name="DeleteRow" xml:space="preserve"><value>حذف الصف</value></data>
+  <data name="DeleteColumn" xml:space="preserve"><value>حذف العمود</value></data>
+  <data name="DeleteTable" xml:space="preserve"><value>حذف الجدول</value></data>
+  <data name="FilterAll" xml:space="preserve"><value>الكل</value></data>
+  <data name="FilterOpen" xml:space="preserve"><value>المفتوحة</value></data>
+  <data name="FilterResolved" xml:space="preserve"><value>المحلولة</value></data>
+  <data name="CommentFilter" xml:space="preserve"><value>عرض التعليقات</value></data>
+  <data name="Favorite" xml:space="preserve"><value>إضافة إلى المفضلة</value></data>
+  <data name="Expand" xml:space="preserve">
+    <value>توسيع</value>
+  </data>
+  <data name="Collapse" xml:space="preserve">
+    <value>طي</value>
+  </data>
+  <data name="ShowMorePages" xml:space="preserve">
+    <value>عرض {0} أخرى</value>
+  </data>
+  <data name="SlashBasic" xml:space="preserve"><value>أساسي</value></data>
+  <data name="SlashInsert" xml:space="preserve"><value>إدراج</value></data>
+  <data name="Text" xml:space="preserve"><value>نص</value></data>
+  <data name="Todo" xml:space="preserve"><value>قائمة مهام</value></data>
+  <data name="Slash_text" xml:space="preserve"><value>ابدأ الكتابة بنص عادي.</value></data>
+  <data name="Slash_todo" xml:space="preserve"><value>تابع المهام بقائمة مهام.</value></data>
+  <data name="Slash_h1" xml:space="preserve"><value>عنوان قسم كبير.</value></data>
+  <data name="Slash_h2" xml:space="preserve"><value>عنوان قسم متوسط.</value></data>
+  <data name="Slash_h3" xml:space="preserve"><value>عنوان قسم صغير.</value></data>
+  <data name="Slash_bullet" xml:space="preserve"><value>أنشئ قائمة نقطية بسيطة.</value></data>
+  <data name="Slash_numbered" xml:space="preserve"><value>أنشئ قائمة مرقمة.</value></data>
+  <data name="Slash_quote" xml:space="preserve"><value>أضف اقتباسًا.</value></data>
+  <data name="Slash_code" xml:space="preserve"><value>أضف مقتطفًا برمجيًا.</value></data>
+  <data name="Slash_callout" xml:space="preserve"><value>أبرز ملاحظة.</value></data>
+  <data name="Slash_divider" xml:space="preserve"><value>افصل بين الكتل بخط.</value></data>
+  <data name="Slash_table" xml:space="preserve"><value>أدرج جدولًا.</value></data>
+  <data name="Slash_image" xml:space="preserve"><value>أدرج صورة من رابط.</value></data>
+  <data name="Slash_pageLink" xml:space="preserve"><value>اربط بصفحة أخرى.</value></data>
+  <data name="ShowOlderVersions" xml:space="preserve"><value>عرض الإصدارات الأقدم</value></data>
+  <data name="ShowMoreThreads" xml:space="preserve"><value>عرض {0} أخرى</value></data>
+  <data name="SpaceSettings" xml:space="preserve"><value>إعدادات المساحة</value></data>
+  <data name="Read" xml:space="preserve"><value>قراءة</value></data>
+  <data name="PageMode" xml:space="preserve"><value>وضع الصفحة</value></data>
+  <data name="ReadMode" xml:space="preserve"><value>وضع القراءة</value></data>
+  <data name="Draft" xml:space="preserve"><value>مسودة</value></data>
+  <data name="Publish" xml:space="preserve"><value>نشر</value></data>
+  <data name="Unpublish" xml:space="preserve"><value>إعادة إلى مسودة</value></data>
+  <data name="PublishedNow" xml:space="preserve"><value>نُشرت الصفحة: يمكن للقرّاء رؤيتها.</value></data>
+  <data name="UnpublishedNow" xml:space="preserve"><value>أصبحت مسودة: لا يراها إلا المحررون.</value></data>
+  <data name="CommentsPanel" xml:space="preserve"><value>التعليقات</value></data>
+  <data name="Outline" xml:space="preserve"><value>المخطط</value></data>
+  <data name="NoHeadings" xml:space="preserve"><value>لا توجد عناوين في هذه الصفحة بعد.</value></data>
+  <data name="MorePageActions" xml:space="preserve"><value>إجراءات أخرى للصفحة</value></data>
+  <data name="CopyMarkdown" xml:space="preserve"><value>نسخ بصيغة Markdown</value></data>
+  <data name="FullWidth" xml:space="preserve"><value>عرض كامل</value></data>
+  <data name="PageHistory" xml:space="preserve"><value>سجل الصفحة</value></data>
+  <data name="PrintPdf" xml:space="preserve"><value>طباعة أو حفظ كملف PDF</value></data>
+  <data name="WordCount" xml:space="preserve"><value>{0} كلمة</value></data>
+  <data name="CreatedBy" xml:space="preserve"><value>أنشأها</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>أُنشئت</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>حُدّثت</value></data>
+  <data name="Copied" xml:space="preserve"><value>تم النسخ</value></data>
+  <data name="ConfirmTrash" xml:space="preserve"><value>نقل هذه الصفحة وصفحاتها الفرعية إلى سلة المحذوفات؟ يمكنك استعادتها خلال 30 يومًا.</value></data>
+  <data name="Overview" xml:space="preserve"><value>نظرة عامة</value></data>
+  <data name="SearchLink" xml:space="preserve"><value>بحث</value></data>
+  <data name="AddPage" xml:space="preserve"><value>إضافة صفحة</value></data>
+  <data name="AddSubpage" xml:space="preserve"><value>إضافة صفحة فرعية</value></data>
+  <data name="PagesMenu" xml:space="preserve"><value>خيارات شجرة الصفحات</value></data>
+  <data name="CollapseAll" xml:space="preserve"><value>طي الكل</value></data>
+  <data name="ShowTrash" xml:space="preserve"><value>إظهار المحذوفات</value></data>
+  <data name="HideTrash" xml:space="preserve"><value>إخفاء المحذوفات</value></data>
+  <data name="Duplicate" xml:space="preserve"><value>تكرار</value></data>
+  <data name="CopyToSpace" xml:space="preserve"><value>نسخ إلى مساحة…</value></data>
+  <data name="CopyOfTitle" xml:space="preserve"><value>{0} (نسخة)</value></data>
+  <data name="Duplicated" xml:space="preserve"><value>تم التكرار كمسودة</value></data>
+  <data name="CopiedToSpace" xml:space="preserve"><value>نُسخت إلى {0} كمسودة</value></data>
+  <data name="CopyPagesCount" xml:space="preserve"><value>تنسخ {0} صفحة مع الصفحات الفرعية كمسودات. 200 صفحة كحد أقصى في المرة الواحدة.</value></data>
+  <data name="NoCopyTargets" xml:space="preserve"><value>لست محررًا في مساحة أخرى ضمن مساحة العمل هذه.</value></data>
+  <data name="Copy" xml:space="preserve"><value>نسخ</value></data>
+  <data name="By بقلم" xml:space="preserve"><value></value></data>
+  <data name="Breadcrumb" xml:space="preserve"><value>مسار التنقل</value></data>
+  <data name="ShowPath" xml:space="preserve"><value>إظهار المسار الكامل</value></data>
+  <data name="SeeAllNotifications" xml:space="preserve"><value>عرض كل الإشعارات</value></data>
+  <data name="NotificationsHelp" xml:space="preserve"><value>الإشارات والردود والمشاركات والتغييرات على الصفحات والذكريات التي تتابعها.</value></data>
+  <data name="AllNotifications" xml:space="preserve"><value>الكل</value></data>
+  <data name="UnreadNotifications" xml:space="preserve"><value>غير المقروءة</value></data>
+  <data name="NoUnreadNotifications" xml:space="preserve"><value>لا جديد لديك</value></data>
+  <data name="NotificationsEmptyHelp" xml:space="preserve"><value>ستصلك هنا الإشعارات عندما يشير إليك أحد أو يرد في نقاشاتك أو يشارك معك صفحة أو يغيّر صفحة تتابعها.</value></data>
+  <data name="Unread" xml:space="preserve"><value>غير مقروء</value></data>
+  <data name="Open" xml:space="preserve"><value>فتح</value></data>
+  <data name="Kind_source_paused" xml:space="preserve"><value>أُوقفت مزامنة مصدر GitHub: رُفض رمز الوصول</value></data>
+  <data name="ManageWorkspaces" xml:space="preserve"><value>إدارة مساحات العمل</value></data>
+  <data name="TourTreeTitle" xml:space="preserve"><value>صفحات هذه المساحة</value></data>
+  <data name="TourTreeText" xml:space="preserve"><value>افتح صفحة، أو استخدم + في الصف لإضافة صفحة تحتها. وتنقل قائمة ⋮ الصفحة وتكررها وتشاركها.</value></data>
+  <data name="TourModeTitle" xml:space="preserve"><value>تحرير أو قراءة</value></data>
+  <data name="TourModeText" xml:space="preserve"><value>وضع القراءة يخفي شريط الأدوات. يُحفظ اختيارك في هذا المتصفح.</value></data>
+  <data name="TourToolbarTitle" xml:space="preserve"><value>اكتبوا معاً</value></data>
+  <data name="TourToolbarText" xml:space="preserve"><value>تُحفظ التغييرات أثناء الكتابة ويراها الآخرون مباشرة. اكتب / في بداية السطر للعناوين والقوائم والجداول والمخططات.</value></data>
+  <data name="TourCommentsTitle" xml:space="preserve"><value>علّق وأشر</value></data>
+  <data name="TourCommentsText" xml:space="preserve"><value>حدّد نصاً للتعليق عليه، أو علّق على الصفحة كلها. اكتب @ لتنبيه أحد.</value></data>
+  <data name="TourShareTitle" xml:space="preserve"><value>شاركها</value></data>
+  <data name="TourShareText" xml:space="preserve"><value>امنح الأشخاص أو الفرق صلاحية، أو أنشئ رابط قراءة فقط لشخص من الخارج، بكلمة مرور وتاريخ انتهاء إن شئت.</value></data>
+  <data name="TourMenuTitle" xml:space="preserve"><value>المزيد لهذه الصفحة</value></data>
+  <data name="TourMenuText" xml:space="preserve"><value>تابعها للتغييرات، واطّلع على سجلها واستعد نسخة، أو انقلها، أو اطبعها.</value></data>
+  <data name="NewCommentActivity" xml:space="preserve"><value>{0} من النقاشات فيها نشاط جديد</value></data>
+  <data name="Close" xml:space="preserve"><value>إغلاق</value></data>
+  <data name="ResolveComment" xml:space="preserve"><value>حل التعليق</value></data>
+  <data name="ReopenComment" xml:space="preserve"><value>إعادة فتح التعليق</value></data>
+  <data name="DeleteComment" xml:space="preserve"><value>حذف التعليق</value></data>
+  <data name="ReplyHint" xml:space="preserve"><value>رد…</value></data>
+  <data name="AddCommentHint" xml:space="preserve"><value>أضف تعليقًا…</value></data>
+  <data name="CommentKeysHint" xml:space="preserve"><value>Ctrl+Enter للإرسال</value></data>
+  <data name="ImportPages" xml:space="preserve"><value>استيراد صفحات…</value></data>
+  <data name="ImportHere" xml:space="preserve"><value>استيراد هنا…</value></data>
+  <data name="ImportHelp" xml:space="preserve"><value>ملف Markdown أو HTML، أو ملف zip يضمّها (الصفحات الفرعية في مجلد باسم صفحتها)، أو تصدير من Confluence (HTML أو XML).</value></data>
+  <data name="ChooseImportFile" xml:space="preserve"><value>اختر ملفًا</value></data>
+  <data name="Importing" xml:space="preserve"><value>جارٍ الاستيراد…</value></data>
+  <data name="ImportedCount" xml:space="preserve"><value>تم استيراد {0} صفحة و{1} ملف. الصفحات منشورة وستظهر في البحث قريبًا.</value></data>
+  <data name="ImportSkipped" xml:space="preserve"><value>تم تخطي:</value></data>
+  <data name="OpenImported" xml:space="preserve"><value>فتح</value></data>
+  <data name="ImportTooLarge" xml:space="preserve"><value>حجم الاستيراد محدود بـ 200 ميغابايت.</value></data>
+  <data name="ExportSpace" xml:space="preserve"><value>تصدير المساحة (zip.)</value></data>
+  <data name="ExportMarkdown" xml:space="preserve"><value>تصدير بصيغة Markdown</value></data>
+  <data name="ExportHtml" xml:space="preserve"><value>تصدير بصيغة HTML</value></data>
+  <data name="ExportZip" xml:space="preserve"><value>تصدير مع الصفحات الفرعية (zip.)</value></data>
+  <data name="Kind_import_done" xml:space="preserve"><value>انتهى الاستيراد</value></data>
+  <data name="Kind_import_failed" xml:space="preserve"><value>فشل الاستيراد</value></data>
+</root>

@@ -1,0 +1,12 @@
+@* What a person sees on a page they may not use: why, and who can help. *@
+<EmptyState Icon="@Icons.Material.Outlined.Lock" Title="@(Title ?? L["NoAccessTitle"])" Text="@(Text ?? L["NoAccessText"])">
+    <MudButton Href="@BackHref" Variant="Variant.Outlined" Size="Size.Small">@(BackLabel ?? L["BackHome"])</MudButton>
+</EmptyState>
+
+@code {
+    [Inject] private IStringLocalizer<SharedResource> L { get; set; } = default!;
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Text { get; set; }
+    [Parameter] public string BackHref { get; set; } = "/";
+    [Parameter] public string? BackLabel { get; set; }
+}

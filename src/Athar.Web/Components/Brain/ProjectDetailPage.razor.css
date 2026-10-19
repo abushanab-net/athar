@@ -1,0 +1,12 @@
+.repo { display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-inline-size: 100% }
+.repo a { color: var(--mud-palette-primary); text-decoration: none; font-weight: 500 }
+.repo a:hover { text-decoration: underline }
+.syncing { display: inline-flex; align-items: center; gap: 8px; color: var(--mud-palette-primary) }
+.num { display: inline-block; font-variant-numeric: tabular-nums; animation: athar-arrive var(--athar-base) var(--athar-ease) }
+.audience { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: 0.75rem; color: var(--athar-muted) }
+.people, .remotes { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+.people li, .remotes li { display: flex; align-items: center; gap: 8px }
+.remotes ::deep .mud-icon-root { color: var(--athar-muted) }
+.add-remote { display: flex; align-items: flex-start; gap: 8px; margin-block-start: 12px; max-inline-size: 36rem }
+.add-remote ::deep .mud-input-control { flex: 1 1 auto }
+.add-remote ::deep .mud-button-root { margin-block-start: 6px }

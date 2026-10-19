@@ -1,0 +1,169 @@
+@inject WorkspaceAdminService Spaces
+@inject IDialogService Dialogs
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@inject Athar.Web.Services.FavoriteService Favorites
+
+@* A space's settings (T114): stacked sections on /admin/spaces/{id}, or tabs (Settings, Members, Security) in the wiki's
+   dialog. Same rules either way: WorkspaceAdminService checks every change, and audits it. *@
+@if (!loaded)
+{
+    <LoadingState />
+}
+else if (detail is null)
+{
+    <AccessDenied Text="@L["SpaceAdminsOnly"]" BackHref="/wiki" BackLabel="@L["Wiki"]" />
+}
+else if (Tabbed)
+{
+    <MudTabs Elevation="0" PanelClass="pt-4" MinimumTabWidth="80px">
+        <MudTabPanel Text="@L["Settings"]">@SettingsPart</MudTabPanel>
+        <MudTabPanel Text="@L["Members"]">@MembersPart</MudTabPanel>
+        <MudTabPanel Text="@L["Security"]">@SecurityPart</MudTabPanel>
+    </MudTabs>
+}
+else
+{
+    @SettingsPart
+    @SecurityPart
+    @MembersPart
+}
+
+@code {
+    [Parameter, EditorRequired] public Guid SpaceId { get; set; }
+    /// <summary>Tabs (the wiki's dialog) instead of stacked sections (the admin page).</summary>
+    [Parameter] public bool Tabbed { get; set; }
+    /// <summary>The space's name changed (the page header follows it).</summary>
+    [Parameter] public EventCallback<string> OnRenamed { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+
+    private static readonly string[] spaceRoles = Enum.GetNames<SpaceRole>(); // Viewer → Admin, least access first
+    private Guid OrgId, ActorId;
+    private bool loaded;
+    private WorkspaceAdminService.SpaceDetail? detail;
+    private List<WorkspaceAdminService.Principal> directory = [];
+    private string name = "", memberFilter = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var user = (await Auth).User;
+        (OrgId, ActorId) = (user.OrgId(), user.UserId());
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        detail = await Spaces.SpaceAsync(OrgId, ActorId, SpaceId);
+        directory = detail is null ? [] : await Spaces.DirectoryAsync(OrgId, ActorId);
+        name = detail?.Space.Name ?? "";
+        loaded = true;
+    }
+
+    private RenderFragment SettingsPart => @<text>
+        <Section Title="@L["Name"]">
+            <MudStack Row="true" AlignItems="AlignItems.End" Spacing="2">
+                <MudTextField T="string" @bind-Value="name" Label="@L["SpaceName"]" Immediate="true" dir="auto" Style="max-inline-size: 28rem" />
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" Disabled="@(string.IsNullOrWhiteSpace(name) || name.Trim() == detail!.Space.Name)"
+                           OnClick="RenameAsync">@L["Save"]</MudButton>
+            </MudStack>
+        </Section>
+        <Section Title="@L["Appearance"]" Description="@L["AppearanceHelp"]">
+            <AppearancePicker Name="@detail!.Space.Name" Id="SpaceId" Color="@detail.Space.Color" Icon="@detail.Space.Icon"
+                              OnChange="async a => { await Apply(Spaces.SetSpaceAppearanceAsync(OrgId, ActorId, SpaceId, a.Color, a.Icon)); Favorites.Refresh(); }" />
+        </Section>
+        <Section Title="@L["AiPolicy"]" Description="@L["AiPolicyHelp"]">
+            <MudStack Spacing="0">
+                <MudSwitch T="bool" Value="detail.Space.AiPolicy.Read" Color="Color.Primary" Label="@L["AiRead"]"
+                           ValueChanged="v => Apply(Spaces.SetAiPolicyAsync(OrgId, ActorId, SpaceId, detail.Space.AiPolicy with { Read = v }))" />
+                <MudSwitch T="bool" Value="detail.Space.AiPolicy.Write" Color="Color.Primary" Label="@L["AiWrite"]"
+                           ValueChanged="v => Apply(Spaces.SetAiPolicyAsync(OrgId, ActorId, SpaceId, detail.Space.AiPolicy with { Write = v }))" />
+                <MudSwitch T="bool" Value="detail.Space.AiPolicy.DeleteToTrash" Color="Color.Primary" Label="@L["AiDelete"]"
+                           ValueChanged="v => Apply(Spaces.SetAiPolicyAsync(OrgId, ActorId, SpaceId, detail.Space.AiPolicy with { DeleteToTrash = v }))" />
+            </MudStack>
+        </Section>
+    </text>;
+
+    private RenderFragment SecurityPart => @<text>
+        <Section Title="@L["Classification"]">
+            <Actions>
+                @if (detail!.Space.IsConfidential)
+                {
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Outlined.LockOpen" OnClick="DeclassifyAsync">@L["Declassify"]…</MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Lock" OnClick="MarkConfidentialAsync">@L["MarkConfidential"]…</MudButton>
+                }
+            </Actions>
+            <ChildContent>
+                @if (detail!.Space.IsConfidential)
+                {
+                    <div class="classification">
+                        <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.Lock">@L["Confidential"]</Seal>
+                        <p dir="auto">@L["ConfidentialHelp"]</p>
+                    </div>
+                }
+                else
+                {
+                    <p class="muted" dir="auto">@L["NotConfidentialHelp"]</p>
+                }
+            </ChildContent>
+        </Section>
+    </text>;
+
+    private RenderFragment MembersPart => @<text>
+        <Section Title="@L["Members"]" Flush="true">
+            <Actions>
+                <PrincipalPicker Label="@L["AddMemberOrTeam"]" Roles="@spaceRoles" DefaultRole="@nameof(SpaceRole.Viewer)"
+                                 Options="@directory.Where(p => !detail!.Members.Any(m => m.Principal.Id == p.Id))"
+                                 OnAdd="(p, r) => Apply(Spaces.SetSpaceMemberAsync(OrgId, ActorId, SpaceId, p, Enum.Parse<SpaceRole>(r ?? nameof(SpaceRole.Viewer))))" />
+            </Actions>
+            <ChildContent>
+                <div class="member-search">
+                    <MudTextField T="string" @bind-Value="memberFilter" Immediate="true" Placeholder="@L["SearchMembers"]" Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search" Variant="Variant.Outlined" Margin="Margin.Dense" aria-label="@L["SearchMembers"]" />
+                </div>
+                <MemberTable Items="@detail!.Members.Where(m => memberFilter.Length == 0 || m.Principal.Name.Contains(memberFilter, StringComparison.OrdinalIgnoreCase))"
+                             Roles="@spaceRoles"
+                             OnChangeRole="(p, r) => Apply(Spaces.SetSpaceMemberAsync(OrgId, ActorId, SpaceId, p, Enum.Parse<SpaceRole>(r)))"
+                             OnRemove="p => Apply(Spaces.SetSpaceMemberAsync(OrgId, ActorId, SpaceId, p, null))" />
+            </ChildContent>
+        </Section>
+    </text>;
+
+    private async Task RenameAsync()
+    {
+        var decision = await Spaces.RenameSpaceAsync(OrgId, ActorId, SpaceId, name);
+        await Apply(Task.FromResult(decision));
+        if (decision == OrgDecision.Allow)
+        {
+            Favorites.Refresh();
+            await OnRenamed.InvokeAsync(detail!.Space.Name);
+        }
+    }
+
+    // FR-CL-01: declassifying needs a reason (audited); marking confidential takes an optional one.
+    private async Task DeclassifyAsync()
+    {
+        var reason = await ReasonDialog.AskAsync(Dialogs, L["Declassify"], L["DeclassifyWhy"], L["Declassify"], label: L["DeclassifyReason"]);
+        if (reason is not null) await Apply(Spaces.SetConfidentialAsync(OrgId, ActorId, SpaceId, false, reason));
+    }
+
+    private async Task MarkConfidentialAsync()
+    {
+        var reason = await ReasonDialog.AskAsync(Dialogs, L["MarkConfidential"], L["ConfidentialHelp"], L["MarkConfidential"], required: false);
+        if (reason is not null) await Apply(Spaces.SetConfidentialAsync(OrgId, ActorId, SpaceId, true, reason.Length > 0 ? reason : null));
+    }
+
+    private async Task Apply(Task<OrgDecision> action)
+    {
+        var decision = await action;
+        Snackbar.Add(decision switch
+        {
+            OrgDecision.Allow => L["Saved"],
+            OrgDecision.Invalid => L["InvalidInput"],
+            _ => L["NotAllowed"],
+        }, decision == OrgDecision.Allow ? Severity.Success : Severity.Warning);
+        await LoadAsync();
+    }
+}

@@ -1,0 +1,1212 @@
+@page "/wiki/s/{SpaceId:guid}"
+@page "/wiki/p/{PageId:guid}"
+@attribute [Authorize]
+@using Athar.Domain.Model
+@using Page = Athar.Domain.Model.Page
+@using Athar.Domain.Wiki
+@using Athar.Web.Services
+@using System.Text.Json
+@using Athar.Web.CollabBridge
+@using Athar.Web.Services.Import
+@inject WikiSession Session
+@inject IServiceScopeFactory Scopes
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject IJSRuntime JS
+@inject FavoriteService Favorites
+@inject WorkspaceAdminService SpaceAdmin
+@inject IDialogService Dialogs
+@implements IDisposable
+
+<PageTitle>@(denied ? T("PageUnavailable") : page?.Title ?? space?.Name ?? T("Wiki")) · Athar</PageTitle>
+
+@if (denied)
+{
+    <AccessDenied Title="@T("PageUnavailable")" Text="@T("PageUnavailableText")" BackHref="/wiki" BackLabel="@T("BackToWiki")" />
+}
+else if (actor is null || space is null)
+{
+    <LoadingState Rows="6" />
+}
+else
+{
+    @* Three panes (DESIGN.md Layout): tree | page | comments, versions and share. Below 960px the tree is a drawer and the
+       side panel follows the page. *@
+    <div class="wiki-root athar-full-bleed @(page is null || !sideOpen ? "no-side" : null) @(treeOpen ? "tree-open" : null)">
+        <nav class="wiki-tree" id="wiki-tree" aria-labelledby="wiki-tree-title" @onkeydown="TreeKey" @ref="treeRef">
+            <div class="tree-head">
+                <SpaceBadge Name="@space.Name" Id="space.Id" Color="@space.Color" Icon="@space.Icon" />
+                <h2 id="wiki-tree-title" class="athar-truncate" title="@space.Name" dir="auto">@space.Name</h2>
+                @* Pin the space to the side menu. *@
+                <IconAction Icon="@(favorite ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarBorder)" Label="@T("Favorite")"
+                            Color="@(favorite ? Color.Warning : Color.Default)" aria-pressed="@(favorite ? "true" : "false")" OnClick="ToggleFavoriteAsync" />
+                <span class="tree-close">
+                    <IconAction Icon="@Icons.Material.Filled.Close" Label="@T("ClosePages")" OnClick="() => treeOpen = false" />
+                </span>
+            </div>
+
+            @* T116: quick links for the space. *@
+            <ul class="quick-links">
+                <li><a href="@($"/wiki/s/{space.Id}")" class="quick-link"><MudIcon Icon="@Icons.Material.Outlined.Home" Size="Size.Small" aria-hidden="true" />@T("Overview")</a></li>
+                <li><a href="/search" class="quick-link"><MudIcon Icon="@Icons.Material.Outlined.Search" Size="Size.Small" aria-hidden="true" />@T("SearchLink")</a></li>
+                @if (canManageSpace)
+                {
+                    @* T114: the space's settings (name, badge, AI policy, members, classification) without leaving the wiki. *@
+                    <li><button type="button" class="quick-link" @onclick="OpenSpaceSettingsAsync"><MudIcon Icon="@Icons.Material.Outlined.Settings" Size="Size.Small" aria-hidden="true" />@T("SpaceSettings")</button></li>
+                }
+                @if (canEditSpace)
+                {
+                    <li><button type="button" class="quick-link" @onclick="() => CreateAsync(null)"><MudIcon Icon="@Icons.Material.Outlined.NoteAdd" Size="Size.Small" aria-hidden="true" />@T("NewPage")</button></li>
+                }
+            </ul>
+
+            <div class="pages-head">
+                <span class="pages-label">@T("Pages")</span>
+                @if (canEditSpace)
+                {
+                    <IconAction Icon="@Icons.Material.Filled.Add" Label="@T("AddPage")" OnClick="() => CreateAsync(null)" />
+                }
+                <MenuButton Icon="@Icons.Material.Filled.MoreHoriz" Label="@T("PagesMenu")">
+                    <MudMenuItem Icon="@Icons.Material.Outlined.UnfoldLess" OnClick="CollapseAll">@T("CollapseAll")</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Delete" OnClick="ToggleTrashAsync">@T(showTrash ? "HideTrash" : "ShowTrash")</MudMenuItem>
+                    @if (canManageSpace)
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Outlined.FileUpload" OnClick="() => OpenImport(null)">@T("ImportPages")</MudMenuItem>
+                    }
+                    @* T157: a download (target _blank so the Blazor router doesn't take the link). *@
+                    <MudMenuItem Icon="@Icons.Material.Outlined.FileDownload" Href="@($"/wiki/export?space={space.Id}")" Target="_blank">@T("ExportSpace")</MudMenuItem>
+                </MenuButton>
+            </div>
+
+            @if (showTrash)
+            {
+                <p class="tree-label">@T("Trash")</p>
+                @if (trash.Count == 0)
+                {
+                    <EmptyState Icon="@Icons.Material.Outlined.Delete" Title="@T("TrashEmpty")" Compact="true" />
+                }
+                <ul class="trash-list">
+                    @foreach (var p in trash.Where(p => p.ParentId is null || !trash.Any(t => t.Id == p.ParentId)))
+                    {
+                        <li class="trash-row" @key="p.Id">
+                            <div class="trash-text">
+                                <span class="athar-truncate" title="@p.Title" dir="auto">@p.Title</span>
+                                <span class="trash-until">@T("RestoreUntil") <Timestamp Value="@(p.DeletedAt!.Value + PageTree.TrashRetention)" DateOnly="true" /></span>
+                            </div>
+                            @if (canEditSpace)
+                            {
+                                <IconAction Icon="@Icons.Material.Outlined.RestoreFromTrash" Label="@($"{T("Restore")}: {p.Title}")" OnClick="() => RestoreAsync(p.Id)" />
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+            else if (tree.Count == 0)
+            {
+                <EmptyState Icon="@Icons.Material.Outlined.Article" Title="@T("EmptySpace")" Compact="true" />
+            }
+            else
+            {
+                <ul class="page-tree">
+                    @foreach (var root in children[null].Take(rootsShown))
+                    {
+                        <PageTreeItem @key="root.Id" Node="root" Children="children" SelectedId="page?.Id" CanEdit="canEditSpace" CanImport="canManageSpace" OnAction="OnTreeActionAsync"
+                                      Expanded="expanded" OnToggle="ToggleNode" Stamp="treeStamp" />
+                    }
+                    @if (children[null].Count() > rootsShown)
+                    {
+                        <li><button type="button" class="tree-more" @onclick="() => { rootsShown += PageTreeItem.Step; treeStamp++; }">@string.Format(T("ShowMorePages"), children[null].Count() - rootsShown)</button></li>
+                    }
+                </ul>
+            }
+        </nav>
+        @if (treeOpen)
+        {
+            <div class="tree-scrim" @onclick="() => treeOpen = false"></div>
+        }
+
+        <div class="wiki-page @(fullWidth ? null : "narrow")">
+            @if (page is null)
+            {
+                <span class="tree-toggle">
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.AccountTree" OnClick="() => treeOpen = true"
+                               aria-controls="wiki-tree" aria-expanded="@(treeOpen ? "true" : "false")">@T("Pages")</MudButton>
+                </span>
+                <EmptyState Icon="@Icons.Material.Outlined.Article" Title="@T("PickAPage")">
+                    @if (canEditSpace)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.NoteAdd" OnClick="() => CreateAsync(null)">@T("NewPage")</MudButton>
+                    }
+                </EmptyState>
+            }
+            else
+            {
+                @* T115 (U-2): print hides the app chrome and the page's controls; only the title, byline and content print. *@
+                <HeadContent><style media="print">.athar-drawer,.athar-topbar,.wiki-tree,.wiki-side,.tree-toggle,.page-bar,.editor-toolbar{display:none!important}</style></HeadContent>
+                @* T152: a first-visit tour of the page's tools; the top bar's help button replays it. *@
+                <PageTour Id="wiki-page" Help="wiki" Steps="@WikiTour" />
+                @* The page bar (Docmost-style): the breadcrumb on the start side, the page's actions on the end side. *@
+                <div class="page-bar">
+                    <span class="bar-tree-toggle">
+                        @* Narrow screens: the tree is a drawer; the button says what it opens (DESIGN.md: a "Pages" button). *@
+                        <MudButton Size="Size.Small" Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.AccountTree" OnClick="() => treeOpen = true"
+                                   aria-controls="wiki-tree" aria-expanded="@(treeOpen ? "true" : "false")">@T("Pages")</MudButton>
+                    </span>
+                    <nav class="crumbs" aria-label="@T("Breadcrumb")">
+                        <ol>
+                            <li><a href="@($"/wiki/s/{space.Id}")" title="@space.Name" dir="auto">@space.Name</a></li>
+                            @{ var path = Ancestors(); }
+                            @if (path.Count > 1)
+                            {
+                                @* Only the parent shows; the rest of the path folds into a menu. *@
+                                <li>
+                                    <MudMenu Size="Size.Small" Dense="true" AriaLabel="@T("ShowPath")" Class="crumb-more">
+                                        <ActivatorContent><span class="crumb-fold" title="@T("ShowPath")">…</span></ActivatorContent>
+                                        <ChildContent>
+                                            @foreach (var a in path.SkipLast(1))
+                                            {
+                                                <MudMenuItem Href="@($"/wiki/p/{a.Id}")"><bdi>@a.Title</bdi></MudMenuItem>
+                                            }
+                                        </ChildContent>
+                                    </MudMenu>
+                                </li>
+                            }
+                            @if (path.Count > 0)
+                            {
+                                <li><a href="@($"/wiki/p/{path[^1].Id}")" title="@(path[^1].Title)" dir="auto">@(path[^1].Title)</a></li>
+                            }
+                            <li aria-current="page"><span title="@(page.Title)" dir="auto">@(page.Title)</span></li>
+                        </ol>
+                    </nav>
+                    <div class="page-actions">
+                        @if (page.Status == PageStatus.Draft)
+                        {
+                            <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.EditNote">@T("Draft")</Seal>
+                            @if (canEditPage)
+                            {
+                                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary" OnClick="PublishAsync">@T("Publish")</MudButton>
+                            }
+                        }
+                        @if (canEditPage)
+                        {
+                            <div class="mode" role="group" aria-label="@T("PageMode")">
+                                <button type="button" aria-pressed="@(readMode ? "false" : "true")" @onclick="() => SetModeAsync(false)">@T("Edit")</button>
+                                <button type="button" aria-pressed="@(readMode ? "true" : "false")" @onclick="() => SetModeAsync(true)">@T("Read")</button>
+                            </div>
+                            <button type="button" class="share-button" aria-pressed="@Pressed(TabShare)" @onclick="() => ToggleSideAsync(TabShare)">@T("Share")</button>
+                        }
+                        else
+                        {
+                            <Seal Kind="Seal.Kinds.Quiet" Icon="@Icons.Material.Outlined.Visibility">@T("ReadOnly")</Seal>
+                        }
+                        <IconAction Icon="@Icons.Material.Outlined.Toc" Label="@T("Outline")" aria-pressed="@Pressed(TabOutline)" OnClick="() => ToggleSideAsync(TabOutline)" />
+                        <span class="with-count">
+                            <IconAction Icon="@Icons.Material.Outlined.ChatBubbleOutline" Label="@T("CommentsPanel")" aria-pressed="@Pressed(TabComments)" OnClick="() => ToggleSideAsync(TabComments)" />
+                            @if (openThreads > 0)
+                            {
+                                <span class="count" aria-hidden="true" @key="openThreads">@openThreads</span>
+                            }
+                        </span>
+                        <MenuButton Icon="@Icons.Material.Filled.MoreHoriz" Label="@T("MorePageActions")" OpenChanged="MenuOpenChangedAsync" Class="page-menu">
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Link" OnClick="CopyLinkAsync">@T("CopyLink")</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.ContentCopy" OnClick="CopyMarkdownAsync">@T("CopyMarkdown")</MudMenuItem>
+                            @* T118 (U-3): watch for updates, comments and the trash. *@
+                            <MudMenuItem Icon="@(watching ? Icons.Material.Filled.NotificationsActive : Icons.Material.Outlined.NotificationsNone)" OnClick="ToggleWatchAsync">@T(watching ? "Unwatch" : "Watch")</MudMenuItem>
+                            <MudMenuItem Icon="@(fullWidth ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" OnClick="ToggleWidthAsync">@T("FullWidth")</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.History" OnClick="() => OpenSideAsync(TabVersions)">@T("PageHistory")</MudMenuItem>
+                            @if (canEditPage)
+                            {
+                                <MudMenuItem Icon="@Icons.Material.Outlined.DriveFileMove" OnClick="() => PageActionAsync(PageTreeItem.TreeAction.Move)">@T("MoveTo")</MudMenuItem>
+                            }
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Print" OnClick="PrintAsync">@T("PrintPdf")</MudMenuItem>
+                            @* T157 (FR-PG-10) *@
+                            <MudMenuItem Icon="@Icons.Material.Outlined.FileDownload" Href="@($"/wiki/export?page={page.Id}&format=md")" Target="_blank">@T("ExportMarkdown")</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.FileDownload" Href="@($"/wiki/export?page={page.Id}&format=html")" Target="_blank">@T("ExportHtml")</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.FolderZip" Href="@($"/wiki/export?page={page.Id}&format=zip")" Target="_blank">@T("ExportZip")</MudMenuItem>
+                            @if (canEditPage && page.Status == PageStatus.Published)
+                            {
+                                <MudMenuItem Icon="@Icons.Material.Outlined.EditNote" OnClick="UnpublishAsync">@T("Unpublish")</MudMenuItem>
+                            }
+                            @if (canEditPage)
+                            {
+                                <MudMenuItem Icon="@Icons.Material.Outlined.Delete" IconColor="Color.Error" OnClick="TrashPageAsync">@T("MoveToTrash")</MudMenuItem>
+                            }
+                            <MudDivider />
+                            <div class="page-facts">
+                                @if (wordCount is { } words)
+                                {
+                                    <span>@string.Format(T("WordCount"), words)</span>
+                                }
+                                @if (page.CreatedBy is { } maker && names.TryGetValue(maker, out var makerName))
+                                {
+                                    <span>@T("CreatedBy") <bdi>@makerName</bdi></span>
+                                }
+                                <span>@T("CreatedAt") <Timestamp Value="page.CreatedAt" /></span>
+                            </div>
+                        </MenuButton>
+                    </div>
+                </div>
+                <header class="page-head">
+                    @if (Editing)
+                    {
+                        @* The title is the page's h1, editable in place: it looks like a field only on hover and focus (Enter or leaving saves). *@
+                        <h1 class="page-title"><input class="title-input" @bind="title" @bind:event="oninput" @onblur="RenameAsync" @onkeydown="TitleKeyAsync"
+                                                      aria-label="@T("Title")" dir="auto" autocomplete="off" /></h1>
+                    }
+                    else
+                    {
+                        <h1 class="page-title" dir="auto">@(page.Title)</h1>
+                    }
+                    <p class="byline">
+                        @if (authorId is { } author && names.TryGetValue(author, out var authorName))
+                        {
+                            <span class="author-chip">
+                                <Avatar UserId="author" Name="@authorName" Size="small" />
+                                <span>@T("By") <bdi class="author">@authorName</bdi></span>
+                            </span>
+                        }
+                        <span>@T("UpdatedAt") <Timestamp Value="page.UpdatedAt" Relative="true" /></span>
+                        <span class="spacer"></span>
+                        @if (presence.Count > 0)
+                        {
+                            <ul class="presence" aria-label="@T("Editors")">
+                                @foreach (var p in presence.Take(5))
+                                {
+                                    var who = p.Self ? $"{p.Name} ({T("You")})" : p.Name;
+                                    <li class="avatar presence-@PresenceIndex(p.Color)" title="@who"><span aria-hidden="true">@Initials(p.Name)</span><span class="visually-hidden">@who</span></li>
+                                }
+                                @if (presence.Count > 5)
+                                {
+                                    <li class="avatar more" title="@string.Join(", ", presence.Skip(5).Select(p => p.Name))">+@(presence.Count - 5)</li>
+                                }
+                            </ul>
+                        }
+                        <span class="save-state" role="status">
+                            <Seal Kind="@(saveState == "unsynced" ? Seal.Kinds.Warn : Seal.Kinds.Quiet)" Icon="@SaveIcon()"
+                                  Tooltip="@(saveState == "saved" && savedRevision is { } r ? string.Format(T("RevisionN"), r) : null)">@SaveLabel()</Seal>
+                        </span>
+                    </p>
+                </header>
+
+                @if (Editing)
+                {
+                    <div class="editor-toolbar" role="toolbar" aria-label="@T("Formatting")">
+                        @for (var g = 0; g < Tools.Length; g++)
+                        {
+                            if (g > 0)
+                            {
+                                <span class="sep" aria-hidden="true"></span>
+                            }
+                            foreach (var (cmd, icon, label, arg) in Tools[g])
+                            {
+                                if (Menus.TryGetValue(cmd, out var items))
+                                {
+                                    @* A small menu where a row of buttons would crowd the bar: text styles, table rows and columns. *@
+                                    <MenuButton Icon="@icon" Label="@T(label)" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
+                                        @foreach (var (itemCmd, itemLabel, itemArg) in items)
+                                        {
+                                            <MudMenuItem OnClick="() => ToolAsync(itemCmd, itemArg)">@T(itemLabel)</MudMenuItem>
+                                        }
+                                    </MenuButton>
+                                }
+                                else
+                                {
+                                    <IconAction Icon="@icon" Label="@T(label)" OnClick="() => ToolAsync(cmd, arg)" />
+                                }
+                            }
+                        }
+                        @* FR-PG-02/06: an image goes in inline, any other file as a link to it. *@
+                        <MudFileUpload T="IBrowserFile" FilesChanged="UploadAsync" Accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.docx" Disabled="uploading">
+                            <ActivatorContent>
+                                <IconAction Icon="@Icons.Material.Filled.AttachFile" Label="@T("AttachFile")" Disabled="uploading" />
+                            </ActivatorContent>
+                        </MudFileUpload>
+                    </div>
+                }
+
+                <PageEditor @key="page.Id" @ref="editor" PageId="page.Id" Actor="actor" Name="@Session.Name" Level="@level"
+                            Label="@T("PageContent")" OnSaveState="OnSaveState" OnPresence="OnPresence"
+                            SlashItems="@(canEditPage ? SlashItems() : [])" OnTool="cmd => ToolAsync(cmd, null)" />
+            }
+        </div>
+
+        @if (page is not null)
+        {
+            @* Outline (default), Comments, Versions. Share opens from the page bar as its own panel. The comments panel stays
+               mounted while hidden: it keeps the open count and the editor's resolved highlights current. *@
+            <aside class="wiki-side" aria-label="@T("PagePanels")" hidden="@(!sideOpen)" @key="page.Id">
+                @if (sideTab == TabShare && canEditPage)
+                {
+                    <div class="side-head">
+                        <h2>@T("Share")</h2>
+                        <IconAction Icon="@Icons.Material.Outlined.Close" Label="@T("Close")" OnClick="() => ToggleSideAsync(TabShare)" />
+                    </div>
+                    <SharePanel PageId="page.Id" SpaceId="page.SpaceId" CanManageSpace="canModerate" />
+                }
+                else
+                {
+                    <div class="side-tabs" role="tablist" aria-label="@T("PagePanels")">
+                        @foreach (var (tab, label) in SideTabs)
+                        {
+                            <button type="button" role="tab" id="side-tab-@tab" aria-selected="@(sideTab == tab ? "true" : "false")" aria-controls="side-panel-@tab"
+                                    tabindex="@(sideTab == tab ? 0 : -1)" @onclick="() => TabChangedAsync(tab)" @onkeydown="e => SideTabKeyAsync(e, tab)">
+                                @T(label)
+                                @if (tab == TabComments && openThreads > 0)
+                                {
+                                    <span class="tab-count">@openThreads</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                }
+                <div class="side-panel" role="tabpanel" id="side-panel-@TabOutline" aria-labelledby="side-tab-@TabOutline" hidden="@(sideTab != TabOutline)">
+                    <nav class="outline" aria-label="@T("Outline")">
+                        @if (outline.Length == 0)
+                        {
+                            <EmptyState Icon="@Icons.Material.Outlined.Toc" Title="@T("NoHeadings")" Compact="true" />
+                        }
+                        @foreach (var h in outline)
+                        {
+                            <button type="button" class="outline-item level-@h.Level" dir="auto" @onclick="() => editor!.ScrollToHeadingAsync(h.Pos)">@h.Text</button>
+                        }
+                    </nav>
+                </div>
+                <div class="side-panel side-comments" role="tabpanel" id="side-panel-@TabComments" aria-labelledby="side-tab-@TabComments" hidden="@(sideTab != TabComments)">
+                    <CommentsPanel PageId="page.Id" CanComment="canComment" CanModerate="canModerate" OnCount="n => openThreads = n"
+                                   GetSelection="GetCommentSelection" Focus="id => editor!.FocusThreadAsync(id)"
+                                   ClearSelection="ClearCommentSelection" OnResolved="SetResolvedThreads" />
+                </div>
+                @if (sideTab == TabVersions)
+                {
+                    <div class="side-panel" role="tabpanel" id="side-panel-@TabVersions" aria-labelledby="side-tab-@TabVersions">
+                        <VersionsPanel PageId="page.Id" CanEdit="canEditPage" />
+                    </div>
+                }
+            </aside>
+        }
+    </div>
+
+    @if (canEditPage)
+    {
+        <MudDialog Visible="urlFor is not null" VisibleChanged="v => { if (!v) urlFor = null; }" Options="SmallDialog">
+            <TitleContent>@(urlFor == "image" ? T("InsertImage") : T("InsertLink"))</TitleContent>
+            <DialogContent>
+                <MudTextField T="string" @bind-Value="url" Label="@T("Url")" InputType="InputType.Url" AutoFocus="true" Immediate="true"
+                              OnKeyDown="UrlKeyAsync" dir="ltr" />
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="() => urlFor = null">@T("Cancel")</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="InsertUrlAsync">@T("Insert")</MudButton>
+            </DialogActions>
+        </MudDialog>
+    }
+    @if (canEditSpace)
+    {
+        @* T156 (FR-PG-09): import Markdown, HTML, a zip of them or a Confluence HTML export, here or under a page. *@
+        <MudDialog Visible="importing" VisibleChanged="v => { if (!v) CloseImport(); }" Options="SmallDialog">
+            <TitleContent>@T("ImportPages")</TitleContent>
+            <DialogContent>
+                <p class="move-what" dir="auto">@(importUnder?.Title ?? space?.Name)</p>
+                <p class="import-help">@T("ImportHelp")</p>
+                @if (space is not null)
+                {
+                    @* T164: uploaded over HTTP, imported in the background (up to 4 GB). *@
+                    <ImportUpload Mode="space" TargetId="space.Id" ParentId="importUnder?.Id" BusyChanged="b => importBusy = b" OnDone="ImportedAsync" />
+                }
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="CloseImport" Disabled="importBusy">@T(importResult is null ? "Cancel" : "Close")</MudButton>
+                @if (importResult is not null)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenImported">@T("OpenImported")</MudButton>
+                }
+            </DialogActions>
+        </MudDialog>
+
+        <MudDialog Visible="copying is not null" VisibleChanged="v => { if (!v) copying = null; }" Options="SmallDialog">
+            <TitleContent>@T("CopyToSpace")</TitleContent>
+            <DialogContent>
+                @if (copying is not null)
+                {
+                    <p class="move-what" dir="auto">@copying.Title</p>
+                    @if (copyTargets.Count == 0)
+                    {
+                        <p>@T("NoCopyTargets")</p>
+                    }
+                    else
+                    {
+                        <MudSelect T="Guid" @bind-Value="copyTo" Label="@T("TargetSpace")" Class="mb-3">
+                            @foreach (var t in copyTargets)
+                            {
+                                <MudSelectItem Value="t.SpaceId"><bdi>@t.Name</bdi></MudSelectItem>
+                            }
+                        </MudSelect>
+                        <p class="copy-count">@string.Format(T("CopyPagesCount"), SubtreeSize(copying))</p>
+                    }
+                }
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="() => copying = null">@T("Cancel")</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="copyTargets.Count == 0 || (copying is not null && SubtreeSize(copying) > PageCopyService.MaxPages)"
+                           OnClick="CopyToSpaceAsync">@T("Copy")</MudButton>
+            </DialogActions>
+        </MudDialog>
+
+        <MudDialog Visible="moving is not null" VisibleChanged="v => { if (!v) moving = null; }" Options="SmallDialog">
+            <TitleContent>@T("MovePage")</TitleContent>
+            <DialogContent>
+                @if (moving is not null)
+                {
+                    <p class="move-what" dir="auto">@moving.Title</p>
+                    <MudSelect T="Guid" Value="moveSpace" ValueChanged="MoveSpaceChangedAsync" Label="@T("TargetSpace")" Class="mb-3">
+                        @foreach (var s in moveSpaces)
+                        {
+                            <MudSelectItem Value="s.Id"><bdi>@s.Name</bdi></MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect T="Guid" @bind-Value="moveParent" Label="@T("TargetParent")">
+                        <MudSelectItem Value="Guid.Empty">@T("TopLevel")</MudSelectItem>
+                        @foreach (var p in moveParents)
+                        {
+                            <MudSelectItem Value="p.Id"><bdi>@p.Title</bdi></MudSelectItem>
+                        }
+                    </MudSelect>
+                }
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="() => moving = null">@T("Cancel")</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="MoveAsync">@T("Move")</MudButton>
+            </DialogActions>
+        </MudDialog>
+    }
+}
+
+@code {
+    [Parameter] public Guid? SpaceId { get; set; }
+    [Parameter] public Guid? PageId { get; set; }
+
+    /// <summary>
+    /// The formatting toolbar in groups (history, style, marks, lists, blocks, table, insert); a thin divider separates the
+    /// groups. Every command is in src/editor's `commands`, and every mark and node round-trips through collab's Markdown.
+    /// </summary>
+    private static readonly (string Cmd, string Icon, string Label, string? Arg)[][] Tools =
+    [
+        [
+            ("undo", Icons.Material.Filled.Undo, "Undo", null),
+            ("redo", Icons.Material.Filled.Redo, "Redo", null),
+        ],
+        [
+            ("menu:style", Icons.Material.Filled.Title, "TextStyle", null),
+        ],
+        [
+            ("bold", Icons.Material.Filled.FormatBold, "Bold", null),
+            ("italic", Icons.Material.Filled.FormatItalic, "Italic", null),
+            ("underline", Icons.Material.Filled.FormatUnderlined, "Underline", null),
+            ("strike", Icons.Material.Filled.StrikethroughS, "Strikethrough", null),
+            ("code", Icons.Material.Filled.Code, "InlineCode", null),
+            ("clearFormatting", Icons.Material.Filled.FormatClear, "ClearFormatting", null),
+        ],
+        [
+            ("bulletList", Icons.Material.Filled.FormatListBulleted, "BulletList", null),
+            ("orderedList", Icons.Material.Filled.FormatListNumbered, "OrderedList", null),
+            ("taskList", Icons.Material.Filled.Checklist, "TaskList", null),
+        ],
+        [
+            ("blockquote", Icons.Material.Filled.FormatQuote, "Quote", null),
+            ("codeBlock", Icons.Material.Filled.DataObject, "CodeBlock", null),
+            ("callout", Icons.Material.Outlined.Info, "Callout", null),
+            ("horizontalRule", Icons.Material.Filled.HorizontalRule, "Divider", null),
+        ],
+        [
+            ("table", Icons.Material.Outlined.TableChart, "Table", null),
+            ("menu:table", Icons.Material.Outlined.ViewColumn, "TableActions", null),
+        ],
+        [
+            ("image", Icons.Material.Outlined.Image, "Image", null),
+            ("link", Icons.Material.Filled.Link, "Link", null),
+            ("pageLink", Icons.Material.Outlined.Article, "PageLink", null),
+        ],
+    ];
+
+    /// <summary>The `/` menu (Docmost-style): id (src/editor slashActions), icon, label key, English keywords for any UI language.</summary>
+    private static readonly (string Id, string Icon, string Key, string Keywords, string Group)[] Slash =
+    [
+        ("text", Icons.Material.Filled.TextFields, "Text", "paragraph plain p", "SlashBasic"),
+        ("todo", Icons.Material.Filled.CheckBox, "Todo", "todo task checkbox checklist", "SlashBasic"),
+        ("h1", Icons.Material.Filled.LooksOne, "Heading1", "h1 heading title", "SlashBasic"),
+        ("h2", Icons.Material.Filled.LooksTwo, "Heading2", "h2 heading subtitle", "SlashBasic"),
+        ("h3", Icons.Material.Filled.Looks3, "Heading3", "h3 heading", "SlashBasic"),
+        ("bullet", Icons.Material.Filled.FormatListBulleted, "BulletList", "bullet unordered list ul", "SlashBasic"),
+        ("numbered", Icons.Material.Filled.FormatListNumbered, "OrderedList", "numbered ordered list ol", "SlashBasic"),
+        ("quote", Icons.Material.Filled.FormatQuote, "Quote", "quote blockquote citation", "SlashBasic"),
+        ("code", Icons.Material.Filled.DataObject, "CodeBlock", "code block snippet pre", "SlashBasic"),
+        ("callout", Icons.Material.Outlined.Info, "Callout", "callout note info tip", "SlashBasic"),
+        ("divider", Icons.Material.Filled.HorizontalRule, "Divider", "divider rule hr line separator", "SlashBasic"),
+        ("table", Icons.Material.Outlined.TableChart, "Table", "table grid", "SlashInsert"),
+        ("image", Icons.Material.Outlined.Image, "Image", "image picture photo img", "SlashInsert"),
+        ("pageLink", Icons.Material.Outlined.Article, "PageLink", "page link wiki reference", "SlashInsert"),
+    ];
+
+    private IReadOnlyList<PageEditor.SlashItem>? slashItems;
+
+    /// <summary>The `/` items in the reader's language (built once per page component).</summary>
+    private IReadOnlyList<PageEditor.SlashItem> SlashItems() => slashItems ??=
+        [.. Slash.Select(s => new PageEditor.SlashItem(s.Id, T(s.Key), T($"Slash_{s.Id}"), s.Icon, T(s.Group), s.Keywords))];
+
+    /// <summary>The toolbar's menus, by their `menu:` command: (command, label, argument).</summary>
+    private static readonly Dictionary<string, (string Cmd, string Label, string? Arg)[]> Menus = new()
+    {
+        ["menu:style"] = [("paragraph", "Paragraph", null), ("heading", "Heading1", "1"), ("heading", "Heading2", "2"), ("heading", "Heading3", "3")],
+        ["menu:table"] = [("addRow", "AddRow", null), ("addColumn", "AddColumn", null), ("deleteRow", "DeleteRow", null),
+                          ("deleteColumn", "DeleteColumn", null), ("deleteTable", "DeleteTable", null)],
+    };
+
+    private static readonly DialogOptions SmallDialog = new() { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true, CloseOnEscapeKey = true };
+
+    private WikiActor? actor;
+    private Space? space;
+    private Page? page;
+    private string title = "";
+    /// <summary>Editor role in the space: new top-level pages and tree actions (the service still checks each page).</summary>
+    private bool canEditSpace;
+    /// <summary>Edit rights on this page, with its restrictions and shares (T012).</summary>
+    private bool canEditPage;
+    private bool canComment, canModerate;
+    private string level = "view";
+    private List<PageNode> tree = [];
+    private ILookup<Guid?, PageNode> children = Array.Empty<PageNode>().ToLookup(p => p.ParentId);
+    private List<PageNode> trash = [];
+    private bool showTrash, treeOpen, loading, denied;
+    private string saveState = "connecting";
+    private int? savedRevision;
+    private int openThreads;
+    private IReadOnlyList<PageEditor.PresenceInfo> presence = [];
+    private PageEditor? editor;
+    private ElementReference treeRef;
+    private DotNetObjectReference<WikiPage>? self;
+    private bool favorite, canManageSpace, watching;
+    private Guid? settingsFor;
+
+    private async Task OpenSpaceSettingsAsync()
+    {
+        await Athar.Web.Components.Admin.SpaceSettingsDialog.ShowAsync(Dialogs, space!.Id, space.Name);
+    }
+    private string? urlFor, url;
+    private PageNode? moving;
+    private List<Space> moveSpaces = [];
+    private Guid moveSpace, moveParent;
+    private List<PageNode> moveParents = [];
+
+    private string T(string key) => Session.T(key);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        actor = await Session.ResolveAsync();
+        (denied, treeOpen, loading) = (false, false, true);
+        await Try(async pages =>
+        {
+            page = PageId is { } id ? await pages.GetAsync(actor, id) : null;
+            if (page is not null) expanded.UnionWith(page.AncestorIds);
+            var spaceId = page?.SpaceId ?? SpaceId!.Value;
+            var spaces = await pages.SpacesAsync(actor);
+            var mine = spaces.SingleOrDefault(s => s.Space.Id == spaceId);
+            if (mine.Space is null) throw new AtharError("not_found", "Space not found.");
+            space = mine.Space;
+            canEditSpace = mine.Role >= SpaceRole.Editor;
+            canModerate = mine.Role == SpaceRole.Admin;
+            var rights = page is null ? null : await pages.RightsAsync(actor, page.Id);
+            canEditPage = rights?.Edit == true;
+            canComment = rights?.Comment == true;
+            level = rights is null ? "view" : rights.Edit ? "edit" : rights.Comment ? "comment" : "view";
+            moveSpaces = [.. spaces.Where(s => s.Space.WorkspaceId == space.WorkspaceId && s.Role >= SpaceRole.Editor).Select(s => s.Space)];
+            title = page?.Title ?? "";
+            authorId = page is null ? null : await pages.AuthorAsync(actor, page);
+            names = page is null ? [] : await pages.NamesAsync(actor, new[] { page.CreatedBy, page.PublishedBy, authorId }.OfType<Guid>());
+            if (openShare && page is not null) (openShare, sideOpen, sideTab) = (false, true, TabShare);
+            saveState = "connecting";
+            savedRevision = null;
+            openThreads = 0;
+            presence = [];
+            await LoadTreeAsync(pages);
+        });
+        loading = false;
+        if (space is not null && space.Id != settingsFor)
+        {
+            settingsFor = space.Id;
+            canManageSpace = await SpaceAdmin.CanManageSpaceAsync(actor.OrgId, actor.UserId, space.Id);
+        }
+        if (space is not null) favorite = await Favorites.IsFavoriteAsync(actor.OrgId, actor.UserId, "space", space.Id);
+        if (page is not null)
+        {
+            await using var scope = Scopes.CreateAsyncScope();
+            watching = await scope.ServiceProvider.GetRequiredService<NotificationService>().IsWatchingAsync(actor.OrgId, actor.UserId, page.Id);
+        }
+    }
+
+    private async Task ToggleWatchAsync()
+    {
+        await using var scope = Scopes.CreateAsyncScope();
+        if (await scope.ServiceProvider.GetRequiredService<NotificationService>().SetWatchAsync(actor!.OrgId, actor.UserId, page!.Id, !watching))
+            watching = !watching;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) await LoadPrefsAsync();
+        // A new page means a new editor island: give it the remembered mode. The mode is checked too, because the editor can
+        // render (and be marked applied) while the first render is still reading the browser's choice.
+        if (editor is not null && canEditPage && (!ReferenceEquals(editor, modeApplied) || modeAppliedRead != readMode))
+        {
+            (modeApplied, modeAppliedRead) = (editor, readMode);
+            await editor.SetReadModeAsync(readMode);
+        }
+        // The tree exists once the space has loaded; the module attaches once per element.
+        if (space is null || !canEditSpace || treeRef.Id is null) return;
+        self ??= DotNetObjectReference.Create(this);
+        try
+        {
+            await using var module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Wiki/WikiPage.razor.js");
+            await module.InvokeVoidAsync("attachTreeDnd", treeRef, self);
+        }
+        catch (JSDisconnectedException) { }
+    }
+
+    /// <summary>A page dropped in the tree (WikiPage.razor.js): before, after or inside another.</summary>
+    [JSInvokable]
+    public async Task DropPage(string pageId, string targetId, string where)
+    {
+        if (!Guid.TryParse(pageId, out var id) || !Guid.TryParse(targetId, out var target) || !Enum.TryParse<DropPlace>(where, true, out var place)) return;
+        await Try(async pages =>
+        {
+            await pages.DropAsync(actor!, id, target, place);
+            if (place == DropPlace.Inside) expanded.Add(target); // the collapsed tree would hide the page just dropped
+            await LoadTreeAsync(pages);
+        });
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ToggleFavoriteAsync()
+    {
+        try
+        {
+            favorite = await Favorites.ToggleAsync(actor!.OrgId, actor.UserId, "space", space!.Id);
+        }
+        catch (AtharError e)
+        {
+            Snackbar.Add(e.Message, Severity.Error);
+        }
+    }
+
+    public void Dispose() => self?.Dispose();
+
+    // T100: the tree renders collapsed (roots and the path to the open page), in steps of PageTreeItem.Step siblings,
+    // and rows re-render only when treeStamp moves. A 10k-page space rendered fully expanded ran web out of memory.
+    private readonly HashSet<Guid> expanded = [];
+    private int treeStamp, rootsShown = PageTreeItem.Step;
+
+    private void ToggleNode(Guid id)
+    {
+        if (!expanded.Remove(id)) expanded.Add(id);
+        treeStamp++;
+    }
+
+    private async Task LoadTreeAsync(PageService pages)
+    {
+        tree = await pages.TreeAsync(actor!, space!.Id);
+        children = tree.ToLookup(p => p.ParentId);
+        treeStamp++;
+        if (showTrash) trash = await pages.TreeAsync(actor!, space.Id, trash: true);
+    }
+
+    private async Task CreateAsync(Guid? parentId)
+    {
+        Guid created = default;
+        // U-1: pages made in the wiki start as drafts; Publish in the page header makes them visible to readers.
+        await Try(async pages => created = await pages.CreateAsync(actor!, space!.Id, parentId, T("Untitled"), draft: true));
+        if (created != default) Nav.NavigateTo($"/wiki/p/{created}");
+    }
+
+    private async Task OnTreeActionAsync((PageTreeItem.TreeAction Action, PageNode Node) e)
+    {
+        switch (e.Action)
+        {
+            case PageTreeItem.TreeAction.NewChild:
+                await CreateAsync(e.Node.Id);
+                break;
+            case PageTreeItem.TreeAction.Up or PageTreeItem.TreeAction.Down:
+                await Try(async pages =>
+                {
+                    await pages.ReorderAsync(actor!, e.Node.Id, e.Action == PageTreeItem.TreeAction.Up ? -1 : 1);
+                    await LoadTreeAsync(pages);
+                });
+                break;
+            case PageTreeItem.TreeAction.Move:
+                moving = e.Node;
+                await MoveSpaceChangedAsync(e.Node.SpaceId);
+                break;
+            case PageTreeItem.TreeAction.CopyLink:
+                await CopyAsync(Nav.ToAbsoluteUri($"/wiki/p/{e.Node.Id}").ToString());
+                break;
+            case PageTreeItem.TreeAction.Share:
+                // Open the page with its Share panel showing.
+                if (page?.Id == e.Node.Id) await OpenSideAsync(TabShare);
+                else
+                {
+                    openShare = true;
+                    Nav.NavigateTo($"/wiki/p/{e.Node.Id}");
+                }
+                break;
+            case PageTreeItem.TreeAction.Duplicate:
+                await DuplicateAsync(e.Node);
+                break;
+            case PageTreeItem.TreeAction.CopyToSpace:
+                await OpenCopyAsync(e.Node);
+                break;
+            case PageTreeItem.TreeAction.Import:
+                OpenImport(e.Node);
+                break;
+            case PageTreeItem.TreeAction.Trash:
+                if (await Dialogs.ShowMessageBox(T("MoveToTrash"), T("ConfirmTrash"), yesText: T("MoveToTrash"), cancelText: T("Cancel")) != true) break;
+                await Try(async pages =>
+                {
+                    await pages.TrashAsync(actor!, e.Node.Id);
+                    await LoadTreeAsync(pages);
+                });
+                if (page is not null && !tree.Any(p => p.Id == page.Id)) Nav.NavigateTo($"/wiki/s/{space!.Id}");
+                break;
+        }
+    }
+
+    private async Task MoveSpaceChangedAsync(Guid spaceId)
+    {
+        moveSpace = spaceId;
+        moveParent = Guid.Empty;
+        await Try(async pages =>
+        {
+            var target = await pages.TreeAsync(actor!, spaceId);
+            // Hide the page's own subtree: moving under it is a cycle (the service rejects it anyway).
+            var subtree = PageTree.Subtree(moving!.Id, target.Select(p => (p.Id, p.ParentId))).ToHashSet();
+            moveParents = [.. target.Where(p => !subtree.Contains(p.Id))];
+        });
+    }
+
+    private async Task MoveAsync()
+    {
+        var node = moving!;
+        await Try(async pages =>
+        {
+            await pages.MoveAsync(actor!, node.Id, moveSpace, moveParent == Guid.Empty ? null : moveParent);
+            moving = null;
+            await LoadTreeAsync(pages);
+        });
+        if (moving is null && moveSpace != space!.Id) Nav.NavigateTo($"/wiki/p/{node.Id}");
+    }
+
+    private async Task ToggleTrashAsync()
+    {
+        showTrash = !showTrash;
+        await Try(LoadTreeAsync);
+    }
+
+    private async Task RestoreAsync(Guid id) => await Try(async pages =>
+    {
+        await pages.RestoreAsync(actor!, id);
+        await LoadTreeAsync(pages);
+    });
+
+    private void TreeKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") treeOpen = false;
+    }
+
+    private async Task RenameAsync()
+    {
+        if (page is null || !canEditPage || title.Trim() == page.Title) return;
+        var renamed = false;
+        await Try(async pages =>
+        {
+            await pages.RenameAsync(actor!, page.Id, title);
+            page.Title = title.Trim();
+            renamed = true;
+            await LoadTreeAsync(pages);
+        });
+        // A refused title (e.g. empty) goes back to the stored one; the bound input re-renders with it.
+        if (!renamed) title = page.Title;
+    }
+
+    private async Task TitleKeyAsync(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await RenameAsync();
+    }
+
+    private async Task ToolAsync(string cmd, string? arg)
+    {
+        if (cmd is "image" or "link")
+        {
+            (urlFor, url) = (cmd, "");
+            return;
+        }
+        await editor!.RunAsync(cmd, arg);
+    }
+
+    private bool uploading;
+
+    private async Task UploadAsync(IBrowserFile? file)
+    {
+        if (file is null || page is null) return;
+        if (file.Size > AttachmentRules.MaxBytes)
+        {
+            Snackbar.Add(T("FileTooLarge"), Severity.Error);
+            return;
+        }
+        uploading = true;
+        try
+        {
+            await using var scope = Scopes.CreateAsyncScope();
+            await using var content = file.OpenReadStream(AttachmentRules.MaxBytes);
+            var a = await scope.ServiceProvider.GetRequiredService<AttachmentService>().UploadAsync(Session.AsActor(), page.Id, file.Name, file.ContentType, content, CancellationToken.None);
+            if (AttachmentRules.Inline(a.Mime)) await editor!.RunAsync("image", a.Url);
+            else await editor!.RunAsync("file", System.Text.Json.JsonSerializer.Serialize(new { href = a.Url, name = a.FileName }));
+        }
+        catch (AtharError e)
+        {
+            Snackbar.Add(e.Message, Severity.Error);
+        }
+        finally
+        {
+            uploading = false;
+        }
+    }
+
+    private async Task UrlKeyAsync(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await InsertUrlAsync();
+    }
+
+    private async Task InsertUrlAsync()
+    {
+        // Images by URL; uploads go through the attach button.
+        var target = urlFor;
+        urlFor = null;
+        if (target is not null && Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Scheme is "http" or "https")
+            await editor!.RunAsync(target, u.ToString());
+    }
+
+    private async Task OnSaveState((string State, int? Revision) s)
+    {
+        saveState = s.State;
+        if (s.Revision is { } r) savedRevision = r;
+        // "synced" also arrives once the page has loaded, so the default Outline tab fills without a click.
+        if (s.State != "unsynced" && sideOpen && sideTab == TabOutline) await RefreshOutlineAsync();
+    }
+
+    // ---------- page chrome (T115, U-2) ----------
+    // Read mode, the side panel and full width are each person's choice, remembered per browser (localStorage).
+    private sealed record Prefs(bool Read, bool Side, bool Wide);
+    private const string PrefsKey = "athar.wiki.prefs";
+    private const int TabOutline = 0, TabComments = 1, TabVersions = 2, TabShare = 3;
+    private static readonly (int Tab, string Label)[] SideTabs = [(TabOutline, "Outline"), (TabComments, "Comments"), (TabVersions, "Versions")];
+    private bool readMode, sideOpen = true, fullWidth = true;
+    private int sideTab;
+    private PageEditor? modeApplied;
+    private bool modeAppliedRead;
+    private PageEditor.Heading[] outline = [];
+    private int? wordCount;
+    private Dictionary<Guid, string> names = [];
+    private Guid? authorId;
+
+    /// <summary>The open page's ancestors, root first, as far as the loaded tree has them.</summary>
+    private List<PageNode> Ancestors() => [.. page!.AncestorIds.Select(id => tree.FirstOrDefault(n => n.Id == id)).OfType<PageNode>()];
+
+    /// <summary>Editing: an editor in Edit mode. Everyone else reads.</summary>
+    private bool Editing => canEditPage && !readMode;
+
+    private string Pressed(int tab) => sideOpen && sideTab == tab ? "true" : "false";
+
+    private async Task LoadPrefsAsync()
+    {
+        try
+        {
+            if (await JS.InvokeAsync<string?>("localStorage.getItem", PrefsKey) is { Length: > 0 } json && JsonSerializer.Deserialize<Prefs>(json) is { } p)
+            {
+                (readMode, sideOpen, fullWidth) = (p.Read, p.Side, p.Wide);
+                StateHasChanged();
+            }
+        }
+        catch (Exception e) when (e is JSException or JsonException or InvalidOperationException) { } // storage blocked or old value: defaults
+    }
+
+    private async Task SavePrefsAsync()
+    {
+        try { await JS.InvokeVoidAsync("localStorage.setItem", PrefsKey, JsonSerializer.Serialize(new Prefs(readMode, sideOpen, fullWidth))); }
+        catch (JSException) { } // storage blocked: the choice lasts this page only
+    }
+
+    private async Task SetModeAsync(bool read)
+    {
+        readMode = read;
+        if (editor is not null) await editor.SetReadModeAsync(read);
+        await SavePrefsAsync();
+    }
+
+    private async Task OpenSideAsync(int tab)
+    {
+        (sideOpen, sideTab) = (true, tab);
+        if (tab == TabOutline) await RefreshOutlineAsync();
+        await SavePrefsAsync();
+    }
+
+    /// <summary>The header's Share, comments and outline buttons: open the panel on that tab, or close it if it's showing.</summary>
+    private async Task ToggleSideAsync(int tab)
+    {
+        if (sideOpen && sideTab == tab)
+        {
+            sideOpen = false;
+            await SavePrefsAsync();
+        }
+        else await OpenSideAsync(tab);
+    }
+
+    private async Task TabChangedAsync(int tab)
+    {
+        sideTab = tab;
+        if (tab == TabOutline) await RefreshOutlineAsync();
+    }
+
+    /// <summary>Arrow keys, Home and End move between the side tabs (WAI-ARIA tabs pattern).</summary>
+    private async Task SideTabKeyAsync(KeyboardEventArgs e, int tab)
+    {
+        var i = Array.FindIndex(SideTabs, t => t.Tab == tab);
+        var rtl = System.Globalization.CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft;
+        int? next = e.Key switch
+        {
+            "ArrowRight" => rtl ? i - 1 : i + 1,
+            "ArrowLeft" => rtl ? i + 1 : i - 1,
+            "Home" => 0,
+            "End" => SideTabs.Length - 1,
+            _ => null,
+        };
+        if (next is not { } n) return;
+        var target = SideTabs[(n + SideTabs.Length) % SideTabs.Length].Tab;
+        await TabChangedAsync(target);
+        await JS.InvokeVoidAsync("athar.focus", $"side-tab-{target}");
+    }
+
+    // Method groups rather than lambdas for the comments panel's callbacks.
+    private Task<PageEditor.CommentSelection?> GetCommentSelection() => editor!.CommentSelectionAsync();
+    private Task ClearCommentSelection() => editor?.ClearCommentSelectionAsync() ?? Task.CompletedTask;
+    private Task SetResolvedThreads(IReadOnlyList<Guid> ids) => editor?.SetResolvedThreadsAsync(ids) ?? Task.CompletedTask;
+
+    private async Task RefreshOutlineAsync()
+    {
+        if (editor is not null) outline = await editor.OutlineAsync();
+    }
+
+    private async Task ToggleWidthAsync()
+    {
+        fullWidth = !fullWidth;
+        await SavePrefsAsync();
+    }
+
+    private async Task MenuOpenChangedAsync(bool open)
+    {
+        if (open && editor is not null) wordCount = await editor.WordCountAsync();
+    }
+
+    private Task CopyLinkAsync() => CopyAsync(Nav.ToAbsoluteUri($"/wiki/p/{page!.Id}").ToString());
+
+    private async Task CopyMarkdownAsync()
+    {
+        await using var scope = Scopes.CreateAsyncScope();
+        try
+        {
+            var view = await scope.ServiceProvider.GetRequiredService<PageOpsService>().GetPageAsync(Session.AsActor(), page!.Id, "markdown");
+            await CopyAsync(view.Content);
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Error); }
+    }
+
+    private async Task CopyAsync(string text)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            Snackbar.Add(T("Copied"), Severity.Success);
+        }
+        catch (JSException) { Snackbar.Add(T("CopyFailed"), Severity.Warning); } // no clipboard (plain HTTP on the LAN, or denied)
+    }
+
+    private async Task PrintAsync()
+    {
+        try { await JS.InvokeVoidAsync("print"); }
+        catch (JSException) { }
+    }
+
+    private Task PublishAsync() => SetStatusAsync(publish: true);
+
+    private Task UnpublishAsync() => SetStatusAsync(publish: false);
+
+    private async Task SetStatusAsync(bool publish)
+    {
+        await Try(async pages =>
+        {
+            if (publish) await pages.PublishAsync(actor!, page!.Id);
+            else await pages.UnpublishAsync(actor!, page!.Id);
+            page = await pages.GetAsync(actor!, page.Id);
+            await LoadTreeAsync(pages);
+        });
+        Snackbar.Add(T(publish ? "PublishedNow" : "UnpublishedNow"), Severity.Success);
+    }
+
+    private PageNode CurrentNode() =>
+        tree.FirstOrDefault(n => n.Id == page!.Id) ?? new PageNode(page!.Id, page.SpaceId, page.ParentId, page.Title, page.Position, null, page.Status);
+
+    private Task PageActionAsync(PageTreeItem.TreeAction action) => OnTreeActionAsync((action, CurrentNode()));
+
+    private Task TrashPageAsync() => PageActionAsync(PageTreeItem.TreeAction.Trash);
+
+    // ---------- page tree actions (T116) ----------
+    private bool openShare;
+    private PageNode? copying;
+    private List<CopyTarget> copyTargets = [];
+    private Guid copyTo;
+
+    private void CollapseAll()
+    {
+        expanded.Clear();
+        if (page is not null) expanded.UnionWith(page.AncestorIds); // keep the open page in view
+        treeStamp++;
+    }
+
+    /// <summary>Pages a copy of <paramref name="node"/> would make: it and every subpage this person sees.</summary>
+    private int SubtreeSize(PageNode node) => PageTree.Subtree(node.Id, tree.Select(p => (p.Id, p.ParentId))).Count();
+
+    private async Task DuplicateAsync(PageNode node)
+    {
+        CopyResult? copy = null;
+        await using (var scope = Scopes.CreateAsyncScope())
+        {
+            try
+            {
+                copy = await scope.ServiceProvider.GetRequiredService<PageCopyService>()
+                    .DuplicateAsync(Session.AsActor(), node.Id, Guid.NewGuid().ToString(), string.Format(T("CopyOfTitle"), node.Title));
+            }
+            catch (AtharError e) { Snackbar.Add(e.Message, Severity.Error); }
+        }
+        if (copy is null) return;
+        // Right after the original among its siblings, not at the end.
+        await Try(async pages =>
+        {
+            await pages.DropAsync(actor!, copy.PageId, node.Id, DropPlace.After);
+            await LoadTreeAsync(pages);
+        });
+        Snackbar.Add(T("Duplicated"), Severity.Success);
+        Nav.NavigateTo($"/wiki/p/{copy.PageId}");
+    }
+
+    private async Task OpenCopyAsync(PageNode node)
+    {
+        await using var scope = Scopes.CreateAsyncScope();
+        try
+        {
+            copyTargets = await scope.ServiceProvider.GetRequiredService<PageCopyService>().TargetsAsync(Session.AsActor(), node.Id);
+            copyTo = copyTargets.FirstOrDefault(t => t.SpaceId != node.SpaceId)?.SpaceId ?? copyTargets.FirstOrDefault()?.SpaceId ?? Guid.Empty;
+            copying = node;
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Error); }
+    }
+
+    private async Task CopyToSpaceAsync()
+    {
+        var node = copying!;
+        copying = null;
+        await using var scope = Scopes.CreateAsyncScope();
+        try
+        {
+            await scope.ServiceProvider.GetRequiredService<PageCopyService>().CopyToSpaceAsync(Session.AsActor(), node.Id, copyTo, null, Guid.NewGuid().ToString());
+            Snackbar.Add(string.Format(T("CopiedToSpace"), copyTargets.FirstOrDefault(t => t.SpaceId == copyTo)?.Name), Severity.Success);
+            if (copyTo == space!.Id) await Try(LoadTreeAsync);
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Error); }
+    }
+
+    // ---------- import (T156) ----------
+    private bool importing, importBusy;
+    private PageNode? importUnder;
+    private ImportResult? importResult;
+
+    private void OpenImport(PageNode? under) => (importUnder, importResult, importing) = (under, null, true);
+
+    private void CloseImport()
+    {
+        if (!importBusy) importing = false;
+    }
+
+    /// <summary>The background import finished while the dialog was open: show the new pages in the tree.</summary>
+    private async Task ImportedAsync(ImportResult result)
+    {
+        importResult = result;
+        if (importUnder is not null) expanded.Add(importUnder.Id);
+        await Try(LoadTreeAsync);
+    }
+
+    private void OpenImported()
+    {
+        importing = false;
+        Nav.NavigateTo($"/wiki/p/{importResult!.FirstPageId}");
+    }
+
+    private void OnPresence(IReadOnlyList<PageEditor.PresenceInfo> people) => presence = people;
+
+    private string SaveLabel() => saveState switch
+    {
+        "saved" => savedRevision is { } r ? $"{T("Saved")} · r{r}" : T("Saved"),
+        "synced" => T("Synced"),
+        "unsynced" => T("Unsynced"),
+        _ => T("Connecting"),
+    };
+
+    private string SaveIcon() => saveState switch
+    {
+        "saved" => Icons.Material.Outlined.CloudDone,
+        "synced" => Icons.Material.Outlined.Cloud,
+        "unsynced" => Icons.Material.Outlined.CloudOff,
+        _ => Icons.Material.Outlined.CloudSync,
+    };
+
+    /// <summary>The presence token (WikiPage.razor.css) for a collaborator's caret color; an unknown color takes the first.</summary>
+    private static int PresenceIndex(string color) => Math.Max(0, Array.IndexOf(PageEditor.Colors, color));
+
+    private static string Initials(string name) =>
+        string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => char.ToUpperInvariant(w[0])));
+
+    /// <summary>Runs one use case in its own scope (and DbContext), and shows a domain error as a snackbar.</summary>
+    private async Task Try(Func<PageService, Task> work)
+    {
+        try
+        {
+            await using var scope = Scopes.CreateAsyncScope();
+            await work(scope.ServiceProvider.GetRequiredService<PageService>());
+        }
+        catch (AtharError e) when (e.Code is "not_found" && (space is null || loading))
+        {
+            // A page or space this person can't open (or that doesn't exist): say so inside the shell.
+            denied = true;
+        }
+        catch (AtharError e)
+        {
+            Snackbar.Add(e.Message, Severity.Error);
+        }
+    }
+
+    // T152: the page tour. Steps for controls this person doesn't have (Edit, Share) are skipped because they aren't on screen.
+    private IReadOnlyList<PageTour.Step> WikiTour =>
+    [
+        new("#wiki-tree", T("TourTreeTitle"), T("TourTreeText")),
+        new(".page-actions .mode", T("TourModeTitle"), T("TourModeText")),
+        new(".editor-toolbar", T("TourToolbarTitle"), T("TourToolbarText")),
+        new(".page-actions .with-count", T("TourCommentsTitle"), T("TourCommentsText")),
+        new(".page-actions .share-button", T("TourShareTitle"), T("TourShareText")),
+        new(".page-actions .page-menu", T("TourMenuTitle"), T("TourMenuText")),
+    ];
+}

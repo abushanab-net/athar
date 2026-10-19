@@ -1,0 +1,221 @@
+@page "/admin/users"
+@attribute [Authorize]
+@inject OrgAdminService Admin
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+
+<PageHeader Help="admin-users" Title="@L["Users"]">
+    <Actions>
+        @if (loaded && OrgRules.IsAdmin(role))
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd" OnClick="() => inviting = true">@L["Invite"]</MudButton>
+        }
+    </Actions>
+</PageHeader>
+
+@if (!loaded)
+{
+    <LoadingState />
+}
+else if (!OrgRules.IsAdmin(role))
+{
+    <AccessDenied Text="@L["AdminsOnly"]" />
+}
+else
+{
+    <FilterBar Label="@L["SearchPeople"]">
+        <MudTextField T="string" @bind-Value="search" Immediate="true" Label="@L["SearchPeople"]" Clearable="true"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="grow" dir="auto" />
+    </FilterBar>
+
+    <DataTable T="OrgAdminService.MemberRow" Items="@Visible" EmptyIcon="@Icons.Material.Outlined.PersonSearch" EmptyTitle="@L["NoPeopleMatch"]">
+        <HeaderContent>
+            <SortTh T="OrgAdminService.MemberRow" By="m => m.DisplayName" Initial="SortDirection.Ascending">@L["Name"]</SortTh>
+            <SortTh T="OrgAdminService.MemberRow" By="m => m.Email">@L["Email"]</SortTh>
+            <SortTh T="OrgAdminService.MemberRow" By="m => m.Role">@L["Role"]</SortTh>
+            <SortTh T="OrgAdminService.MemberRow" By="m => !m.IsKnowledgeOwner">@L["KnowledgeOwner"]</SortTh>
+            <SortTh T="OrgAdminService.MemberRow" By="m => m.Deactivated">@L["Status"]</SortTh>
+            <ActionsTh />
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <span class="person">
+                    <Avatar UserId="context.UserId" Name="@context.DisplayName" Size="small" />
+                    <bdi class="athar-truncate cell" title="@context.DisplayName">@context.DisplayName</bdi>
+                </span>
+            </MudTd>
+            <MudTd><bdi class="athar-truncate cell" title="@context.Email">@context.Email</bdi></MudTd>
+            <MudTd><Seal Kind="Seal.Kinds.Quiet">@L[context.Role.ToString()]</Seal></MudTd>
+            <MudTd>
+                @if (context.IsKnowledgeOwner)
+                {
+                    <Seal Kind="Seal.Kinds.Ink" Icon="@Icons.Material.Outlined.Verified">@L["KnowledgeOwner"]</Seal>
+                }
+            </MudTd>
+            <MudTd>
+                @if (context.Deactivated)
+                {
+                    <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.Block">@L["Deactivated"]</Seal>
+                }
+                else
+                {
+                    <span class="athar-muted">@L["Status_active"]</span>
+                }
+            </MudTd>
+            <MudTd Class="actions-col"><RowActions Done="StateHasChanged" Actions="@ActionsFor(context)" /></MudTd>
+        </RowTemplate>
+    </DataTable>
+
+    @if (invitations.Count > 0)
+    {
+        <Section Title="@L["PendingInvitations"]" Flush="true" Class="mt-6">
+            <DataTable T="OrgAdminService.InvitationRow" Items="@invitations">
+                <HeaderContent>
+                    <SortTh T="OrgAdminService.InvitationRow" By="i => i.Email">@L["Email"]</SortTh>
+                    <SortTh T="OrgAdminService.InvitationRow" By="i => i.Role">@L["Role"]</SortTh>
+                    <SortTh T="OrgAdminService.InvitationRow" By="i => i.SentAt" Initial="SortDirection.Descending">@L["Sent"]</SortTh>
+                    <SortTh T="OrgAdminService.InvitationRow" By="i => i.ExpiresAt">@L["Status"]</SortTh>
+                    <ActionsTh />
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd><bdi class="athar-truncate cell" title="@context.Email">@context.Email</bdi></MudTd>
+                    <MudTd><Seal Kind="Seal.Kinds.Quiet">@L[context.Role.ToString()]</Seal></MudTd>
+                    <MudTd><Timestamp Value="context.SentAt" Relative="true" /></MudTd>
+                    <MudTd>
+                        @if (context.ExpiresAt <= DateTimeOffset.UtcNow)
+                        {
+                            <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.EventBusy">@L["Expired"]</Seal>
+                        }
+                        else
+                        {
+                            <span class="athar-muted">@L["ExpiresOn"] <Timestamp Value="context.ExpiresAt" DateOnly="true" /></span>
+                        }
+                    </MudTd>
+                    <MudTd Class="actions-col"><RowActions Done="StateHasChanged" Actions="@InvitationActionsFor(context)" /></MudTd>
+                </RowTemplate>
+            </DataTable>
+        </Section>
+    }
+}
+
+<MudDialog @bind-Visible="inviting" Options="dialogOptions">
+    <TitleContent>@L["Invite"]</TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="inviteEmail" Immediate="true" Label="@L["Email"]" InputType="InputType.Email" AutoFocus="true" />
+            <MudSelect @bind-Value="inviteRole" Label="@L["Role"]">
+                @foreach (var r in Enum.GetValues<OrgRole>())
+                {
+                    <MudSelectItem Value="r">@L[r.ToString()]</MudSelectItem>
+                }
+            </MudSelect>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => inviting = false">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="InviteAsync" Disabled="string.IsNullOrWhiteSpace(inviteEmail)">@L["SendInvite"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog Visible="@(editing is not null)" VisibleChanged="v => { if (!v) editing = null; }" Options="dialogOptions">
+    <TitleContent>@L["ChangeRole"]</TitleContent>
+    <DialogContent>
+        <p class="mb-3"><bdi>@editing?.DisplayName</bdi></p>
+        <MudSelect @bind-Value="newRole" Label="@L["Role"]">
+            @foreach (var r in Enum.GetValues<OrgRole>())
+            {
+                <MudSelectItem Value="r">@L[r.ToString()]</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => editing = null">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(newRole == editing?.Role)" OnClick="ChangeRoleAsync">@L["ChangeRole"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private static readonly DialogOptions dialogOptions = new() { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+    private Guid OrgId, ActorId;
+    private OrgRole? role;
+    private bool loaded, inviting;
+    private List<OrgAdminService.MemberRow> members = [];
+    private List<OrgAdminService.InvitationRow> invitations = [];
+    private string inviteEmail = "";
+    private OrgRole inviteRole = OrgRole.Member;
+    private string? search;
+    private OrgAdminService.MemberRow? editing;
+    private OrgRole newRole;
+
+    // ponytail: client-side search over the whole org list (pilot-sized); move it into the service if orgs grow to thousands.
+    private IEnumerable<OrgAdminService.MemberRow> Visible => string.IsNullOrWhiteSpace(search) ? members
+        : members.Where(m => m.DisplayName.Contains(search, StringComparison.CurrentCultureIgnoreCase) || m.Email.Contains(search, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await Auth).User;
+        (OrgId, ActorId) = (user.OrgId(), user.UserId());
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        role = await Admin.RoleOfAsync(OrgId, ActorId);
+        members = await Admin.MembersAsync(OrgId, ActorId);
+        invitations = await Admin.InvitationsAsync(OrgId, ActorId);
+        loaded = true;
+    }
+
+    // Knowledge-owner changes are for admins and owners (the service decides; the item is disabled for everyone else).
+    private IEnumerable<RowAction?> ActionsFor(OrgAdminService.MemberRow m) =>
+    [
+        new RowAction(L["ChangeRole"] + "…", Icons.Material.Outlined.ManageAccounts, () => { (editing, newRole) = (m, m.Role); return Task.CompletedTask; }),
+        m.IsKnowledgeOwner
+            ? new RowAction(L["RemoveKnowledgeOwner"], Icons.Material.Outlined.RemoveModerator, () => Apply(Admin.SetKnowledgeOwnerAsync(OrgId, ActorId, m.UserId, false)),
+                Confirm: L["RemoveKnowledgeOwnerConfirm", m.DisplayName], Disabled: !OrgRules.IsAdmin(role))
+            : new RowAction(L["MakeKnowledgeOwner"], Icons.Material.Outlined.AddModerator, () => Apply(Admin.SetKnowledgeOwnerAsync(OrgId, ActorId, m.UserId, true)),
+                Confirm: L["MakeKnowledgeOwnerConfirm", m.DisplayName], Disabled: !OrgRules.IsAdmin(role)),
+        m.Deactivated
+            ? new RowAction(L["Reactivate"], Icons.Material.Outlined.PersonAddAlt, () => Apply(Admin.SetDeactivatedAsync(OrgId, ActorId, m.UserId, false)),
+                Confirm: L["ReactivateConfirm", m.DisplayName])
+            : new RowAction(L["Deactivate"], Icons.Material.Outlined.PersonOff, () => Apply(Admin.SetDeactivatedAsync(OrgId, ActorId, m.UserId, true)),
+                Danger: true, Confirm: L["DeactivateConfirm", m.DisplayName]),
+    ];
+
+    // A new link (the old one stops working) and a fresh 7 days; or withdraw the invitation.
+    private IEnumerable<RowAction> InvitationActionsFor(OrgAdminService.InvitationRow i) =>
+    [
+        new(L["ResendInvite"], Icons.Material.Outlined.Send, () => Apply(Admin.ResendInvitationAsync(OrgId, ActorId, i.Id), L["InviteResent"])),
+        new(L["RevokeInvite"], Icons.Material.Outlined.CancelScheduleSend, () => Apply(Admin.RevokeInvitationAsync(OrgId, ActorId, i.Id), L["InviteRevoked"]),
+            Danger: true, Confirm: L["RevokeInviteConfirm", i.Email]),
+    ];
+
+    private async Task InviteAsync()
+    {
+        if (await Apply(Admin.InviteAsync(OrgId, ActorId, inviteEmail, inviteRole), L["InviteSent"]) != OrgDecision.Allow) return;
+        (inviting, inviteEmail) = (false, "");
+    }
+
+    private async Task ChangeRoleAsync()
+    {
+        if (editing is null) return;
+        var userId = editing.UserId;
+        editing = null;
+        await Apply(Admin.ChangeRoleAsync(OrgId, ActorId, userId, newRole));
+    }
+
+    // Every action is authorized fresh by the service; the page only reports the decision and reloads.
+    private async Task<OrgDecision> Apply(Task<OrgDecision> action, string? done = null)
+    {
+        var decision = await action;
+        Snackbar.Add(decision switch
+        {
+            OrgDecision.Allow => done ?? L["Saved"],
+            OrgDecision.LastOwner => L["LastOwner"],
+            _ => L["NotAllowed"],
+        }, decision == OrgDecision.Allow ? Severity.Success : Severity.Warning);
+        await LoadAsync();
+        return decision;
+    }
+}

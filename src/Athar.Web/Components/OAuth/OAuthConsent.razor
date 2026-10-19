@@ -1,0 +1,89 @@
+@page "/oauth/consent"
+@layout AuthLayout
+@attribute [ExcludeFromInteractiveRouting]
+@using System.Security.Claims
+@using System.Collections.Immutable
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.WebUtilities
+@using OpenIddict.Abstractions
+@using Athar.Data
+@using Athar.Data.Seed
+@inject IOpenIddictApplicationManager Apps
+@inject IOpenIddictAuthorizationManager Grants
+@inject AtharDbContext Db
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> L
+
+@* FR-ID-07: consent is asked once per user and client, and kept as a permanent grant the user can revoke. *@
+<PageTitle>@L["ConsentTitle"] · Athar</PageTitle>
+
+@if (client is not null)
+{
+    <AccountCard Title="@L["ConsentTitle"]">
+        <div class="client"><span class="badge" aria-hidden="true">@ClientName[..1].ToUpperInvariant()</span><span dir="auto">@L["ConsentAsk", ClientName]</span></div>
+        <ul class="scopes">
+            @foreach (var scope in scopes)
+            {
+                <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" /><span>@L["Scope_" + scope.Replace(':', '_')]</span></li>
+            }
+        </ul>
+        @if (returnsTo is not null)
+        {
+            <p class="auth-lead">@L["ConsentReturnsTo", returnsTo]</p>
+        }
+        <p class="auth-lead">@L["ConsentHelp"]</p>
+        <form method="post" @formname="consent" @onsubmit="DecideAsync">
+            <AntiforgeryToken />
+            <div class="actions">
+                <MudButton ButtonType="ButtonType.Submit" name="Decision" value="approve" Variant="Variant.Filled" Color="Color.Primary">@L["Allow"]</MudButton>
+                <MudButton ButtonType="ButtonType.Submit" name="Decision" value="deny" Variant="Variant.Text">@L["Deny"]</MudButton>
+            </div>
+        </form>
+    </AccountCard>
+}
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+    [SupplyParameterFromForm(FormName = "consent")] private string? Decision { get; set; }
+    private OAuthApplication? client;
+    private string[] scopes = [];
+    private Guid userId;
+    /// <summary>Where the answer goes (the MCP authorization spec: show it on consent), only for a registered redirect.</summary>
+    private string? returnsTo;
+    private string ClientName => client!.DisplayName ?? client.ClientId!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await HttpContext.AuthenticateAsync(OAuthSetup.CookieScheme);
+        if (ReturnUrl is null || !ReturnUrl.StartsWith("/oauth/authorize?", StringComparison.Ordinal)
+            || !auth.Succeeded || !Guid.TryParse(auth.Principal.FindFirstValue("sub"), out userId))
+        {
+            Nav.NavigateTo($"/oauth/login?returnUrl={Uri.EscapeDataString(ReturnUrl ?? "")}", forceLoad: true);
+            return;
+        }
+        var query = QueryHelpers.ParseQuery(ReturnUrl[ReturnUrl.IndexOf('?')..]);
+        client = (OAuthApplication?)await Apps.FindByClientIdAsync(query["client_id"].ToString());
+        var redirect = query["redirect_uri"].ToString();
+        if (client is not null && (await Apps.GetRedirectUrisAsync(client)).Contains(redirect))
+            returnsTo = new Uri(redirect).Authority;
+        scopes = query["scope"].ToString().Split(' ', StringSplitOptions.RemoveEmptyEntries) is { Length: > 0 } s
+            ? s : [OAuthClients.Scopes[0], OpenIddictConstants.Scopes.OfflineAccess];
+    }
+
+    private async Task DecideAsync()
+    {
+        if (client is null) return;
+        if (Decision == "approve")
+        {
+            await using var tx = await Db.Database.BeginTransactionAsync();
+            var subject = new ClaimsPrincipal(new ClaimsIdentity([new Claim("sub", userId.ToString())], OAuthSetup.CookieScheme));
+            var grant = await Grants.CreateAsync(subject, userId.ToString(), client.Id.ToString(), OpenIddictConstants.AuthorizationTypes.Permanent, [.. scopes]);
+            Db.Audit(client.OrgId, userId, "oauth.consent", "oauth_grant", await Grants.GetIdAsync(grant) ?? "", after: new { client = client.ClientId, scopes });
+            await Db.SaveChangesAsync();
+            await tx.CommitAsync();
+            Nav.NavigateTo(ReturnUrl!, forceLoad: true);
+        }
+        else Nav.NavigateTo(ReturnUrl + "&athar_consent=denied", forceLoad: true);
+    }
+}

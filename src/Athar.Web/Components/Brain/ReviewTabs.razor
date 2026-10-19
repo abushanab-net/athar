@@ -1,0 +1,16 @@
+@* Review (T150): the capture inbox, the proposals and the conflicts are one place to decide things, as tabs with live counts. *@
+@implements IDisposable
+@inject ShellCounts Counts
+@inject IStringLocalizer<SharedResource> L
+
+<LinkTabs Label="@L["Review"]" Tabs="@([
+    new(L["Inbox"], "/review/inbox", Icons.Material.Outlined.MoveToInbox, Counts.Inbox),
+    new(L["Proposals"], "/review/proposals", Icons.Material.Outlined.Approval, Counts.Proposals),
+    new(L["Conflicts"], "/review/conflicts", Icons.Material.Outlined.CompareArrows, Counts.Conflicts),
+])" />
+
+@code {
+    protected override void OnInitialized() => Counts.Changed += OnChanged;
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+    public void Dispose() => Counts.Changed -= OnChanged;
+}

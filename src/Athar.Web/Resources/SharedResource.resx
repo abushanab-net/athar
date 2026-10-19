@@ -1,0 +1,877 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SignIn" xml:space="preserve"><value>Sign in</value></data>
+  <data name="SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="Users" xml:space="preserve"><value>Users</value></data>
+  <data name="Teams" xml:space="preserve"><value>Teams</value></data>
+  <data name="Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Password" xml:space="preserve"><value>Password</value></data>
+  <data name="ForgotPassword" xml:space="preserve"><value>Forgot your password?</value></data>
+  <data name="LockedOut" xml:space="preserve"><value>Too many failed attempts. Try again in 15 minutes.</value></data>
+  <data name="SignInFailed" xml:space="preserve"><value>The email or password is wrong.</value></data>
+  <data name="AcceptInvite" xml:space="preserve"><value>Accept invitation</value></data>
+  <data name="InviteInvalid" xml:space="preserve"><value>This link is invalid or has already been used.</value></data>
+  <data name="InviteFor" xml:space="preserve"><value>Create your account for {0}.</value></data>
+  <data name="InviteExpired" xml:space="preserve"><value>This invitation has expired. Ask an admin for a new one.</value></data>
+  <data name="DisplayName" xml:space="preserve"><value>Your name</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>New password (at least 12 characters)</value></data>
+  <data name="SendResetLink" xml:space="preserve"><value>Send reset link</value></data>
+  <data name="ResetLinkSent" xml:space="preserve"><value>If the address has an account, we sent a reset link to it.</value></data>
+  <data name="ResetPassword" xml:space="preserve"><value>Reset password</value></data>
+  <data name="PasswordChanged" xml:space="preserve"><value>Your password was changed. Sign in again on your devices.</value></data>
+  <data name="Loading" xml:space="preserve"><value>Loading</value></data>
+  <data name="AdminsOnly" xml:space="preserve"><value>Only org admins can manage this.</value></data>
+  <data name="Invite" xml:space="preserve"><value>Invite someone</value></data>
+  <data name="Role" xml:space="preserve"><value>Role</value></data>
+  <data name="Owner" xml:space="preserve"><value>Owner</value></data>
+  <data name="Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Member" xml:space="preserve"><value>Member</value></data>
+  <data name="SendInvite" xml:space="preserve"><value>Send invitation</value></data>
+  <data name="Name" xml:space="preserve"><value>Name</value></data>
+  <data name="KnowledgeOwner" xml:space="preserve"><value>Knowledge owner</value></data>
+  <data name="Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Reactivate" xml:space="preserve"><value>Reactivate</value></data>
+  <data name="Deactivate" xml:space="preserve"><value>Deactivate</value></data>
+  <data name="InviteSent" xml:space="preserve"><value>Invitation sent.</value></data>
+  <data name="Saved" xml:space="preserve"><value>Saved.</value></data>
+  <data name="LastOwner" xml:space="preserve"><value>The organization needs at least one active owner.</value></data>
+  <data name="NotAllowed" xml:space="preserve"><value>You are not allowed to do that.</value></data>
+  <data name="TeamName" xml:space="preserve"><value>Team name</value></data>
+  <data name="CreateTeam" xml:space="preserve"><value>Create team</value></data>
+  <data name="AddMember" xml:space="preserve"><value>Add member</value></data>
+  <data name="Workspaces" xml:space="preserve"><value>Workspaces</value></data>
+  <data name="WorkspaceName" xml:space="preserve"><value>Workspace name</value></data>
+  <data name="Slug" xml:space="preserve"><value>Short name</value></data>
+  <data name="SlugHelp" xml:space="preserve"><value>Lowercase letters, digits and dashes</value></data>
+  <data name="CreateWorkspace" xml:space="preserve"><value>Create workspace</value></data>
+  <data name="NoWorkspaces" xml:space="preserve"><value>You are not in any workspace yet.</value></data>
+  <data name="Spaces" xml:space="preserve"><value>Spaces</value></data>
+  <data name="JoinToSeeSpaces" xml:space="preserve"><value>Only workspace members see its spaces. Add yourself to see them.</value></data>
+  <data name="Confidential" xml:space="preserve"><value>Confidential</value></data>
+  <data name="SpaceName" xml:space="preserve"><value>Space name</value></data>
+  <data name="HoldsPersonalData" xml:space="preserve"><value>Holds personal data</value></data>
+  <data name="CreateSpace" xml:space="preserve"><value>Create space</value></data>
+  <data name="Members" xml:space="preserve"><value>Members</value></data>
+  <data name="AiShort" xml:space="preserve"><value>AI</value></data>
+  <data name="AiNone" xml:space="preserve"><value>AI: no access</value></data>
+  <data name="AiRead" xml:space="preserve"><value>Agents may read</value></data>
+  <data name="AiWrite" xml:space="preserve"><value>Agents may write</value></data>
+  <data name="AiDelete" xml:space="preserve"><value>Agents may move pages to the trash</value></data>
+  <data name="InvalidInput" xml:space="preserve"><value>Check the name and short name; the short name may already be taken.</value></data>
+  <data name="SpaceAdminsOnly" xml:space="preserve"><value>Only space and workspace admins can manage this space.</value></data>
+  <data name="AiPolicy" xml:space="preserve"><value>AI policy</value></data>
+  <data name="AiPolicyHelp" xml:space="preserve"><value>What connected agents may do in this space. Each setting is independent.</value></data>
+  <data name="Classification" xml:space="preserve"><value>Classification</value></data>
+  <data name="ConfidentialHelp" xml:space="preserve"><value>Confidential: nothing from this space is returned to external agents, not even titles.</value></data>
+  <data name="DeclassifyReason" xml:space="preserve"><value>Reason for declassifying (required, audited)</value></data>
+  <data name="Declassify" xml:space="preserve"><value>Declassify</value></data>
+  <data name="MarkConfidential" xml:space="preserve"><value>Mark as confidential</value></data>
+  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Team" xml:space="preserve"><value>team</value></data>
+  <data name="AddMemberOrTeam" xml:space="preserve"><value>Add a person or team</value></data>
+  <data name="Viewer" xml:space="preserve"><value>Viewer</value></data>
+  <data name="Commenter" xml:space="preserve"><value>Commenter</value></data>
+  <data name="Editor" xml:space="preserve"><value>Editor</value></data>
+  <data name="Memories" xml:space="preserve"><value>Memories</value></data>
+  <data name="Wiki" xml:space="preserve"><value>Wiki</value></data>
+  <data name="Proposals" xml:space="preserve"><value>Proposals</value></data>
+  <data name="Inbox" xml:space="preserve"><value>Capture inbox</value></data>
+  <data name="Scope" xml:space="preserve"><value>Scope</value></data>
+  <data name="Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Project" xml:space="preserve"><value>Project</value></data>
+  <data name="Any" xml:space="preserve"><value>Any</value></data>
+  <data name="StaleOnly" xml:space="preserve"><value>Stale shadows only</value></data>
+  <data name="Title" xml:space="preserve"><value>Title</value></data>
+  <data name="Revision" xml:space="preserve"><value>Revision</value></data>
+  <data name="Updated" xml:space="preserve"><value>Updated</value></data>
+  <data name="NoMemories" xml:space="preserve"><value>No memories match these filters.</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Archive" xml:space="preserve"><value>Archive</value></data>
+  <data name="ArchiveConfirm" xml:space="preserve"><value>Archive this memory? Agents stop recalling it.</value></data>
+  <data name="Body" xml:space="preserve"><value>Body (Markdown)</value></data>
+  <data name="Links" xml:space="preserve"><value>Links</value></data>
+  <data name="AddLink" xml:space="preserve"><value>Add link</value></data>
+  <data name="History" xml:space="preserve"><value>History</value></data>
+  <data name="SentForReview" xml:space="preserve"><value>Sent for review.</value></data>
+  <data name="ShadowOf" xml:space="preserve"><value>Overrides a company memory for this project</value></data>
+  <data name="Stale" xml:space="preserve"><value>Stale</value></data>
+  <data name="Approve" xml:space="preserve"><value>Approve</value></data>
+  <data name="Reject" xml:space="preserve"><value>Reject</value></data>
+  <data name="Rebase" xml:space="preserve"><value>Rebase</value></data>
+  <data name="Note" xml:space="preserve"><value>Note</value></data>
+  <data name="NoProposals" xml:space="preserve"><value>No open proposals.</value></data>
+  <data name="ProposedChanges" xml:space="preserve"><value>Proposed changes</value></data>
+  <data name="TargetMoved" xml:space="preserve"><value>The memory changed after this proposal was made. Rebase it to review against the current text.</value></data>
+  <data name="Evidence" xml:space="preserve"><value>Evidence</value></data>
+  <data name="InboxEmpty" xml:space="preserve"><value>Nothing to review. Candidates from your agent sessions appear here.</value></data>
+  <data name="SuggestedScope" xml:space="preserve"><value>Suggested scope</value></data>
+  <data name="NotFound" xml:space="preserve"><value>Not found.</value></data>
+  <data name="Previous" xml:space="preserve"><value>Previous</value></data>
+  <data name="Next" xml:space="preserve"><value>Next</value></data>
+  <data name="Scope_personal" xml:space="preserve"><value>Personal</value></data>
+  <data name="Scope_team" xml:space="preserve"><value>Team</value></data>
+  <data name="Scope_project" xml:space="preserve"><value>Project</value></data>
+  <data name="Scope_company" xml:space="preserve"><value>Company</value></data>
+  <data name="Type_fact" xml:space="preserve"><value>Fact</value></data>
+  <data name="Type_decision" xml:space="preserve"><value>Decision</value></data>
+  <data name="Type_convention" xml:space="preserve"><value>Convention</value></data>
+  <data name="Type_procedure" xml:space="preserve"><value>Procedure</value></data>
+  <data name="Type_policy" xml:space="preserve"><value>Policy</value></data>
+  <data name="Type_preference" xml:space="preserve"><value>Preference</value></data>
+  <data name="Type_incident" xml:space="preserve"><value>Incident</value></data>
+  <data name="Type_glossary" xml:space="preserve"><value>Glossary</value></data>
+  <data name="Status_active" xml:space="preserve"><value>Active</value></data>
+  <data name="Status_archived" xml:space="preserve"><value>Archived</value></data>
+  <data name="Status_superseded" xml:space="preserve"><value>Superseded</value></data>
+  <data name="Proposal_pending" xml:space="preserve"><value>Pending</value></data>
+  <data name="Proposal_approved" xml:space="preserve"><value>Approved</value></data>
+  <data name="Proposal_rejected" xml:space="preserve"><value>Rejected</value></data>
+  <data name="Proposal_needs_rereview" xml:space="preserve"><value>Needs re-review</value></data>
+  <data name="Kind_new" xml:space="preserve"><value>New memory</value></data>
+  <data name="Kind_replace" xml:space="preserve"><value>Replacement</value></data>
+  <data name="Kind_evidence" xml:space="preserve"><value>Evidence</value></data>
+  <data name="Kind_skill" xml:space="preserve"><value>Company skill</value></data>
+  <data name="Audit" xml:space="preserve"><value>Audit</value></data>
+  <data name="ActionStartsWith" xml:space="preserve"><value>Action starts with</value></data>
+  <data name="ResourceType" xml:space="preserve"><value>Resource type</value></data>
+  <data name="AuditHelp" xml:space="preserve"><value>Changes to resources you can&apos;t read right now show as [restricted].</value></data>
+  <data name="When" xml:space="preserve"><value>When</value></data>
+  <data name="Action" xml:space="preserve"><value>Action</value></data>
+  <data name="Resource" xml:space="preserve"><value>Resource</value></data>
+  <data name="Actor" xml:space="preserve"><value>Actor</value></data>
+  <data name="Credential" xml:space="preserve"><value>Credential</value></data>
+  <data name="ClaimedClient" xml:space="preserve"><value>Claimed client (unverified)</value></data>
+  <data name="Change" xml:space="preserve"><value>Before → after</value></data>
+  <data name="Tokens" xml:space="preserve"><value>Access tokens</value></data>
+  <data name="ConnectAgent" xml:space="preserve"><value>Connect your agent</value></data>
+  <data name="TokensHelp" xml:space="preserve"><value>Personal access tokens let agents such as Claude Code call Athar as you. They are external agents: they never see confidential content.</value></data>
+  <data name="AllTokens" xml:space="preserve"><value>Organization tokens</value></data>
+  <data name="NewToken" xml:space="preserve"><value>New token</value></data>
+  <data name="TokenName" xml:space="preserve"><value>Name</value></data>
+  <data name="TokenNameHelp" xml:space="preserve"><value>For example: laptop, Claude Code</value></data>
+  <data name="Expires" xml:space="preserve"><value>Expires</value></data>
+  <data name="Days" xml:space="preserve"><value>{0} days</value></data>
+  <data name="Never" xml:space="preserve"><value>Never</value></data>
+  <data name="CreateToken" xml:space="preserve"><value>Create token</value></data>
+  <data name="CopyTokenNow" xml:space="preserve"><value>Copy this token now. It is shown only once.</value></data>
+  <data name="Scopes" xml:space="preserve"><value>Scopes</value></data>
+  <data name="Disclosure" xml:space="preserve"><value>Class</value></data>
+  <data name="ExternalAgent" xml:space="preserve"><value>external agent</value></data>
+  <data name="TrustedLocal" xml:space="preserve"><value>trusted local</value></data>
+  <data name="LastUsed" xml:space="preserve"><value>Last used</value></data>
+  <data name="Actions" xml:space="preserve"><value>Actions</value></data>
+  <data name="Revoke" xml:space="preserve"><value>Revoke</value></data>
+  <data name="Revoked" xml:space="preserve"><value>Revoked</value></data>
+  <data name="ClassifyReason" xml:space="preserve"><value>Reason for marking a token trusted local (required, audited)</value></data>
+  <data name="MakeTrustedLocal" xml:space="preserve"><value>Make trusted local</value></data>
+  <data name="MakeExternal" xml:space="preserve"><value>Make external agent</value></data>
+  <data name="TrustedLocalHelp" xml:space="preserve"><value>Only owners mark a token trusted local, and only for a client that runs entirely on a company-controlled host and model.</value></data>
+  <data name="OAuthSignIn" xml:space="preserve"><value>Sign in to connect an app</value></data>
+  <data name="OAuthSignInHelp" xml:space="preserve"><value>An app asks to use Athar as you. Sign in to continue; this does not sign you in to the Athar web app.</value></data>
+  <data name="ConsentTitle" xml:space="preserve"><value>Connect an app</value></data>
+  <data name="ConsentAsk" xml:space="preserve"><value>Allow {0} to use Athar as you, with:</value></data>
+  <data name="ConsentReturnsTo" xml:space="preserve"><value>After you answer, you go back to {0}.</value></data>
+  <data name="ConsentHelp" xml:space="preserve"><value>It is an external agent: it never sees confidential content. You can disconnect it any time from Access tokens.</value></data>
+  <data name="Allow" xml:space="preserve"><value>Allow</value></data>
+  <data name="Deny" xml:space="preserve"><value>Deny</value></data>
+  <data name="Scope_read" xml:space="preserve"><value>Read pages and memories you can read</value></data>
+  <data name="Scope_write" xml:space="preserve"><value>Change pages you can edit</value></data>
+  <data name="Scope_memory_write" xml:space="preserve"><value>Save memories</value></data>
+  <data name="Scope_pages_delete" xml:space="preserve"><value>Move pages to the trash</value></data>
+  <data name="Scope_offline_access" xml:space="preserve"><value>Stay connected (up to 30 days)</value></data>
+  <data name="ConnectedApps" xml:space="preserve"><value>Connected apps</value></data>
+  <data name="NoConnectedApps" xml:space="preserve"><value>No apps are connected.</value></data>
+  <data name="Disconnect" xml:space="preserve"><value>Disconnect</value></data>
+  <data name="MudChip_Close" xml:space="preserve"><value>Remove</value></data>
+  <data name="MudAlert_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="MudDialog_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="MudSnackbar_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="MudInput_Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="NoAuditEvents" xml:space="preserve"><value>No events match these filters.</value></data>
+  <data name="NoTokens" xml:space="preserve"><value>No access tokens yet.</value></data>
+  <data name="Menu" xml:space="preserve"><value>Menu</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="SearchFor" xml:space="preserve"><value>Search pages and memories</value></data>
+  <data name="SearchIn" xml:space="preserve"><value>Search in</value></data>
+  <data name="All" xml:space="preserve"><value>All</value></data>
+  <data name="Pages" xml:space="preserve"><value>Pages</value></data>
+  <data name="Page" xml:space="preserve"><value>Page</value></data>
+  <data name="Memory" xml:space="preserve"><value>Memory</value></data>
+  <data name="SearchDegraded" xml:space="preserve"><value>Showing keyword matches only: meaning-based search is unavailable right now.</value></data>
+  <data name="SearchCount" xml:space="preserve"><value>{0} results</value></data>
+  <data name="SearchNoResults" xml:space="preserve"><value>Nothing you can see matches this search.</value></data>
+  <data name="Accept" xml:space="preserve"><value>Accept</value></data>
+  <data name="Discard" xml:space="preserve"><value>Discard</value></data>
+  <data name="Similar" xml:space="preserve"><value>Similar memories (not merged)</value></data>
+  <data name="Breadcrumb" xml:space="preserve"><value>Breadcrumb</value></data>
+  <data name="MoreActions" xml:space="preserve"><value>More actions</value></data>
+  <data name="NothingHereYet" xml:space="preserve"><value>Nothing here yet</value></data>
+  <data name="JustNow" xml:space="preserve"><value>Just now</value></data>
+  <data name="MinutesAgo" xml:space="preserve"><value>{0} min ago</value></data>
+  <data name="HoursAgo" xml:space="preserve"><value>{0} h ago</value></data>
+  <data name="DaysAgo" xml:space="preserve"><value>{0} d ago</value></data>
+  <data name="Reason" xml:space="preserve"><value>Reason</value></data>
+  <data name="NoAccessTitle" xml:space="preserve"><value>You don't have access to this page</value></data>
+  <data name="NoAccessText" xml:space="preserve"><value>Ask an organization admin if you need it.</value></data>
+  <data name="BackHome" xml:space="preserve"><value>Back to home</value></data>
+  <data name="MainNavigation" xml:space="preserve"><value>Main navigation</value></data>
+  <data name="Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Athar" xml:space="preserve"><value>Athar</value></data>
+  <data name="NavBrain" xml:space="preserve"><value>Brain</value></data>
+  <data name="NavManage" xml:space="preserve"><value>Manage</value></data>
+  <data name="InboxCount" xml:space="preserve"><value>{0} waiting in the capture inbox</value></data>
+  <data name="ProposalCount" xml:space="preserve"><value>{0} proposals waiting</value></data>
+  <data name="SkipToContent" xml:space="preserve"><value>Skip to content</value></data>
+  <data name="SearchPlaceholder" xml:space="preserve"><value>Search pages, memories and sources</value></data>
+  <data name="AccountMenu" xml:space="preserve"><value>Account menu</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Theme" xml:space="preserve"><value>Theme</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>Match system</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>Dark</value></data>
+  <data name="UnhandledError" xml:space="preserve"><value>Something went wrong and this page stopped working.</value></data>
+  <data name="Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="Dismiss" xml:space="preserve"><value>Dismiss</value></data>
+  <data name="SignInTitle" xml:space="preserve"><value>Sign in to Athar</value></data>
+  <data name="SignInLead" xml:space="preserve"><value>Your team's wiki and the memory your agents share.</value></data>
+  <data name="AuthTagline" xml:space="preserve"><value>Write knowledge together. Agents remember it by scope, with sources, and the people who own it approve what binds.</value></data>
+  <data name="ResetYourPassword" xml:space="preserve"><value>Reset your password</value></data>
+  <data name="ForgotPasswordLead" xml:space="preserve"><value>Enter your email and we'll send you a link to choose a new password.</value></data>
+  <data name="BackToSignIn" xml:space="preserve"><value>Back to sign in</value></data>
+  <data name="ChooseNewPassword" xml:space="preserve"><value>Choose a new password</value></data>
+  <data name="ResetLinkInvalid" xml:space="preserve"><value>This reset link is incomplete or has expired.</value></data>
+  <data name="RequestNewLink" xml:space="preserve"><value>Request a new link</value></data>
+  <data name="PasswordRule" xml:space="preserve"><value>At least 12 characters.</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Confirm password</value></data>
+  <data name="PasswordsDontMatch" xml:space="preserve"><value>The two passwords don't match.</value></data>
+  <data name="JoinAthar" xml:space="preserve"><value>Join Athar</value></data>
+  <data name="OAuthRequestedBy" xml:space="preserve"><value>{0} is asking to connect to Athar.</value></data>
+  <data name="HomeLead" xml:space="preserve"><value>Here is what is waiting for you, and where you left off.</value></data>
+  <data name="WaitingForYou" xml:space="preserve"><value>Waiting for you</value></data>
+  <data name="NothingWaiting" xml:space="preserve"><value>Nothing is waiting for you</value></data>
+  <data name="NothingWaitingText" xml:space="preserve"><value>New captures and proposals you can decide on will show up here.</value></data>
+  <data name="RecentlyEdited" xml:space="preserve"><value>Recently edited</value></data>
+  <data name="NoRecentPages" xml:space="preserve"><value>No pages yet</value></data>
+  <data name="YourSpaces" xml:space="preserve"><value>Your spaces</value></data>
+  <data name="AllSpaces" xml:space="preserve"><value>All spaces</value></data>
+  <data name="RecentMemories" xml:space="preserve"><value>Recent memories</value></data>
+  <data name="AllMemories" xml:space="preserve"><value>All memories</value></data>
+  <data name="GoodMorning" xml:space="preserve"><value>Good morning, {0}</value></data>
+  <data name="GoodAfternoon" xml:space="preserve"><value>Good afternoon, {0}</value></data>
+  <data name="GoodEvening" xml:space="preserve"><value>Good evening, {0}</value></data>
+  <data name="WaitingInbox" xml:space="preserve"><value>{0} captured from agent sessions, waiting for your review</value></data>
+  <data name="WaitingProposals" xml:space="preserve"><value>{0} proposals waiting for a decision</value></data>
+  <data name="WaitingStale" xml:space="preserve"><value>{0} project overrides are out of date with the company memory</value></data>
+  <data name="Review" xml:space="preserve"><value>Review</value></data>
+  <data name="WelcomeTabTitle" xml:space="preserve"><value>The team wiki and the memory your agents share</value></data>
+  <data name="HowItWorks" xml:space="preserve"><value>How it works</value></data>
+  <data name="Governance" xml:space="preserve"><value>Governance</value></data>
+  <data name="ForAgents" xml:space="preserve"><value>For agents</value></data>
+  <data name="WelcomeHeadline" xml:space="preserve"><value>Your team's wiki. Your agents' memory. One record.</value></data>
+  <data name="WelcomeLead" xml:space="preserve"><value>Pages, decisions and agent sessions, filed by scope and approved by the people who own them. Ask in Arabic or English and get answers with their sources.</value></data>
+  <data name="ConnectAnAgent" xml:space="preserve"><value>Connect an agent</value></data>
+  <data name="ExampleLedger" xml:space="preserve"><value>Example of the memory register</value></data>
+  <data name="MemoryRegister" xml:space="preserve"><value>Memory register</value></data>
+  <data name="Example" xml:space="preserve"><value>Example</value></data>
+  <data name="Approved" xml:space="preserve"><value>Approved</value></data>
+  <data name="Proposed" xml:space="preserve"><value>Proposed</value></data>
+  <data name="ExDeploys" xml:space="preserve"><value>Production deploys need two approvals</value></data>
+  <data name="ExByOwner" xml:space="preserve"><value>Approved by the DevOps knowledge owner</value></data>
+  <data name="ExPnpm" xml:space="preserve"><value>Use pnpm for Node packages</value></data>
+  <data name="ExByClaude" xml:space="preserve"><value>Remembered by Claude Code</value></data>
+  <data name="ExRetention" xml:space="preserve"><value>Session transcripts are kept 30 days</value></data>
+  <data name="ExByCodex" xml:space="preserve"><value>Proposed by Codex, waiting for HR</value></data>
+  <data name="ExOnCall" xml:space="preserve"><value>Platform on-call handover</value></data>
+  <data name="ExByMember" xml:space="preserve"><value>Written by a team member</value></data>
+  <data name="StepWriteTitle" xml:space="preserve"><value>Write together</value></data>
+  <data name="StepWriteText" xml:space="preserve"><value>Specs, runbooks and decisions live in one wiki, edited live with comments, versions and sharing.</value></data>
+  <data name="StepRememberTitle" xml:space="preserve"><value>Remember by scope</value></data>
+  <data name="StepRememberText" xml:space="preserve"><value>Agents remember what a session learned, filed as personal, project, team or company knowledge. Sessions are captured into a review inbox.</value></data>
+  <data name="StepAnswerTitle" xml:space="preserve"><value>Answer with sources</value></data>
+  <data name="StepAnswerText" xml:space="preserve"><value>Agents and people search the wiki, GitHub and memories together, in Arabic and English, and every answer cites where it came from.</value></data>
+  <data name="GovernanceLead" xml:space="preserve"><value>Every memory has a scope, and the scope decides who may change it.</value></data>
+  <data name="RuleCompany" xml:space="preserve"><value>Read-only for everyone except knowledge owners. Agents and members propose; owners approve.</value></data>
+  <data name="RuleProject" xml:space="preserve"><value>Project members write. A project can override a company memory locally without changing it.</value></data>
+  <data name="RuleTeam" xml:space="preserve"><value>Team members write and share it with their agents.</value></data>
+  <data name="RulePersonal" xml:space="preserve"><value>Only you and your agents.</value></data>
+  <data name="AgentsLead" xml:space="preserve"><value>Claude Code and Codex connect over MCP with a personal access token or OAuth. Every change they make is audited.</value></data>
+  <data name="McpEndpoint" xml:space="preserve"><value>MCP endpoint</value></data>
+  <data name="AgentsNote" xml:space="preserve"><value>Sign in and create an access token under your account menu, then add this endpoint to your agent.</value></data>
+  <data name="FooterLine" xml:space="preserve"><value>A knowledge platform for your team and its agents.</value></data>
+  <data name="NotFoundTitle" xml:space="preserve"><value>This page doesn't exist</value></data>
+  <data name="NotFoundText" xml:space="preserve"><value>The link may be old, or the page was moved or deleted.</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>Something went wrong</value></data>
+  <data name="ErrorText" xml:space="preserve"><value>The request couldn't be completed. Try again, or go back to the home page.</value></data>
+  <data name="RequestId" xml:space="preserve"><value>Request ID</value></data>
+  <data name="Reconnecting" xml:space="preserve"><value>Reconnecting to the server…</value></data>
+  <data name="ReconnectRetry" xml:space="preserve"><value>Couldn't reconnect. Trying again in (seconds):</value></data>
+  <data name="ReconnectFailed" xml:space="preserve"><value>Couldn't reconnect. Retry, or reload the page.</value></data>
+  <data name="Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="SessionPaused" xml:space="preserve"><value>The server paused this session.</value></data>
+  <data name="ResumeFailed" xml:space="preserve"><value>Couldn't resume the session. Retry, or reload the page.</value></data>
+  <data name="Resume" xml:space="preserve"><value>Resume</value></data>
+  <data name="ShareNotFoundTitle" xml:space="preserve"><value>Not found</value></data>
+  <data name="ShareNotFound" xml:space="preserve"><value>This link doesn't exist.</value></data>
+  <data name="ShareGoneTitle" xml:space="preserve"><value>Link unavailable</value></data>
+  <data name="ShareGone" xml:space="preserve"><value>This link has expired or was revoked.</value></data>
+  <data name="ShareFileMissing" xml:space="preserve"><value>This file isn't part of the share.</value></data>
+  <data name="SharePageMissing" xml:space="preserve"><value>This page isn't part of the share.</value></data>
+  <data name="ShareBadRequestTitle" xml:space="preserve"><value>Bad request</value></data>
+  <data name="ShareBadRequest" xml:space="preserve"><value>Reload the page and try again.</value></data>
+  <data name="ShareTooManyTitle" xml:space="preserve"><value>Too many attempts</value></data>
+  <data name="ShareTooMany" xml:space="preserve"><value>Too many wrong passwords. Try again later.</value></data>
+  <data name="ShareWrongPassword" xml:space="preserve"><value>That password is wrong.</value></data>
+  <data name="SharePages" xml:space="preserve"><value>Pages</value></data>
+  <data name="SharePasswordTitle" xml:space="preserve"><value>Password required</value></data>
+  <data name="ShareProtected" xml:space="preserve"><value>This page is protected</value></data>
+  <data name="ShareProtectedText" xml:space="preserve"><value>Enter the password you were given with the link.</value></data>
+  <data name="ShareOpen" xml:space="preserve"><value>Open</value></data>
+  <data name="ShareReadOnly" xml:space="preserve"><value>Read-only</value></data>
+  <data name="ShareSharedFrom" xml:space="preserve"><value>Shared from a team wiki</value></data>
+  <data name="Access" xml:space="preserve"><value>Access</value></data>
+  <data name="AccessExternalAgent" xml:space="preserve"><value>External agent</value></data>
+  <data name="AccessTrustedLocal" xml:space="preserve"><value>Trusted local</value></data>
+  <data name="Add" xml:space="preserve"><value>Add</value></data>
+  <data name="After" xml:space="preserve"><value>After</value></data>
+  <data name="App" xml:space="preserve"><value>App</value></data>
+  <data name="Before" xml:space="preserve"><value>Before</value></data>
+  <data name="ChangeRole" xml:space="preserve"><value>Change role</value></data>
+  <data name="ClientAsReported" xml:space="preserve"><value>Client (as reported)</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="ConnectedOn" xml:space="preserve"><value>Connected on</value></data>
+  <data name="Copied" xml:space="preserve"><value>Copied</value></data>
+  <data name="CopyFailed" xml:space="preserve"><value>Couldn't copy. Select the token and copy it yourself.</value></data>
+  <data name="CopyToken" xml:space="preserve"><value>Copy token</value></data>
+  <data name="DeactivateConfirm" xml:space="preserve"><value>Deactivate {0}? They are signed out and can't sign in until someone reactivates them.</value></data>
+  <data name="Deactivated" xml:space="preserve"><value>Deactivated</value></data>
+  <data name="DeclassifyWhy" xml:space="preserve"><value>External agents can see this space again, as far as its AI policy allows. Your reason is kept in the audit log.</value></data>
+  <data name="DisconnectConfirm" xml:space="preserve"><value>Disconnect {0}? It can't use Athar as you until you connect it again.</value></data>
+  <data name="Done" xml:space="preserve"><value>Done</value></data>
+  <data name="Expired" xml:space="preserve"><value>Expired</value></data>
+  <data name="Export" xml:space="preserve"><value>Export</value></data>
+  <data name="ExportCsv" xml:space="preserve"><value>CSV file</value></data>
+  <data name="ExportJson" xml:space="preserve"><value>JSON file</value></data>
+  <data name="Filters" xml:space="preserve"><value>Filters</value></data>
+  <data name="IpAddress" xml:space="preserve"><value>IP address</value></data>
+  <data name="MakeExternalHelp" xml:space="preserve"><value>{0} will be treated as an external agent and will no longer see confidential content.</value></data>
+  <data name="MakeKnowledgeOwner" xml:space="preserve"><value>Make knowledge owner</value></data>
+  <data name="MakeKnowledgeOwnerConfirm" xml:space="preserve"><value>Make {0} a knowledge owner? They can approve and change company memory.</value></data>
+  <data name="MemberCount" xml:space="preserve"><value>Members: {0}</value></data>
+  <data name="NewSpace" xml:space="preserve"><value>New space</value></data>
+  <data name="NewTeam" xml:space="preserve"><value>New team</value></data>
+  <data name="NewWorkspace" xml:space="preserve"><value>New workspace</value></data>
+  <data name="NoMembers" xml:space="preserve"><value>No members yet</value></data>
+  <data name="NoPeopleMatch" xml:space="preserve"><value>No one matches this search</value></data>
+  <data name="NoSpaces" xml:space="preserve"><value>No spaces yet</value></data>
+  <data name="NoTeams" xml:space="preserve"><value>No teams yet</value></data>
+  <data name="NoTeamsHelp" xml:space="preserve"><value>Teams group people so you can give a whole team access to a space at once.</value></data>
+  <data name="NoTokensHelp" xml:space="preserve"><value>Create a token to connect an agent such as Claude Code.</value></data>
+  <data name="NotConfidentialHelp" xml:space="preserve"><value>Not confidential: external agents can see this space as far as its AI policy allows.</value></data>
+  <data name="OpenInWiki" xml:space="preserve"><value>Open in wiki</value></data>
+  <data name="ReactivateConfirm" xml:space="preserve"><value>Reactivate {0}? They can sign in again.</value></data>
+  <data name="RemoveKnowledgeOwner" xml:space="preserve"><value>Remove knowledge owner</value></data>
+  <data name="RemoveKnowledgeOwnerConfirm" xml:space="preserve"><value>Remove {0} as a knowledge owner? They can no longer approve company memory.</value></data>
+  <data name="RemoveMemberConfirm" xml:space="preserve"><value>Remove {0}? They lose the access this membership gives them.</value></data>
+  <data name="ResourceId" xml:space="preserve"><value>Resource ID</value></data>
+  <data name="RevokeTokenConfirm" xml:space="preserve"><value>Revoke {0}? Anything using this token loses access right away.</value></data>
+  <data name="SearchPeople" xml:space="preserve"><value>Search by name or email</value></data>
+  <data name="ShowDetails" xml:space="preserve"><value>Show details</value></data>
+  <data name="Space" xml:space="preserve"><value>Space</value></data>
+  <data name="SpaceSettings" xml:space="preserve"><value>Space settings</value></data>
+  <data name="UrlName" xml:space="preserve"><value>URL name</value></data>
+  <data name="UrlNameHelp" xml:space="preserve"><value>Used in links. Lowercase letters, digits and dashes.</value></data>
+  <data name="UserAgent" xml:space="preserve"><value>User agent</value></data>
+  <data name="ResType_page" xml:space="preserve"><value>Page</value></data>
+  <data name="ResType_space" xml:space="preserve"><value>Space</value></data>
+  <data name="ResType_memory" xml:space="preserve"><value>Memory</value></data>
+  <data name="ResType_user" xml:space="preserve"><value>User</value></data>
+  <data name="ResType_team" xml:space="preserve"><value>Team</value></data>
+  <data name="ResType_workspace" xml:space="preserve"><value>Workspace</value></data>
+  <data name="ResType_invitation" xml:space="preserve"><value>Invitation</value></data>
+  <data name="ResType_organization" xml:space="preserve"><value>Organization</value></data>
+  <data name="ResType_token" xml:space="preserve"><value>Token</value></data>
+  <data name="ScopeShort_read" xml:space="preserve"><value>Read</value></data>
+  <data name="ScopeShort_write" xml:space="preserve"><value>Edit pages</value></data>
+  <data name="ScopeShort_memory_write" xml:space="preserve"><value>Save memories</value></data>
+  <data name="ScopeShort_pages_delete" xml:space="preserve"><value>Trash pages</value></data>
+  <data name="ScopeShort_offline_access" xml:space="preserve"><value>Stay connected</value></data>
+  <data name="Open" xml:space="preserve"><value>Open</value></data>
+  <data name="OnlyStaleOverrides" xml:space="preserve"><value>Only stale overrides</value></data>
+  <data name="MemoriesHelp" xml:space="preserve"><value>What your agents and team remember, filed by scope.</value></data>
+  <data name="StaleHelp" xml:space="preserve"><value>The company memory this overrides has changed since.</value></data>
+  <data name="Pagination" xml:space="preserve"><value>Pagination</value></data>
+  <data name="PagerRange" xml:space="preserve"><value>{0}–{1} of {2}</value></data>
+  <data name="NoLinks" xml:space="preserve"><value>No links yet.</value></data>
+  <data name="MarkConfidentialConfirm" xml:space="preserve"><value>Mark this memory as confidential? Its project overrides and open proposals become confidential too.</value></data>
+  <data name="MemoryNotFound" xml:space="preserve"><value>This memory doesn't exist, or you can't see it.</value></data>
+  <data name="BackToMemories" xml:space="preserve"><value>Back to memories</value></data>
+  <data name="InboxHelp" xml:space="preserve"><value>Candidates captured from your agent sessions. Edit them, then accept or discard. A company candidate goes to a knowledge owner for review.</value></data>
+  <data name="InboxEmptyTitle" xml:space="preserve"><value>Nothing to review</value></data>
+  <data name="InboxEmptyText" xml:space="preserve"><value>Candidates from your agent sessions appear here.</value></data>
+  <data name="DiscardConfirm" xml:space="preserve"><value>Discard this candidate? It won't become a memory.</value></data>
+  <data name="SimilarMemoryN" xml:space="preserve"><value>Similar memory {0}</value></data>
+  <data name="ProposalsHelpOwner" xml:space="preserve"><value>Open proposals to change memory, waiting for your decision.</value></data>
+  <data name="ProposalsHelpMember" xml:space="preserve"><value>Proposals you made, and what happened to them.</value></data>
+  <data name="TargetMovedUpdate" xml:space="preserve"><value>The memory changed after this proposal was made. Update it to the latest text before it's reviewed.</value></data>
+  <data name="RejectWithNote" xml:space="preserve"><value>Reject with note</value></data>
+  <data name="RejectHelp" xml:space="preserve"><value>The proposer sees this note.</value></data>
+  <data name="UpdateToLatest" xml:space="preserve"><value>Update to latest</value></data>
+  <data name="EvidencePage" xml:space="preserve"><value>Source page</value></data>
+  <data name="Evidence_session" xml:space="preserve"><value>Agent session</value></data>
+  <data name="Evidence_conflict" xml:space="preserve"><value>Conflict</value></data>
+  <data name="TypeToSearch" xml:space="preserve"><value>Type to search</value></data>
+  <data name="SearchHelp" xml:space="preserve"><value>Finds the pages and memories you can read, in Arabic and English.</value></data>
+  <data name="Source" xml:space="preserve"><value>Source</value></data>
+  <data name="PendingInvitations" xml:space="preserve"><value>Invitations not accepted yet</value></data>
+  <data name="Sent" xml:space="preserve"><value>Sent</value></data>
+  <data name="ExpiresOn" xml:space="preserve"><value>Expires</value></data>
+  <data name="ResendInvite" xml:space="preserve"><value>Send a new link</value></data>
+  <data name="RevokeInvite" xml:space="preserve"><value>Withdraw invitation</value></data>
+  <data name="RevokeInviteConfirm" xml:space="preserve"><value>Withdraw the invitation for {0}? The link will stop working.</value></data>
+  <data name="InviteResent" xml:space="preserve"><value>A new link was sent.</value></data>
+  <data name="InviteRevoked" xml:space="preserve"><value>The invitation was withdrawn.</value></data>
+  <data name="ChangedBy" xml:space="preserve"><value>Changed by</value></data>
+  <data name="FormerMember" xml:space="preserve"><value>Former member</value></data>
+  <data name="Favorites" xml:space="preserve"><value>Favorites</value></data>
+  <data name="Favorite" xml:space="preserve"><value>Add to favorites</value></data>
+  <data name="Appearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="AppearanceHelp" xml:space="preserve"><value>The badge shown in menus and favorites.</value></data>
+  <data name="Color" xml:space="preserve"><value>Color</value></data>
+  <data name="Icon" xml:space="preserve"><value>Icon</value></data>
+  <data name="AutomaticColor" xml:space="preserve"><value>Automatic color</value></data>
+  <data name="Initials" xml:space="preserve"><value>Initials</value></data>
+  <data name="Color_teal" xml:space="preserve"><value>Teal</value></data>
+  <data name="Color_blue" xml:space="preserve"><value>Blue</value></data>
+  <data name="Color_indigo" xml:space="preserve"><value>Indigo</value></data>
+  <data name="Color_purple" xml:space="preserve"><value>Purple</value></data>
+  <data name="Color_pink" xml:space="preserve"><value>Pink</value></data>
+  <data name="Color_red" xml:space="preserve"><value>Red</value></data>
+  <data name="Color_orange" xml:space="preserve"><value>Orange</value></data>
+  <data name="Color_amber" xml:space="preserve"><value>Amber</value></data>
+  <data name="Color_green" xml:space="preserve"><value>Green</value></data>
+  <data name="Color_slate" xml:space="preserve"><value>Slate</value></data>
+  <data name="Icon_code" xml:space="preserve"><value>Code</value></data>
+  <data name="Icon_rocket" xml:space="preserve"><value>Rocket</value></data>
+  <data name="Icon_book" xml:space="preserve"><value>Book</value></data>
+  <data name="Icon_people" xml:space="preserve"><value>People</value></data>
+  <data name="Icon_build" xml:space="preserve"><value>Tools</value></data>
+  <data name="Icon_cloud" xml:space="preserve"><value>Cloud</value></data>
+  <data name="Icon_security" xml:space="preserve"><value>Security</value></data>
+  <data name="Icon_chart" xml:space="preserve"><value>Chart</value></data>
+  <data name="Icon_idea" xml:space="preserve"><value>Idea</value></data>
+  <data name="Icon_work" xml:space="preserve"><value>Work</value></data>
+  <data name="Icon_school" xml:space="preserve"><value>Learning</value></data>
+  <data name="Icon_support" xml:space="preserve"><value>Support</value></data>
+  <data name="Icon_science" xml:space="preserve"><value>Science</value></data>
+  <data name="Icon_palette" xml:space="preserve"><value>Design</value></data>
+  <data name="Icon_home" xml:space="preserve"><value>Home</value></data>
+  <data name="Icon_star" xml:space="preserve"><value>Star</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Security" xml:space="preserve"><value>Security</value></data>
+  <data name="SearchMembers" xml:space="preserve"><value>Search members</value></data>
+  <data name="Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="ProfilePhoto" xml:space="preserve"><value>Profile photo</value></data>
+  <data name="ProfilePhotoHelp" xml:space="preserve"><value>PNG, JPEG or WebP, up to 2 MB. Shown round next to your name.</value></data>
+  <data name="UploadPhoto" xml:space="preserve"><value>Upload photo</value></data>
+  <data name="RemovePhoto" xml:space="preserve"><value>Remove photo</value></data>
+  <data name="PhotoTooLarge" xml:space="preserve"><value>The photo is larger than 2 MB.</value></data>
+  <data name="PhotoNotAnImage" xml:space="preserve"><value>Use a PNG, JPEG or WebP image.</value></data>
+  <data name="CropPhoto" xml:space="preserve"><value>Crop your photo</value></data>
+  <data name="CropHelp" xml:space="preserve"><value>Drag the photo (or use the arrow keys) and zoom to frame it.</value></data>
+  <data name="CropArea" xml:space="preserve"><value>Photo framing</value></data>
+  <data name="Zoom" xml:space="preserve"><value>Zoom</value></data>
+  <data name="SavePhoto" xml:space="preserve"><value>Save photo</value></data>
+  <data name="ReviewCount" xml:space="preserve"><value>{0} waiting for review</value></data>
+  <data name="NavAgents" xml:space="preserve"><value>Agents</value></data>
+  <data name="NavAdmin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Sources" xml:space="preserve"><value>Sources</value></data>
+  <data name="Conflicts" xml:space="preserve"><value>Conflicts</value></data>
+  <data name="ConflictsHelp" xml:space="preserve"><value>Two memories that disagree. Keep one, merge them, or mark them as not conflicting.</value></data>
+  <data name="ShowResolved" xml:space="preserve"><value>Show resolved</value></data>
+  <data name="NoConflicts" xml:space="preserve"><value>No open conflicts</value></data>
+  <data name="NoConflictsHelp" xml:space="preserve"><value>When two memories disagree, open either one and choose "Flag a conflict" from its menu.</value></data>
+  <data name="ConflictResolved" xml:space="preserve"><value>Resolved</value></data>
+  <data name="ConflictWaiting" xml:space="preserve"><value>Waiting for approval</value></data>
+  <data name="ConflictWaitingHelp" xml:space="preserve"><value>The resolution changes a company memory, so a knowledge owner approves it first.</value></data>
+  <data name="ConflictOpen" xml:space="preserve"><value>Open</value></data>
+  <data name="FlaggedBy" xml:space="preserve"><value>Flagged by</value></data>
+  <data name="KeepA" xml:space="preserve"><value>Keep A</value></data>
+  <data name="KeepB" xml:space="preserve"><value>Keep B</value></data>
+  <data name="MergeEllipsis" xml:space="preserve"><value>Merge…</value></data>
+  <data name="NotAConflict" xml:space="preserve"><value>Not a conflict</value></data>
+  <data name="MergeTitle" xml:space="preserve"><value>Merge into A</value></data>
+  <data name="MergeHelp" xml:space="preserve"><value>Memory A gets this text as a new revision and B is superseded.</value></data>
+  <data name="Merge" xml:space="preserve"><value>Merge</value></data>
+  <data name="KeepConfirm" xml:space="preserve"><value>"{0}" will be superseded. It stays readable in its history.</value></data>
+  <data name="ConflictResolvedNow" xml:space="preserve"><value>Conflict resolved</value></data>
+  <data name="ConflictSentForApproval" xml:space="preserve"><value>Sent to a knowledge owner for approval</value></data>
+  <data name="RevisionN" xml:space="preserve"><value>Revision {0}</value></data>
+  <data name="Resolution_keep_a" xml:space="preserve"><value>Kept A</value></data>
+  <data name="Resolution_keep_b" xml:space="preserve"><value>Kept B</value></data>
+  <data name="Resolution_merged" xml:space="preserve"><value>Merged</value></data>
+  <data name="Resolution_not_conflict" xml:space="preserve"><value>Not a conflict</value></data>
+  <data name="FlagConflict" xml:space="preserve"><value>Flag a conflict…</value></data>
+  <data name="FlagConflictHelp" xml:space="preserve"><value>Pick the memory this one disagrees with and say what differs. It goes to Review › Conflicts.</value></data>
+  <data name="ConflictsWith" xml:space="preserve"><value>Conflicts with</value></data>
+  <data name="WhatDisagrees" xml:space="preserve"><value>What disagrees?</value></data>
+  <data name="FlagConflictShort" xml:space="preserve"><value>Flag conflict</value></data>
+  <data name="ConflictFlagged" xml:space="preserve"><value>Conflict flagged</value></data>
+  <data name="Projects" xml:space="preserve"><value>Projects</value></data>
+  <data name="ProjectsHelp" xml:space="preserve"><value>Projects tie repositories to memories, GitHub sources and the agents working in them.</value></data>
+  <data name="NewProject" xml:space="preserve"><value>New project</value></data>
+  <data name="NoProjects" xml:space="preserve"><value>No projects yet</value></data>
+  <data name="NoProjectsHelp" xml:space="preserve"><value>An org owner or admin creates a project and adds its members.</value></data>
+  <data name="YourRole" xml:space="preserve"><value>Your role</value></data>
+  <data name="Repositories" xml:space="preserve"><value>Repositories</value></data>
+  <data name="NotAMember" xml:space="preserve"><value>Not a member</value></data>
+  <data name="ProjectSlugHelp" xml:space="preserve"><value>Lowercase letters, digits and dashes. Agents see it.</value></data>
+  <data name="Create" xml:space="preserve"><value>Create</value></data>
+  <data name="ProjectNotFound" xml:space="preserve"><value>This project doesn't exist or isn't shared with you</value></data>
+  <data name="BackToProjects" xml:space="preserve"><value>Back to projects</value></data>
+  <data name="ProjectMemories" xml:space="preserve"><value>Project memories</value></data>
+  <data name="SourcesHelp" xml:space="preserve"><value>Web pages, documents and GitHub repositories that this project searches and recalls from.</value></data>
+  <data name="AttachRepository" xml:space="preserve"><value>Attach repository</value></data>
+  <data name="NoSources" xml:space="preserve"><value>No sources yet</value></data>
+  <data name="NoSourcesHelp" xml:space="preserve"><value>Add a web page or upload a document. Project admins can also attach a GitHub repository.</value></data>
+  <data name="Repository" xml:space="preserve"><value>Repository</value></data>
+  <data name="Documents" xml:space="preserve"><value>Documents</value></data>
+  <data name="LastCommit" xml:space="preserve"><value>Last commit</value></data>
+  <data name="SourcePaused" xml:space="preserve"><value>Paused</value></data>
+  <data name="SourcePausedHelp" xml:space="preserve"><value>GitHub refused the token. Set a new one to resume; synced content stays until you purge it.</value></data>
+  <data name="SourceError" xml:space="preserve"><value>Sync failed</value></data>
+  <data name="Syncing" xml:space="preserve"><value>Syncing…</value></data>
+  <data name="SourceOk" xml:space="preserve"><value>Up to date</value></data>
+  <data name="SourcesAudience" xml:space="preserve"><value>Everything synced is readable by this project's members.</value></data>
+  <data name="ProjectMembersHelp" xml:space="preserve"><value>Members read the project's memories and sources. Admins manage members and sources.</value></data>
+  <data name="NoRepositories" xml:space="preserve"><value>No repositories linked</value></data>
+  <data name="ProjectReposHelp" xml:space="preserve"><value>Agents working in these repositories recall this project's memories.</value></data>
+  <data name="RepositoryRemote" xml:space="preserve"><value>Repository remote</value></data>
+  <data name="RepositoryHelp" xml:space="preserve"><value>owner/name or the GitHub URL. It must be on the allow-list.</value></data>
+  <data name="GitHubToken" xml:space="preserve"><value>GitHub token</value></data>
+  <data name="GitHubTokenHelp" xml:space="preserve"><value>A fine-grained, read-only token. It's stored encrypted and never shown again.</value></data>
+  <data name="SourceConfidential" xml:space="preserve"><value>Confidential (external agents can't read it)</value></data>
+  <data name="Attach" xml:space="preserve"><value>Attach</value></data>
+  <data name="NewGitHubToken" xml:space="preserve"><value>New token</value></data>
+  <data name="SaveAndSync" xml:space="preserve"><value>Save and sync</value></data>
+  <data name="SyncNow" xml:space="preserve"><value>Sync now</value></data>
+  <data name="PurgeSynced" xml:space="preserve"><value>Purge synced content</value></data>
+  <data name="Purged" xml:space="preserve"><value>Synced content purged</value></data>
+  <data name="PurgeConfirm" xml:space="preserve"><value>Delete everything synced from {0}? The source stays and the next sync starts over.</value></data>
+  <data name="SourceAttached" xml:space="preserve"><value>{0} attached. The first sync has started.</value></data>
+  <data name="SourceResumed" xml:space="preserve"><value>Token saved. The source is syncing again.</value></data>
+  <data name="SyncQueued" xml:space="preserve"><value>Sync started. Documents update here as it runs.</value></data>
+  <data name="TourStep" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="TourSkip" xml:space="preserve"><value>Skip</value></data>
+  <data name="TourBack" xml:space="preserve"><value>Back</value></data>
+  <data name="TourNext" xml:space="preserve"><value>Next</value></data>
+  <data name="TourDone" xml:space="preserve"><value>Done</value></data>
+  <data name="TourReplay" xml:space="preserve"><value>Take a tour of this page</value></data>
+  <data name="TourNavTitle" xml:space="preserve"><value>Everything lives in the sidebar</value></data>
+  <data name="TourNavText" xml:space="preserve"><value>The wiki holds your pages. Brain holds what people and agents learned. Admin appears only for admins.</value></data>
+  <data name="TourSearchTitle" xml:space="preserve"><value>Search everything</value></data>
+  <data name="TourSearchText" xml:space="preserve"><value>Pages, memories and synced code, in Arabic and English. Press / from anywhere to jump here.</value></data>
+  <data name="TourReviewTitle" xml:space="preserve"><value>Decisions wait in Review</value></data>
+  <data name="TourReviewText" xml:space="preserve"><value>Things your agents captured, proposals for company memory, and conflicts between memories. The count tells you when something new arrives.</value></data>
+  <data name="TourAgentsTitle" xml:space="preserve"><value>Connect your agent</value></data>
+  <data name="TourAgentsText" xml:space="preserve"><value>Claude Code, Codex or Claude itself can search this wiki and share one memory with your team.</value></data>
+  <data name="TourHelpTitle" xml:space="preserve"><value>Replay this any time</value></data>
+  <data name="TourHelpText" xml:space="preserve"><value>Pages with a tour show this button. That's the whole tour.</value></data>
+  <data name="TourCandidateTitle" xml:space="preserve"><value>Something your agent learned</value></data>
+  <data name="TourCandidateText" xml:space="preserve"><value>Each card is a suggestion extracted from one of your agent sessions. Edit the title and text before you keep it.</value></data>
+  <data name="TourScopeTitle" xml:space="preserve"><value>Choose who it's for</value></data>
+  <data name="TourScopeText" xml:space="preserve"><value>Personal stays yours. Team and project need publish rights there. Company goes to a knowledge owner for approval.</value></data>
+  <data name="TourDecideTitle" xml:space="preserve"><value>Keep or discard</value></data>
+  <data name="TourDecideText" xml:space="preserve"><value>Accept saves it (or sends it for approval). Discard removes it. Nothing becomes shared without this step.</value></data>
+  <data name="TourReviewTabsTitle" xml:space="preserve"><value>Proposals and conflicts</value></data>
+  <data name="TourReviewTabsText" xml:space="preserve"><value>The other tabs hold proposals waiting on a knowledge owner and memories that disagree.</value></data>
+  <data name="TourFiltersTitle" xml:space="preserve"><value>Narrow it down</value></data>
+  <data name="TourFiltersText" xml:space="preserve"><value>Filter by scope, type, status or project. Stale shows project overrides whose company memory changed since.</value></data>
+  <data name="TourScopeChipTitle" xml:space="preserve"><value>Scope says who sees it</value></data>
+  <data name="TourScopeChipText" xml:space="preserve"><value>Personal, team, project or company. Company memories were approved by a knowledge owner.</value></data>
+  <data name="ViewProposal" xml:space="preserve"><value>View proposal</value></data>
+  <data name="ViewMemory" xml:space="preserve"><value>View memory</value></data>
+  <data name="MemorySaved" xml:space="preserve"><value>Memory saved</value></data>
+  <data name="Discarded" xml:space="preserve"><value>Discarded</value></data>
+  <data name="WaitingConflicts" xml:space="preserve"><value>{0} memory conflicts to settle</value></data>
+  <data name="GetStartedTitle" xml:space="preserve"><value>Connect your first agent</value></data>
+  <data name="GetStartedText" xml:space="preserve"><value>Athar gets useful when your agents use it: they search this wiki, recall what the team decided, and capture what they learn for you to review.</value></data>
+  <data name="ScopeMeaning_personal" xml:space="preserve"><value>Only you can read it.</value></data>
+  <data name="ScopeMeaning_team" xml:space="preserve"><value>Members of the team can read it.</value></data>
+  <data name="ScopeMeaning_project" xml:space="preserve"><value>Members of the project can read it.</value></data>
+  <data name="ScopeMeaning_company" xml:space="preserve"><value>Everyone in the organization can read it. A knowledge owner approved it.</value></data>
+  <data name="ScopeAccept_personal" xml:space="preserve"><value>Accept saves it as your personal memory now.</value></data>
+  <data name="ScopeAccept_team" xml:space="preserve"><value>Accept publishes it to your team if you can publish there.</value></data>
+  <data name="ScopeAccept_project" xml:space="preserve"><value>Accept publishes it to the project if you can publish there.</value></data>
+  <data name="ScopeAccept_company" xml:space="preserve"><value>Accept sends it to a knowledge owner, who approves it for everyone.</value></data>
+  <data name="NavSkills" xml:space="preserve"><value>Skills</value></data>
+  <data name="NavMySessions" xml:space="preserve"><value>My sessions</value></data>
+  <data name="MySessions" xml:space="preserve"><value>My sessions</value></data>
+  <data name="MySessionsHelp" xml:space="preserve"><value>What your agents and chats sent to Athar, grouped by project. Only you can read the transcripts, and they're deleted 30 days after they arrive.</value></data>
+  <data name="CaptureSettings" xml:space="preserve"><value>Capture settings</value></data>
+  <data name="CaptureSettingsHelp" xml:space="preserve"><value>Which repositories your agents capture, and what Athar may save for you without asking.</value></data>
+  <data name="CapturePaused" xml:space="preserve"><value>Pause all capture</value></data>
+  <data name="CapturePausedHelp" xml:space="preserve"><value>While paused, agents send nothing and saving chats is refused, whatever your local settings say.</value></data>
+  <data name="CaptureRepos" xml:space="preserve"><value>Captured repositories</value></data>
+  <data name="CaptureReposHelp" xml:space="preserve"><value>On each machine, capture_repos in ~/.athar/config.json adds to this list and capture_exclude removes from it.</value></data>
+  <data name="NoCaptureRepos" xml:space="preserve"><value>No repositories yet: nothing is captured unless a machine's local list names one.</value></data>
+  <data name="AddRepo" xml:space="preserve"><value>Add repository</value></data>
+  <data name="RepoRemote" xml:space="preserve"><value>Repository (for example github.com/org/repo)</value></data>
+  <data name="RemoveRepo" xml:space="preserve"><value>Remove {0}</value></data>
+  <data name="AutoAcceptPersonal" xml:space="preserve"><value>Save personal memories automatically</value></data>
+  <data name="AutoAcceptPersonalHelp" xml:space="preserve"><value>Personal candidates become memories at once. You can undo each one here.</value></data>
+  <data name="AutoAcceptShared" xml:space="preserve"><value>Save project and team memories automatically</value></data>
+  <data name="AutoAcceptSharedHelp" xml:space="preserve"><value>Only where you can publish. Company memories always go to a knowledge owner.</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>Capture settings saved</value></data>
+  <data name="NoProjectGroup" xml:space="preserve"><value>No project</value></data>
+  <data name="SourceHook" xml:space="preserve"><value>Coding agent</value></data>
+  <data name="SourceChat" xml:space="preserve"><value>Chat</value></data>
+  <data name="SessionRecords" xml:space="preserve"><value>{0} records, kept until {1}</value></data>
+  <data name="TranscriptGone" xml:space="preserve"><value>Transcript deleted</value></data>
+  <data name="ShowTranscript" xml:space="preserve"><value>Show transcript</value></data>
+  <data name="HideTranscript" xml:space="preserve"><value>Hide transcript</value></data>
+  <data name="DeleteNow" xml:space="preserve"><value>Delete now</value></data>
+  <data name="DeleteTranscriptConfirm" xml:space="preserve"><value>Delete this session's transcript and its unreviewed candidates now? Memories you already saved stay.</value></data>
+  <data name="TranscriptDeleted" xml:space="preserve"><value>Transcript deleted</value></data>
+  <data name="CandidatesWaiting" xml:space="preserve"><value>{0} waiting in your inbox</value></data>
+  <data name="Undo" xml:space="preserve"><value>Undo</value></data>
+  <data name="AutoAcceptUndone" xml:space="preserve"><value>Undone: the memory is archived</value></data>
+  <data name="CandidateStatus_new" xml:space="preserve"><value>Waiting</value></data>
+  <data name="CandidateStatus_accepted" xml:space="preserve"><value>Accepted</value></data>
+  <data name="CandidateStatus_edited" xml:space="preserve"><value>Accepted with edits</value></data>
+  <data name="CandidateStatus_discarded" xml:space="preserve"><value>Discarded</value></data>
+  <data name="CandidateStatus_auto_accepted" xml:space="preserve"><value>Saved automatically</value></data>
+  <data name="SessionsEmptyTitle" xml:space="preserve"><value>No sessions yet</value></data>
+  <data name="SessionsEmptyText" xml:space="preserve"><value>Connect a coding agent and add a repository above, or save a chat from a Claude app with "Save this chat to Athar".</value></data>
+  <data name="AddUrl" xml:space="preserve"><value>Add a web page</value></data>
+  <data name="UploadDocument" xml:space="preserve"><value>Upload a document</value></data>
+  <data name="SourceUpdated" xml:space="preserve"><value>Updated</value></data>
+  <data name="SourceKind_url" xml:space="preserve"><value>Web page</value></data>
+  <data name="SourceKind_document" xml:space="preserve"><value>Document</value></data>
+  <data name="SourceKind_github" xml:space="preserve"><value>GitHub repository</value></data>
+  <data name="SourceUrl" xml:space="preserve"><value>Page address</value></data>
+  <data name="SourceUrlHelp" xml:space="preserve"><value>One public page. Athar keeps a snapshot; Refresh takes a new one.</value></data>
+  <data name="RefreshSource" xml:space="preserve"><value>Refresh</value></data>
+  <data name="SourceAdding" xml:space="preserve"><value>Reading it now. It shows up in search when it's done.</value></data>
+  <data name="SourceIngestErrorHelp" xml:space="preserve"><value>Athar couldn't read it. Check the address or the file, then Refresh.</value></data>
+  <data name="DocumentTooLarge" xml:space="preserve"><value>Documents are limited to 10 MB.</value></data>
+  <data name="SourceKind_file" xml:space="preserve"><value>Folder</value></data>
+  <data name="SourceFileHelp" xml:space="preserve"><value>A folder sent with athar ingest. Run it again on that computer to update it.</value></data>
+  <data name="NavHelp" xml:space="preserve"><value>Help</value></data>
+  <data name="Help" xml:space="preserve"><value>Help</value></data>
+  <data name="HelpLead" xml:space="preserve"><value>How to use Athar: the wiki, memories, review, agents and capture, and the admin tasks.</value></data>
+  <data name="UserGuide" xml:space="preserve"><value>User guide</value></data>
+  <data name="AdminGuide" xml:space="preserve"><value>Admin guide</value></data>
+  <data name="AddGettingStarted" xml:space="preserve"><value>Add the getting-started page</value></data>
+  <data name="AddGettingStartedHelp" xml:space="preserve"><value>Adds "Getting started with agents" in English and Arabic to the root of a space you can edit. Adding it again to the same space returns the same pages.</value></data>
+  <data name="AddGettingStartedNoSpace" xml:space="preserve"><value>You need the editor or admin role in a space to add the page there.</value></data>
+  <data name="GettingStartedAdded" xml:space="preserve"><value>The getting-started pages were added</value></data>
+  <data name="OpenPage" xml:space="preserve"><value>Open page</value></data>
+  <data name="HelpAbout" xml:space="preserve"><value>Read about this page in the help</value></data>
+  <data name="TourLearnMore" xml:space="preserve"><value>Learn more</value></data>
+  <data name="HowAgentsWork" xml:space="preserve"><value>How agents work</value></data>
+  <data name="HelpContents" xml:space="preserve"><value>Contents</value></data>
+  <data name="HelpFilter" xml:space="preserve"><value>Filter the guide</value></data>
+  <data name="HelpNoMatch" xml:space="preserve"><value>No section mentions that. Try another word.</value></data>
+  <data name="HelpStartHere" xml:space="preserve"><value>Start here</value></data>
+  <data name="HelpTaskWrite" xml:space="preserve"><value>Write a page</value></data>
+  <data name="HelpTaskWriteLine" xml:space="preserve"><value>Drafts, live editing, comments and versions</value></data>
+  <data name="HelpTaskConnect" xml:space="preserve"><value>Connect an agent</value></data>
+  <data name="HelpTaskConnectLine" xml:space="preserve"><value>Claude Code, Codex and the Claude apps over MCP</value></data>
+  <data name="HelpTaskReview" xml:space="preserve"><value>Review what agents captured</value></data>
+  <data name="HelpTaskReviewLine" xml:space="preserve"><value>Accept, edit or discard; approve proposals</value></data>
+  <data name="HelpTaskMemories" xml:space="preserve"><value>Understand memories</value></data>
+  <data name="HelpTaskMemoriesLine" xml:space="preserve"><value>Scopes, who may change what, and shadowing</value></data>
+  <data name="NavConnect" xml:space="preserve"><value>Connect</value></data>
+  <data name="CollapseNav" xml:space="preserve"><value>Collapse the sidebar</value></data>
+  <data name="ExpandNav" xml:space="preserve"><value>Expand the sidebar</value></data>
+  <data name="EditPending" xml:space="preserve"><value>Your edit is waiting for a knowledge owner to review it, sent</value></data>
+  <data name="ShowMore" xml:space="preserve"><value>Show more</value></data>
+  <data name="ShowLess" xml:space="preserve"><value>Show less</value></data>
+  <data name="SentForReviewMemory" xml:space="preserve"><value>Sent for review. The memory changes when a knowledge owner approves your edit.</value></data>
+  <data name="ImportSpaces" xml:space="preserve"><value>Import spaces…</value></data>
+  <data name="ImportSpacesHelp" xml:space="preserve"><value>A Confluence export (HTML spaces, or the XML site or space export): each Confluence space becomes a space here, with you as its admin. Any other wiki zip becomes one space named after the file.</value></data>
+  <data name="ChooseFile" xml:space="preserve"><value>Choose a file</value></data>
+  <data name="Importing" xml:space="preserve"><value>Importing…</value></data>
+  <data name="ImportedSpaces" xml:space="preserve"><value>Imported {0} spaces, {1} pages and {2} files. They're published and appear in search shortly.</value></data>
+  <data name="ImportSkipped" xml:space="preserve"><value>Skipped:</value></data>
+  <data name="ImportTooLarge" xml:space="preserve"><value>Imports are limited to 4 GB.</value></data>
+  <data name="OpenSpace" xml:space="preserve"><value>Open the space</value></data>
+  <data name="ImportUploading" xml:space="preserve"><value>Uploading… {0}%</value></data>
+  <data name="ImportQueued" xml:space="preserve"><value>Waiting to start…</value></data>
+  <data name="ImportRunning" xml:space="preserve"><value>Importing… {0} of {1} pages</value></data>
+  <data name="ImportBackground" xml:space="preserve"><value>You can close this: the import carries on, and you'll get a notification when it's done.</value></data>
+  <data name="ImportFailed" xml:space="preserve"><value>The import failed: {0}</value></data>
+  <data name="ImportedPagesFiles" xml:space="preserve"><value>Imported {0} pages and {1} files. They're published and appear in search shortly.</value></data>
+  <data name="DeleteSpace" xml:space="preserve"><value>Delete space…</value></data>
+  <data name="DeleteSpaceHelp" xml:space="preserve"><value>"{0}" disappears for everyone, and all its pages go to the trash, where they're deleted for good after 30 days. Type the space's name to confirm.</value></data>
+  <data name="DeleteSpaceConfirm" xml:space="preserve"><value>Space name</value></data>
+  <data name="AiModels" xml:space="preserve"><value>AI models</value></data>
+  <data name="AiModelsIntro" xml:space="preserve"><value>The model endpoint this organization uses for search, answers and reading images.</value></data>
+  <data name="AiApplyNote" xml:space="preserve"><value>Saved changes apply within seconds to search and background jobs, without a restart. Work already running finishes with the settings it started with. Deployment defaults change only when the server restarts.</value></data>
+  <data name="AiKeyUnreadable" xml:space="preserve"><value>The stored API key can't be decrypted on this server. Replace it, clear it, or reset to the deployment defaults. Search keeps working on keywords meanwhile.</value></data>
+  <data name="AiProvider" xml:space="preserve"><value>Model endpoint</value></data>
+  <data name="AiUsingDeployment" xml:space="preserve"><value>Using the deployment defaults.</value></data>
+  <data name="AiUsingSaved" xml:space="preserve"><value>Using this organization's saved settings.</value></data>
+  <data name="AiDeploymentDefaults" xml:space="preserve"><value>Deployment defaults</value></data>
+  <data name="AiCustomEndpoint" xml:space="preserve"><value>Custom endpoint</value></data>
+  <data name="AiEndpoint" xml:space="preserve"><value>Endpoint URL</value></data>
+  <data name="AiEndpointHelp" xml:space="preserve"><value>An OpenAI-compatible endpoint on the company network, such as http://host:8080/v1. Public internet addresses are refused.</value></data>
+  <data name="AiLocalOllama" xml:space="preserve"><value>Local Ollama</value></data>
+  <data name="AiDeploymentAfterReset" xml:space="preserve"><value>Applies after you reset to the deployment defaults.</value></data>
+  <data name="AiResetExplain" xml:space="preserve"><value>This organization uses saved settings. Reset to go back to the deployment defaults; the saved endpoint, models and key stop being used.</value></data>
+  <data name="AiResetToDeployment" xml:space="preserve"><value>Reset to deployment defaults</value></data>
+  <data name="AiResetDone" xml:space="preserve"><value>Back on the deployment defaults.</value></data>
+  <data name="AiApiKey" xml:space="preserve"><value>API key</value></data>
+  <data name="AiKeyStateStored" xml:space="preserve"><value>A key is stored. It is never shown.</value></data>
+  <data name="AiKeyStateNone" xml:space="preserve"><value>No key is stored.</value></data>
+  <data name="AiKeyStateUnreadable" xml:space="preserve"><value>A key is stored but can't be decrypted.</value></data>
+  <data name="AiKeyKeep" xml:space="preserve"><value>Keep the stored key</value></data>
+  <data name="AiKeyKeepDeployment" xml:space="preserve"><value>Use the deployment's key</value></data>
+  <data name="AiKeyReplace" xml:space="preserve"><value>Replace the key</value></data>
+  <data name="AiKeySet" xml:space="preserve"><value>Set a key</value></data>
+  <data name="AiKeyClear" xml:space="preserve"><value>No key</value></data>
+  <data name="AiNewKey" xml:space="preserve"><value>New API key</value></data>
+  <data name="AiKeyEndpointChanged" xml:space="preserve"><value>The endpoint changed: enter its key, or choose No key. A key is never sent to a different endpoint.</value></data>
+  <data name="AiEmbeddingModel" xml:space="preserve"><value>Embedding model</value></data>
+  <data name="AiEmbeddingHelp" xml:space="preserve"><value>Indexes content for search. Changing it re-indexes everything.</value></data>
+  <data name="AiQueryModel" xml:space="preserve"><value>Query model</value></data>
+  <data name="AiQueryHelp" xml:space="preserve"><value>Answers from search results, and turns agent sessions into memory candidates.</value></data>
+  <data name="AiVisionModel" xml:space="preserve"><value>Vision model</value></data>
+  <data name="AiVisionHelp" xml:space="preserve"><value>Optional. Reads the text in new PNG, JPEG and WebP attachments (up to 25 MB) so search finds it.</value></data>
+  <data name="AiOff" xml:space="preserve"><value>Off</value></data>
+  <data name="AiDimensionsNote" xml:space="preserve"><value>Search stores 1024 values per vector. The embedding model must return at least that many; Test checks it.</value></data>
+  <data name="AiLoadModels" xml:space="preserve"><value>Load models</value></data>
+  <data name="AiTest" xml:space="preserve"><value>Test</value></data>
+  <data name="AiNoModels" xml:space="preserve"><value>The endpoint listed no models. You can still type model names.</value></data>
+  <data name="AiModelsFound" xml:space="preserve"><value>{0} models available. Pick from the lists or type a name.</value></data>
+  <data name="AiTestResults" xml:space="preserve"><value>Test results</value></data>
+  <data name="AiTestOk" xml:space="preserve"><value>Works</value></data>
+  <data name="AiTestFailed" xml:space="preserve"><value>Failed ({0})</value></data>
+  <data name="AiTestCode_ok" xml:space="preserve"><value>Works</value></data>
+  <data name="AiTestCode_invalid_response" xml:space="preserve"><value>The model answered in an unexpected shape (for embeddings, fewer than 1024 values; for queries, no structured JSON).</value></data>
+  <data name="AiTestCode_provider_unavailable" xml:space="preserve"><value>The endpoint is temporarily unavailable. Try again when it recovers.</value></data>
+  <data name="AiTestCode_authentication_unavailable" xml:space="preserve"><value>The endpoint refused the key. Check its permissions or replace it.</value></data>
+  <data name="AiTestCode_provider_rejected" xml:space="preserve"><value>The endpoint rejected this request. Check that the selected model supports this task.</value></data>
+  <data name="AiTestCode_configuration_unavailable" xml:space="preserve"><value>The deployment provider is unavailable. Configure a local endpoint or Ollama.</value></data>
+  <data name="AiTestCode_invalid_endpoint" xml:space="preserve"><value>The endpoint address isn't allowed.</value></data>
+  <data name="AiTestCode_key_unreadable" xml:space="preserve"><value>The stored key can't be decrypted. Replace it.</value></data>
+  <data name="AiTestCode_configuration_invalid" xml:space="preserve"><value>The settings are incomplete or invalid.</value></data>
+  <data name="AiIndex" xml:space="preserve"><value>Search index</value></data>
+  <data name="AiIndexHelp" xml:space="preserve"><value>How much content has vectors from the current embedding model. Until it's complete, the rest is found by keywords.</value></data>
+  <data name="AiEmbeddingIdentity" xml:space="preserve"><value>Embedding version</value></data>
+  <data name="AiCoverage" xml:space="preserve"><value>{0} of {1} chunks indexed with the current model</value></data>
+  <data name="AiCoverageComplete" xml:space="preserve"><value>All {0} chunks are indexed with the current model.</value></data>
+  <data name="AiJobs" xml:space="preserve"><value>Queued: {0} · Running: {1} · Failed: {2}</value></data>
+  <data name="AiCheckedAt" xml:space="preserve"><value>Checked</value></data>
+  <data name="AiIndexPercent" xml:space="preserve"><value>{0:N0}% complete</value></data>
+  <data name="AiIndexEmpty" xml:space="preserve"><value>No content to index.</value></data>
+  <data name="AiIndexComplete" xml:space="preserve"><value>Index is up to date. Progress refreshes automatically every 3 seconds.</value></data>
+  <data name="AiIndexWorking" xml:space="preserve"><value>Indexing in progress. Progress refreshes automatically every 3 seconds.</value></data>
+  <data name="AiIndexQueued" xml:space="preserve"><value>Queued for indexing. Progress refreshes automatically every 3 seconds.</value></data>
+  <data name="AiIndexWaiting" xml:space="preserve"><value>Waiting for the background worker to queue this rebuild, usually within 30 seconds. Progress refreshes automatically every 3 seconds.</value></data>
+  <data name="AiIndexFailed" xml:space="preserve"><value>Indexing stopped with failed jobs. Test the model configuration, then rebuild to retry. Progress refreshes automatically every 3 seconds.</value></data>
+  <data name="AiStatusUnavailable" xml:space="preserve"><value>The index status isn't available right now.</value></data>
+  <data name="AiRebuild" xml:space="preserve"><value>Rebuild index</value></data>
+  <data name="AiRebuildStarted" xml:space="preserve"><value>Rebuild started. Progress shows here.</value></data>
+  <data name="AiConfirmSave" xml:space="preserve"><value>The embedding endpoint or model changes, so all content is indexed again in the background. Until that finishes, content not yet re-indexed is found by keywords only. Old vectors are kept.</value></data>
+  <data name="AiConfirmReset" xml:space="preserve"><value>Go back to the deployment defaults? The saved endpoint, models and key stop being used. If the embedding model differs, content is indexed again.</value></data>
+  <data name="AiConfirmRebuild" xml:space="preserve"><value>Index all content again with the current model? Use this when the model behind the same name was replaced. Search uses keywords for content not yet re-indexed.</value></data>
+  <data name="AiErrorConflict" xml:space="preserve"><value>Someone else changed these settings. The page now shows the latest; check them and try again.</value></data>
+  <data name="AiErrorInvalid" xml:space="preserve"><value>The settings weren't accepted. Check that the endpoint is an http or https address on the company network with no user name, query or fragment; that the embedding and query models are filled in (at most 200 characters each); and that a new key is entered when the endpoint changed or the stored key can't be read.</value></data>
+  <data name="AiErrorProvider" xml:space="preserve"><value>The model endpoint couldn't be reached or refused the request.</value></data>
+  <data name="AnswerTitle" xml:space="preserve"><value>Answer</value></data>
+  <data name="AnswerFromResults" xml:space="preserve"><value>Answer from these results</value></data>
+  <data name="Answering" xml:space="preserve"><value>Writing an answer…</value></data>
+  <data name="AnswerSources" xml:space="preserve"><value>Sources</value></data>
+  <data name="AnswerNote" xml:space="preserve"><value>Written by the query model from results you can read. Check the sources before relying on it.</value></data>
+  <data name="AnswerNoEvidence" xml:space="preserve"><value>These results don't contain enough to answer. Try other words.</value></data>
+  <data name="AnswerUnavailable" xml:space="preserve"><value>An answer isn't available right now. The results are still here.</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="DashboardHelp" xml:space="preserve"><value>What your agents did with the company's knowledge: your calls, retrievals, writes and reviews.</value></data>
+  <data name="DashboardHelpOrg" xml:space="preserve"><value>What everyone's agents did with the company's knowledge across the organization.</value></data>
+  <data name="DashboardScope" xml:space="preserve"><value>Whose activity</value></data>
+  <data name="DashboardMine" xml:space="preserve"><value>Mine</value></data>
+  <data name="DashboardAll" xml:space="preserve"><value>All</value></data>
+  <data name="DashKnowledge" xml:space="preserve"><value>Knowledge stored</value></data>
+  <data name="DashPages" xml:space="preserve"><value>Pages</value></data>
+  <data name="DashSources" xml:space="preserve"><value>Sources</value></data>
+  <data name="DashCallsToday" xml:space="preserve"><value>Agent calls today</value></data>
+  <data name="DashReadsWrites" xml:space="preserve"><value>Reads {0} · writes {1}</value></data>
+  <data name="DashRetrievals" xml:space="preserve"><value>Retrievals today</value></data>
+  <data name="DashEmptyRate" xml:space="preserve"><value>{0} returned nothing</value></data>
+  <data name="DashAgents" xml:space="preserve"><value>Active agents (24 h)</value></data>
+  <data name="DashTokensDue" xml:space="preserve"><value>Tokens expiring within 7 days: {0} · unused for 30 days: {1}</value></data>
+  <data name="DashPromoted" xml:space="preserve"><value>Promoted to company</value></data>
+  <data name="DashPromotedSub" xml:space="preserve"><value>{0} of new memories · rejected: {1} · open conflicts: {2}</value></data>
+  <data name="DashWaiting" xml:space="preserve"><value>Waiting for review</value></data>
+  <data name="DashOldest" xml:space="preserve"><value>Oldest waiting {0}</value></data>
+  <data name="DashNothingWaiting" xml:space="preserve"><value>Nothing waiting</value></data>
+  <data name="DashDays" xml:space="preserve"><value>{0} d</value></data>
+  <data name="DashHours" xml:space="preserve"><value>{0} h</value></data>
+  <data name="DashMinutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="DashRecallHit" xml:space="preserve"><value>Recall hit rate</value></data>
+  <data name="DashLast30" xml:space="preserve"><value>Last 30 days</value></data>
+  <data name="DashIndexJobs" xml:space="preserve"><value>Index jobs</value></data>
+  <data name="DashJobsSub" xml:space="preserve"><value>Queued {0} · running {1} · dead {2}</value></data>
+  <data name="DashCallsPerDay" xml:space="preserve"><value>Agent calls per day</value></data>
+  <data name="DashCallsPerDayHelp" xml:space="preserve"><value>The last 14 days, by client. Fridays and Saturdays are shaded.</value></data>
+  <data name="DashNoCalls" xml:space="preserve"><value>No agent calls yet</value></data>
+  <data name="DashNoCallsText" xml:space="preserve"><value>Connect an agent and its calls show up here.</value></data>
+  <data name="DashOther" xml:space="preserve"><value>Other</value></data>
+  <data name="DashWeekend" xml:space="preserve"><value>Weekend</value></data>
+  <data name="DashWrites" xml:space="preserve"><value>Writes</value></data>
+  <data name="DashWritesHelp" xml:space="preserve"><value>Memories, session commits, pages and sources written each day over the past year.</value></data>
+  <data name="DashNoWrites" xml:space="preserve"><value>Nothing written yet</value></data>
+  <data name="DashWritesSummary" xml:space="preserve"><value>Writes over the past year: {0} active days, peak {1}</value></data>
+  <data name="DashActiveDays" xml:space="preserve"><value>Active days: {0}</value></data>
+  <data name="DashPeak" xml:space="preserve"><value>peak {0} ({1})</value></data>
+  <data name="DashLastWrite" xml:space="preserve"><value>last write {0}</value></data>
+  <data name="DashFunnel" xml:space="preserve"><value>From sessions to company knowledge</value></data>
+  <data name="DashNoSessions" xml:space="preserve"><value>No captured sessions</value></data>
+  <data name="DashNoSessionsText" xml:space="preserve"><value>Turn on capture in your agent and its sessions show up here.</value></data>
+  <data name="DashSessions" xml:space="preserve"><value>Sessions</value></data>
+  <data name="DashReviewed" xml:space="preserve"><value>Reviewed</value></data>
+  <data name="DashPromotedStep" xml:space="preserve"><value>Promoted</value></data>
+  <data name="DashMostRecalled" xml:space="preserve"><value>Most recalled memories</value></data>
+  <data name="DashNoRecalls" xml:space="preserve"><value>No recalls yet</value></data>
+  <data name="DashRestricted" xml:space="preserve"><value>A memory you can't read</value></data>
+  <data name="DashRecalls" xml:space="preserve"><value>Recalls: {0}</value></data>
+  <data name="DashAttention" xml:space="preserve"><value>Needs attention</value></data>
+  <data name="DashAllClear" xml:space="preserve"><value>Nothing needs attention</value></data>
+  <data name="DashNeverRecalled" xml:space="preserve"><value>Never recalled after 30 days: {0}</value></data>
+  <data name="DashOpenConflicts" xml:space="preserve"><value>Open conflicts: {0}</value></data>
+  <data name="DashEmptyRepeat" xml:space="preserve"><value>“{0}” found nothing ({1} times)</value></data>
+  <data name="DashEmptyRepeatHidden" xml:space="preserve"><value>A query found nothing ({0} times)</value></data>
+  <data name="DashTools" xml:space="preserve"><value>MCP tools</value></data>
+  <data name="DashToolsHelp" xml:space="preserve"><value>Your own calls over the last 30 days.</value></data>
+  <data name="DashNoTools" xml:space="preserve"><value>You haven't called any tools yet</value></data>
+  <data name="DashTool" xml:space="preserve"><value>Tool</value></data>
+  <data name="DashCalls" xml:space="preserve"><value>Calls</value></data>
+  <data name="DashP95" xml:space="preserve"><value>p95 latency</value></data>
+  <data name="DashErrors" xml:space="preserve"><value>Error rate</value></data>
+  <data name="DashMs" xml:space="preserve"><value>{0} ms</value></data>
+  <data name="DashModelTokens" xml:space="preserve"><value>Model tokens per day</value></data>
+  <data name="DashAdminOnly" xml:space="preserve"><value>Visible to admins only.</value></data>
+  <data name="DashNoTokens" xml:space="preserve"><value>No model calls in the last 14 days</value></data>
+  <data name="Role_embedding" xml:space="preserve"><value>Embedding</value></data>
+  <data name="Role_query" xml:space="preserve"><value>Query</value></data>
+  <data name="Role_vision" xml:space="preserve"><value>Vision</value></data>
+  <data name="DashJobQueue" xml:space="preserve"><value>Job queue</value></data>
+  <data name="DashReady" xml:space="preserve"><value>Ready</value></data>
+  <data name="DashRunning" xml:space="preserve"><value>Running</value></data>
+  <data name="DashDead" xml:space="preserve"><value>Dead</value></data>
+  <data name="DashTokenHealth" xml:space="preserve"><value>Access tokens</value></data>
+  <data name="DashYourTokens" xml:space="preserve"><value>Your personal access tokens.</value></data>
+  <data name="DashActiveTokens" xml:space="preserve"><value>Active</value></data>
+  <data name="DashExpiring" xml:space="preserve"><value>Expire within 7 days</value></data>
+  <data name="DashUnused" xml:space="preserve"><value>Unused for 30 days</value></data>
+  <data name="DashExpired" xml:space="preserve"><value>Expired</value></data>
+  <data name="DashManageTokens" xml:space="preserve"><value>Manage tokens</value></data>
+</root>

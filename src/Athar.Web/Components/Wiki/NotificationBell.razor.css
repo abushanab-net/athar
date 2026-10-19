@@ -1,0 +1,16 @@
+.bell { position: relative; display: inline-grid; place-items: center; inline-size: 40px; block-size: 40px; border-radius: var(--athar-radius); color: var(--mud-palette-appbar-text); cursor: pointer }
+.bell:hover { background: var(--athar-fill) }
+/* The count sits inside the 56px bar (it was clipped above it), in the seal color with a ring of the bar behind it. */
+.count { position: absolute; inset-block-start: 4px; inset-inline-end: 2px; min-inline-size: 18px; block-size: 18px; padding-inline: 5px;
+    border-radius: 999px; background: var(--athar-seal); color: var(--mud-palette-secondary-text); font-size: 0.75rem; font-weight: 700; line-height: 18px; text-align: center;
+    box-shadow: 0 0 0 2px var(--mud-palette-appbar-background); pointer-events: none; font-variant-numeric: tabular-nums;
+    animation: athar-tick var(--athar-base) var(--athar-ease) }
+::deep .notification-popover { inline-size: min(360px, calc(100vw - 32px)) }
+.head { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 4px 16px; border-block-end: 1px solid var(--athar-rule) }
+.title { font-weight: 600 }
+::deep .note .mud-menu-item-text { display: grid; gap: 2px; white-space: normal }
+::deep .note.unread { background: var(--athar-fill) }
+::deep .note.unread .what::before { content: ""; display: inline-block; inline-size: 6px; block-size: 6px; border-radius: 50%; background: var(--athar-seal); margin-inline-end: 6px; translate: 0 -2px }
+.where { color: var(--mud-palette-text-secondary) }
+::deep .when { font-size: 0.75rem; color: var(--mud-palette-text-secondary) }
+::deep .see-all .mud-menu-item-text { color: var(--mud-palette-primary); font-weight: 600 }

@@ -1,0 +1,164 @@
+/* The page uses the whole column, with no box around it: reading text at 15px. */
+.page-editor {
+    padding-block: 8px 24px;
+    min-height: 16rem;
+}
+
+.page-editor ::deep .ProseMirror {
+    outline: none;
+    min-height: 14rem;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+}
+
+/* Editor focus (AT-46) shows on the page card around it (WikiPage.razor.css), not as a line or box at the text. */
+
+.page-editor ::deep .ProseMirror > :first-child { margin-block-start: 0 }
+.page-editor ::deep h1, .page-editor ::deep h2 { font-size: 1.25rem; font-weight: 600; line-height: 1.3; margin-block: 24px 8px }
+.page-editor ::deep h3, .page-editor ::deep h4 { font-size: 1rem; font-weight: 600; line-height: 1.4; margin-block: 16px 4px }
+.page-editor ::deep a { color: var(--mud-palette-primary) }
+
+/* MudBlazor's reset zeroes list padding: without it the numbers hang outside the page and over a callout's edge. */
+.page-editor ::deep .ProseMirror ol,
+.page-editor ::deep .ProseMirror ul:not([data-type="taskList"]) {
+    padding-inline-start: 1.75em;
+    margin-block: 4px;
+}
+
+/* A wide table scrolls inside the page (renderWrapper) instead of running under the side panel. */
+.page-editor ::deep .tableWrapper {
+    overflow-x: auto;
+    max-inline-size: 100%;
+    margin-block: 8px;
+}
+
+.page-editor ::deep table {
+    border-collapse: collapse;
+}
+
+.page-editor ::deep th,
+.page-editor ::deep td {
+    border: 1px solid var(--athar-rule);
+    padding: 4px 8px;
+    min-width: 4rem;
+    vertical-align: top;
+}
+
+.page-editor ::deep th { background: var(--athar-fill); font-weight: 600 }
+
+.page-editor ::deep ul[data-type="taskList"] {
+    list-style: none;
+    padding-inline-start: 4px;
+}
+
+.page-editor ::deep ul[data-type="taskList"] li {
+    display: flex;
+    gap: 8px;
+}
+
+.page-editor ::deep .callout {
+    border: 1px solid var(--athar-rule);
+    border-inline-start: 4px solid var(--mud-palette-info);
+    background: var(--athar-fill);
+    padding: 8px 12px;
+    margin-block: 8px;
+    border-radius: var(--athar-radius);
+}
+.page-editor ::deep .callout[data-callout="success"] { border-inline-start-color: var(--mud-palette-success); }
+.page-editor ::deep .callout[data-callout="warning"] { border-inline-start-color: var(--mud-palette-warning); }
+.page-editor ::deep .callout[data-callout="danger"] { border-inline-start-color: var(--mud-palette-error); }
+
+.page-editor ::deep pre {
+    background: var(--athar-fill);
+    padding: 8px 12px;
+    border-radius: var(--athar-radius);
+    overflow-x: auto;
+    font-size: 0.75rem;
+}
+
+/* T120: a ```mermaid block shows its diagram; the source shows while the caret is in it, or when it can't be drawn. */
+.page-editor ::deep .code-block.is-mermaid > pre { display: none; }
+.page-editor ::deep .code-block.is-mermaid.is-editing > pre,
+.page-editor ::deep .code-block.is-mermaid.mermaid-error > pre { display: block; }
+.page-editor ::deep .code-block.is-mermaid .mermaid-diagram {
+    overflow-x: auto;
+    padding-block: 4px;
+    cursor: text;
+}
+.page-editor ::deep .code-block.is-mermaid .mermaid-diagram svg { max-width: 100%; height: auto; }
+.page-editor ::deep .code-block.mermaid-error .mermaid-diagram {
+    color: var(--mud-palette-error);
+    font-size: 0.75rem;
+}
+
+.page-editor ::deep img {
+    max-width: 100%;
+}
+
+.page-editor ::deep .page-mention,
+.page-editor ::deep .user-mention {
+    color: var(--mud-palette-primary);
+    font-weight: 500;
+}
+
+.page-editor ::deep .page-mention { text-decoration: underline; text-underline-offset: 2px }
+
+/* Named live cursors (FR-RT-02). The extension paints the label in the caret color (PageEditor.Colors), a mid tone made for white text. */
+.page-editor ::deep .collaboration-carets__caret {
+    position: relative;
+    margin-inline: -1px;
+    border-inline: 1px solid;
+}
+
+.page-editor ::deep .collaboration-carets__label {
+    position: absolute;
+    inset-block-start: -1.4em;
+    inset-inline-start: -1px;
+    padding: 0 4px;
+    border-radius: 2px;
+    color: var(--mud-palette-white);
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Inline comment anchors (FR-CM-01): the warning tint from WikiPage.razor.css, so both themes read. */
+.page-editor ::deep .comment-anchor {
+    background: var(--wiki-anchor-tint);
+    border-block-end: 2px solid var(--wiki-anchor-rule);
+}
+
+/* The selection a comment is being written about, kept visible while the comment box has focus. */
+.page-editor ::deep .comment-pending {
+    background: color-mix(in srgb, var(--mud-palette-primary) 22%, transparent);
+    border-radius: 2px;
+}
+
+.page-editor ::deep blockquote {
+    margin: 8px 0;
+    padding-inline-start: 12px;
+    border-inline-start: 3px solid var(--athar-rule);
+    color: var(--athar-muted);
+}
+
+.page-editor ::deep hr {
+    margin-block: 16px;
+    border: 0;
+    border-block-start: 1px solid var(--athar-rule);
+}
+
+.page-editor ::deep code {
+    padding: 1px 4px;
+    border-radius: 2px;
+    background: var(--athar-fill);
+    font-size: 0.875em;
+}
+
+.page-editor ::deep pre code { padding: 0; background: none }
+
+.page-editor ::deep .comment-anchor--focus {
+    outline: 2px solid var(--mud-palette-warning);
+    border-radius: 2px;
+}
+
+

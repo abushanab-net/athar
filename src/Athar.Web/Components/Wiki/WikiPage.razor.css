@@ -1,0 +1,407 @@
+/* The wiki's three panes (DESIGN.md Layout): tree | page | side panel, full bleed inside the shell, 24px gutters.
+   Wide: three columns. 960–1199px: the side panel moves under the page. Below 960px: the tree is a drawer. */
+.wiki-root {
+    /* Presence: mirrors PageEditor.Colors (the caret extension takes only #rrggbb). Mid tones that carry white text and
+       still stand out on the dark surface. */
+    --wiki-presence-0: #3b6fc4;
+    --wiki-presence-1: #0f7c78;
+    --wiki-presence-2: #b45309;
+    --wiki-presence-3: #7c4ddf;
+    --wiki-presence-4: #c8325a;
+    /* Comment anchors and quotes: a warning tint that follows the theme. */
+    --wiki-anchor-tint: color-mix(in srgb, var(--mud-palette-warning) 18%, transparent);
+    --wiki-anchor-rule: color-mix(in srgb, var(--mud-palette-warning) 70%, transparent);
+    --wiki-tree-w: 264px;
+    --wiki-side-w: 360px;
+    --wiki-top: var(--mud-appbar-height, 56px);
+    --wiki-bar: 48px;
+    display: grid;
+    grid-template-columns: var(--wiki-tree-w) minmax(0, 1fr) var(--wiki-side-w);
+    align-items: start;
+    min-block-size: calc(100vh - var(--wiki-top));
+}
+
+.wiki-root.no-side { grid-template-columns: var(--wiki-tree-w) minmax(0, 1fr) }
+
+/* ---- Tree ---- */
+.wiki-tree {
+    position: sticky;
+    inset-block-start: var(--wiki-top);
+    box-sizing: border-box;
+    block-size: calc(100vh - var(--wiki-top));
+    overflow-y: auto;
+    padding: 16px 12px 24px;
+    background: var(--mud-palette-surface);
+    border-inline-end: 1px solid var(--athar-rule);
+}
+
+.tree-head {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-block-end: 8px;
+    padding-inline-start: 4px;
+}
+
+.tree-head ::deep .space-badge { margin-inline-end: 6px }
+
+.tree-head h2 {
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.tree-close { display: none }
+
+.tree-label {
+    margin: 8px 4px 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--athar-muted);
+}
+
+.page-tree, .trash-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.trash-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 4px 4px 8px;
+    border-radius: var(--athar-radius);
+}
+
+.trash-row:hover { background: var(--athar-fill) }
+
+.trash-text {
+    display: grid;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.trash-until {
+    font-size: 0.75rem;
+    color: var(--athar-muted);
+}
+
+.tree-scrim { display: none }
+
+/* ---- Page ---- */
+/* The page as a flat white card on the ground (The Flat Record Rule: a hairline, no shadow); while the editor has focus
+   the hairline takes a primary ring, which is the editor's visible focus (AT-46) without a line or a box at the text. */
+.wiki-page {
+    min-width: 0;
+    margin: 16px 16px 32px;
+    min-block-size: calc(100vh - var(--wiki-top) - 48px); /* the whole column, even for a short page */
+    box-sizing: border-box;
+    padding: 24px var(--athar-gutter) 48px;
+    border: 1px solid var(--athar-rule);
+    border-radius: 8px;
+    background: var(--mud-palette-surface);
+    transition: border-color var(--athar-fast) var(--athar-ease), box-shadow var(--athar-fast) var(--athar-ease);
+}
+
+.wiki-page:has(.ProseMirror:focus) {
+    border-color: color-mix(in srgb, var(--mud-palette-primary) 45%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--mud-palette-primary) 35%, transparent);
+}
+
+.tree-toggle { display: none }
+
+.page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    margin-block-end: 12px;
+}
+
+.page-title {
+    flex: 1 1 100%;
+    min-width: 0;
+    margin: 0;
+    font-size: clamp(1.25rem, 4vw, 2rem);
+    font-weight: 700;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+}
+
+/* Editable in place: the field shows itself on hover and focus only. The negative margin keeps the text on the page edge. */
+.title-input {
+    box-sizing: border-box;
+    inline-size: calc(100% + 18px);
+    margin-inline: -9px;
+    padding: 2px 8px;
+    border: 1px solid transparent;
+    border-radius: var(--athar-radius);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
+    text-overflow: ellipsis;
+}
+
+.title-input:hover { border-color: var(--athar-stroke) }
+
+.title-input:focus {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 0;
+    border-color: var(--mud-palette-primary);
+    background: var(--mud-palette-surface);
+}
+
+.page-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.presence {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.avatar {
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    inline-size: 28px;
+    block-size: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--mud-palette-background);
+    color: var(--mud-palette-white);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: default;
+}
+
+.avatar + .avatar { margin-inline-start: -6px }
+.presence-0 { background: var(--wiki-presence-0) }
+.presence-1 { background: var(--wiki-presence-1) }
+.presence-2 { background: var(--wiki-presence-2) }
+.presence-3 { background: var(--wiki-presence-3) }
+.presence-4 { background: var(--wiki-presence-4) }
+.avatar.more { background: var(--athar-fill); color: var(--mud-palette-text-primary) }
+
+.editor-toolbar {
+    position: sticky;
+    inset-block-start: calc(var(--wiki-top) + var(--wiki-bar));
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    margin-block-end: 8px;
+    padding: 4px;
+    border: 1px solid var(--athar-rule);
+    border-radius: var(--athar-radius);
+    background: var(--mud-palette-surface);
+}
+
+.editor-toolbar .sep {
+    inline-size: 1px;
+    block-size: 20px;
+    margin-inline: 6px;
+    background: var(--athar-rule);
+}
+
+.editor-toolbar ::deep .mud-file-upload {
+    flex: 0 0 auto;
+    inline-size: auto;
+    margin: 0;
+}
+
+/* ---- Side panel ---- */
+.wiki-side {
+    position: sticky;
+    inset-block-start: var(--wiki-top);
+    box-sizing: border-box;
+    block-size: calc(100vh - var(--wiki-top));
+    overflow-y: auto;
+    padding: 0 16px 24px;
+    background: var(--mud-palette-surface);
+    border-inline-start: 1px solid var(--athar-rule);
+}
+
+.wiki-side { display: flex; flex-direction: column }
+.wiki-side[hidden], .side-panel[hidden] { display: none }
+/* The comments tab pins its composer to the panel's bottom edge, so the panel adds no padding under it. */
+.wiki-side:has(.side-comments:not([hidden])) { padding-block-end: 0 }
+
+/* Outline, Comments, Versions: three plain tabs that never overflow (MudTabs added scroll arrows and hid the last tab). */
+.side-tabs {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    display: flex;
+    margin-inline: -16px;
+    padding-inline: 8px;
+    border-block-end: 1px solid var(--athar-rule);
+    background: var(--mud-palette-surface);
+}
+
+.side-tabs button {
+    display: inline-flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-block-size: 44px;
+    padding: 0 8px;
+    margin-block-end: -1px;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    background: none;
+    color: var(--athar-muted);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.side-tabs button:hover { color: var(--mud-palette-text-primary) }
+.side-tabs button[aria-selected=true] { color: var(--mud-palette-text-primary); font-weight: 600; border-block-end-color: var(--mud-palette-primary) }
+.side-tabs button:focus-visible { outline: 2px solid var(--mud-palette-primary); outline-offset: -2px }
+
+.side-head { display: flex; align-items: center; justify-content: space-between; min-block-size: 44px; border-block-end: 1px solid var(--athar-rule); margin-block-end: 12px }
+.side-head h2 { margin: 0; font-size: 1rem; font-weight: 600 }
+
+.side-panel { padding-block: 12px }
+/* The comment cards sit on the cool ground, edge to edge in the panel. */
+.side-comments { display: flex; flex: 1 1 auto; flex-direction: column; margin-inline: -16px; padding: 12px 16px 0; background: var(--mud-palette-background) }
+
+.tab-count {
+    display: inline-block;
+    min-inline-size: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--athar-fill);
+    color: var(--mud-palette-text-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 18px;
+    font-variant-numeric: tabular-nums;
+}
+
+.move-what { margin: 0 0 16px; font-weight: 600; overflow-wrap: anywhere }
+.import-help { margin: 0 0 16px }
+.import-skipped { margin: 0; padding-inline-start: 20px; max-height: 30vh; overflow: auto; font-size: .875rem; overflow-wrap: anywhere }
+
+@media (max-width: 1439.98px) {
+    .wiki-root { --wiki-tree-w: 240px; --wiki-side-w: 320px }
+}
+
+/* Narrow desktop: the side panel goes under the page. */
+@media (max-width: 1199.98px) {
+    .wiki-root { grid-template-columns: var(--wiki-tree-w) minmax(0, 1fr) }
+    .wiki-tree { grid-row: 1 / span 2 }
+    .wiki-side {
+        grid-column: 2;
+        position: static;
+        block-size: auto;
+        overflow: visible;
+        margin: 0 var(--athar-gutter) 48px;
+        border: 1px solid var(--athar-rule);
+        border-radius: var(--athar-radius);
+    }
+}
+
+/* Phones and tablets: the tree is a drawer opened from the "Pages" button; no full-height tree before the page. */
+@media (max-width: 959.98px) {
+    .wiki-root, .wiki-root.no-side { grid-template-columns: minmax(0, 1fr) }
+    .wiki-tree {
+        display: none;
+        position: fixed;
+        inset-block: var(--wiki-top) 0;
+        inset-inline-start: 0;
+        z-index: 1250;
+        inline-size: min(320px, 85vw);
+        block-size: auto;
+        box-shadow: var(--athar-floating);
+    }
+    .tree-open .wiki-tree { display: block }
+    .tree-open .tree-scrim {
+        display: block;
+        position: fixed;
+        inset: var(--wiki-top) 0 0 0;
+        z-index: 1240;
+        background: color-mix(in srgb, var(--mud-palette-text-primary) 30%, transparent);
+    }
+    .tree-close { display: inline-flex }
+    .tree-toggle { display: inline-block; margin-block-end: 12px }
+    .page-bar .bar-tree-toggle { display: inline-flex }
+    .page-bar { position: static; flex-wrap: wrap }
+    .wiki-side { grid-column: 1; margin-inline: var(--athar-gutter) }
+    .editor-toolbar { position: static }
+    /* Short pages stay short, so the outline and comments under the page are close. */
+    .wiki-page { min-block-size: 0; margin-inline: 12px }
+}
+
+/* T100: "Show more" for long root lists (PageTreeItem has the same for children). */
+.tree-more { margin-block: 2px; margin-inline-start: 38px; padding: 4px 8px; border: 0; border-radius: var(--athar-radius);
+    background: none; color: var(--mud-palette-primary); font: inherit; font-size: 12px; cursor: pointer }
+.tree-more:hover { background: var(--athar-fill) }
+
+/* T115 (U-2): page chrome. A sticky bar at the top of the page card: the breadcrumb, then the actions on the end side.
+   The title, then the byline, under it. */
+.page-bar { position: sticky; inset-block-start: var(--wiki-top); z-index: 4; display: flex; align-items: center; gap: 8px;
+    box-sizing: border-box; min-block-size: var(--wiki-bar); margin: -24px calc(-1 * var(--athar-gutter)) 24px; padding: 6px var(--athar-gutter);
+    border-block-end: 1px solid var(--athar-rule); border-start-start-radius: 8px; border-start-end-radius: 8px; background: var(--mud-palette-surface) }
+.bar-tree-toggle { display: none }
+.crumbs { flex: 1 1 auto; min-width: 0 }
+.crumbs ol { display: flex; align-items: center; list-style: none; margin: 0; padding: 0; min-width: 0; font-size: 12px }
+.crumbs li { display: flex; align-items: center; min-width: 3em; flex: 0 1 auto }
+.crumbs li + li::before { content: "/" / ""; margin-inline: 6px; color: var(--athar-muted) }
+.crumbs a, .crumbs [aria-current] span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-inline-size: 220px }
+.crumbs a { color: var(--mud-palette-text-secondary); text-decoration: none; border-radius: var(--athar-radius); padding: 2px 4px }
+.crumbs a:hover { background: var(--athar-fill); color: var(--mud-palette-text-primary) }
+.crumbs [aria-current] { min-width: 6em }
+.crumbs [aria-current] span { padding: 2px 4px; color: var(--mud-palette-text-primary); font-weight: 500 }
+.crumb-fold { padding: 2px 6px; border-radius: var(--athar-radius); color: var(--mud-palette-text-secondary); cursor: pointer }
+.crumb-fold:hover { background: var(--athar-fill) }
+.byline .spacer { flex: 1 1 auto }
+.page-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 4px }
+.mode { display: inline-flex; border: 1px solid var(--athar-stroke); border-radius: var(--athar-radius); overflow: hidden }
+.mode button { border: 0; background: none; padding: 4px 12px; font: inherit; font-size: 14px; color: var(--mud-palette-text-secondary); cursor: pointer }
+.mode button + button { border-inline-start: 1px solid var(--athar-stroke) }
+.mode button[aria-pressed=true] { background: var(--athar-fill); color: var(--mud-palette-text-primary); font-weight: 600 }
+.mode button:focus-visible, .share-button:focus-visible { outline: 2px solid var(--mud-palette-primary); outline-offset: -2px }
+.share-button { margin-inline: 4px; padding: 4px 12px; border: 1px solid var(--athar-stroke); border-radius: var(--athar-radius); background: none;
+    font: inherit; font-size: 14px; font-weight: 500; color: var(--mud-palette-text-primary); cursor: pointer }
+.share-button:hover { background: var(--athar-fill) }
+.with-count { position: relative; display: inline-flex }
+.with-count .count { position: absolute; inset-block-start: 0; inset-inline-end: -2px; min-inline-size: 16px; padding: 0 4px; border-radius: 999px;
+    background: var(--athar-seal); color: var(--mud-palette-secondary-text); font-size: 0.75rem; line-height: 16px; text-align: center; pointer-events: none;
+    font-variant-numeric: tabular-nums; animation: athar-tick var(--athar-base) var(--athar-ease) }
+.page-actions ::deep [aria-pressed=true] { background: var(--athar-fill) }
+.byline { display: flex; min-block-size: 32px; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0 0; color: var(--mud-palette-text-secondary); font-size: 12px }
+.author-chip { display: inline-flex; align-items: center; gap: 8px; padding: 3px 10px 3px 3px; border: 1px solid var(--athar-stroke); border-radius: 999px }
+.byline .author { color: var(--mud-palette-text-primary); font-weight: 500 }
+.page-facts { display: grid; gap: 2px; padding: 6px 16px 8px; color: var(--mud-palette-text-secondary); font-size: 12px }
+.wiki-page.narrow ::deep .ProseMirror, .wiki-page.narrow .page-head, .wiki-page.narrow .editor-toolbar { max-inline-size: 860px; margin-inline: auto }
+.outline { display: grid; gap: 2px; padding: 8px 4px }
+.outline-item { display: block; inline-size: 100%; border: 0; background: none; padding: 4px 8px; border-radius: var(--athar-radius); text-align: start;
+    font: inherit; font-size: 14px; color: var(--mud-palette-text-primary); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.outline-item:hover { background: var(--athar-fill) }
+.outline-item.level-2 { padding-inline-start: 20px }
+.outline-item.level-3 { padding-inline-start: 32px; color: var(--mud-palette-text-secondary) }
+
+/* T116: quick links and the "Pages" header above the tree. */
+.quick-links { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 1px }
+.quick-link { display: flex; align-items: center; justify-content: flex-start; gap: 8px; inline-size: 100%; padding: 5px 8px; border: 0; border-radius: var(--athar-radius);
+    background: none; color: var(--mud-palette-text-primary); font: inherit; font-size: 14px; text-decoration: none; text-align: start; cursor: pointer }
+.quick-link:hover { background: var(--athar-fill) }
+.quick-link ::deep .mud-icon-root { color: var(--mud-palette-text-secondary) }
+.pages-head { display: flex; align-items: center; gap: 2px; padding-inline-start: 8px; margin-block: 4px }
+.pages-label { flex: 1 1 auto; font-size: 12px; font-weight: 500; color: var(--mud-palette-text-secondary) }
+.copy-count { font-size: 12px; color: var(--mud-palette-text-secondary) }

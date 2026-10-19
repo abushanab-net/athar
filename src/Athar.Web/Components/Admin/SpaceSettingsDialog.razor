@@ -1,0 +1,21 @@
+@inject IStringLocalizer<SharedResource> L
+
+@* Space settings from the wiki (T114): the admin page's settings as tabs, in a dialog. *@
+<MudDialog>
+    <TitleContent><span dir="auto">@Name</span></TitleContent>
+    <DialogContent>
+        <div class="space-settings-dialog">
+            <SpaceSettingsBody SpaceId="SpaceId" Tabbed="true" OnRenamed="n => Name = n" />
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+    [Parameter] public Guid SpaceId { get; set; }
+    [Parameter] public string Name { get; set; } = "";
+
+    public static Task ShowAsync(IDialogService dialogs, Guid spaceId, string name) =>
+        dialogs.ShowAsync<SpaceSettingsDialog>(name, new DialogParameters<SpaceSettingsDialog> { { d => d.SpaceId, spaceId }, { d => d.Name, name } },
+            new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true, CloseOnEscapeKey = true });
+}

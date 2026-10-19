@@ -1,0 +1,26 @@
+.athar-diff {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    margin: 0;
+    padding-block: 4px;
+    border: 1px solid var(--athar-rule);
+    border-radius: var(--athar-radius);
+    background: var(--mud-palette-surface);
+}
+
+.athar-diff span {
+    display: block;
+    min-height: 1.6em;
+    padding-inline: 8px;
+}
+
+.athar-diff .added {
+    background: color-mix(in srgb, var(--mud-palette-success) 14%, transparent);
+}
+
+.athar-diff .removed {
+    background: color-mix(in srgb, var(--mud-palette-error) 14%, transparent);
+}

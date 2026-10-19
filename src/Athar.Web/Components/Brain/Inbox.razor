@@ -1,0 +1,145 @@
+@page "/review/inbox"
+@attribute [Authorize]
+@inject MemoryService Memories
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject ShellCounts Counts
+@inject IDialogService Dialogs
+@inject IStringLocalizer<SharedResource> L
+
+<PageHeader Help="capture" Title="@L["Review"]" TabTitle="@L["Inbox"]" Description="@L["InboxHelp"]" />
+<ReviewTabs />
+@* T152: shown the first time the inbox has something in it. *@
+@if (candidates is { Count: > 0 })
+{
+    <PageTour Id="review-inbox" Help="capture" Steps="@([
+        new(".candidate", L["TourCandidateTitle"], L["TourCandidateText"]),
+        new(".candidate .scope", L["TourScopeTitle"], L["TourScopeText"]),
+        new(".candidate .decide", L["TourDecideTitle"], L["TourDecideText"]),
+        new(".link-tabs", L["TourReviewTabsTitle"], L["TourReviewTabsText"]),
+    ])" />
+}
+
+@* FR-MM-06..07: your own extraction candidates. Edit, then accept or discard. Similar memories are listed, never merged. *@
+@if (candidates is null)
+{
+    <LoadingState Rows="6" />
+}
+else if (candidates.Count == 0)
+{
+    @* An empty inbox leads somewhere (T152): candidates come from agent sessions, so point at the agent setup. *@
+    <EmptyState Icon="@Icons.Material.Outlined.Inbox" Title="@L["InboxEmptyTitle"]" Text="@L["InboxEmptyText"]">
+        <MudButton Variant="Variant.Outlined" Href="/agents" StartIcon="@Icons.Material.Outlined.SmartToy">@L["ConnectAgent"]</MudButton>
+    </EmptyState>
+}
+else
+{
+    <div class="candidates">
+        @foreach (var c in candidates)
+        {
+            var draft = drafts[c.Id];
+            <article class="candidate @(leaving.Contains(c.Id) ? "athar-leaving" : null)" @key="c.Id">
+                <div class="head">
+                    <Seal Kind="Seal.Kinds.Quiet">@L["Type_" + c.Type]</Seal>
+                    <Timestamp Value="c.CreatedAt" Relative="true" Class="when" />
+                </div>
+                <MudTextField @bind-Value="draft.Title" Label="@L["Title"]" Immediate="true" UserAttributes="Dir" />
+                <MudTextField @bind-Value="draft.Body" Label="@L["Body"]" Lines="4" Immediate="true" Class="mt-3" UserAttributes="Dir" />
+                <div class="scope">
+                    @* T152: the helper line says what Accept will do with the chosen scope, before you click. *@
+                    <MudSelect T="string" @bind-Value="draft.Scope" Label="@L["Scope"]" ToStringFunc="@(s => s is null ? null : L["Scope_" + s].Value)"
+                               HelperText="@L["ScopeAccept_" + draft.Scope]">
+                        @foreach (var s in ScopeValues) { <MudSelectItem Value="s">@L["Scope_" + s]</MudSelectItem> }
+                    </MudSelect>
+                </div>
+                @if (c.EvidenceExcerpt is { } excerpt)
+                {
+                    <figure class="evidence">
+                        <figcaption>@L["Evidence"]</figcaption>
+                        <blockquote dir="auto">@excerpt</blockquote>
+                    </figure>
+                }
+                @if (c.SimilarIds.Count > 0)
+                {
+                    <div class="similar">
+                        <span class="label">@L["Similar"]</span>
+                            @for (var i = 0; i < c.SimilarIds.Count; i++)
+                        {
+                            var id = c.SimilarIds[i];
+                            <a href="@($"/memories/{id}")" title="@id" dir="auto">@(similar.TryGetValue(id, out var brief) ? brief.Title : L["SimilarMemoryN", i + 1])</a>
+                        }
+                    </div>
+                }
+                <div class="decide">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="string.IsNullOrWhiteSpace(draft.Title)" OnClick="() => AcceptAsync(c)">@L["Accept"]</MudButton>
+                    <IconAction Icon="@Icons.Material.Outlined.Delete" Label="@L["Discard"]" Color="Color.Error" Size="Size.Medium" OnClick="() => DiscardAsync(c)" />
+                </div>
+            </article>
+        }
+    </div>
+}
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private static readonly Dictionary<string, object?> Dir = new() { ["dir"] = "auto" };
+    private static readonly string[] ScopeValues = ["personal", "team", "project", "company"];
+    private Actor actor = default!;
+    private IReadOnlyList<CandidateView>? candidates;
+    private Dictionary<Guid, MemoryBrief> similar = [];
+    private readonly Dictionary<Guid, Draft> drafts = [];
+    private readonly HashSet<Guid> leaving = [];
+
+    private sealed class Draft { public string Title = ""; public string Body = ""; public string Scope = "personal"; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        actor = Actor.ForUser((await Auth).User);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        candidates = await Memories.InboxAsync(actor, default);
+        similar = await Memories.BriefsAsync(actor, candidates.SelectMany(c => c.SimilarIds), default);
+        foreach (var c in candidates)
+            if (!drafts.ContainsKey(c.Id)) drafts[c.Id] = new() { Title = c.Title, Body = c.BodyMd, Scope = c.SuggestedScope };
+    }
+
+    // A company candidate becomes a proposal for a knowledge owner; the others publish where you may (re-checked now).
+    // T152: the card leaves with a short animation, and the snackbar links to what the decision created.
+    private Task AcceptAsync(CandidateView c) => Decide(c, async () =>
+    {
+        var d = drafts[c.Id];
+        var r = await Memories.AcceptAsync(actor, c.Id, new(d.Title, d.Body, null, d.Scope), default);
+        return r.Result == "proposed"
+            ? (L["SentForReview"].Value, "/review/proposals", L["ViewProposal"].Value)
+            : (L["MemorySaved"].Value, r.MemoryId is { } id ? $"/memories/{id}" : null, L["ViewMemory"].Value);
+    });
+
+    private async Task DiscardAsync(CandidateView c)
+    {
+        if (await Dialogs.ShowMessageBox(L["Discard"].Value, L["DiscardConfirm"].Value, yesText: L["Discard"].Value, cancelText: L["Cancel"].Value) != true) return;
+        await Decide(c, async () => { await Memories.DiscardAsync(actor, c.Id, default); return (L["Discarded"].Value, null, null); });
+    }
+
+    private async Task Decide(CandidateView c, Func<Task<(string Message, string? Href, string? Action)>> action)
+    {
+        try
+        {
+            var (message, href, label) = await action();
+            leaving.Add(c.Id);
+            StateHasChanged();
+            await Task.Delay(220); // app.css .athar-leaving
+            Snackbar.Add(message, Severity.Success, o =>
+            {
+                if (href is null) return;
+                o.Action = label;
+                o.OnClick = _ => { Nav.NavigateTo(href); return Task.CompletedTask; };
+            });
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+        finally { leaving.Remove(c.Id); }
+        await LoadAsync();
+        await Counts.RefreshAsync(); // the sidebar and tab counts follow at once
+    }
+}

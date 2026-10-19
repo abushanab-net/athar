@@ -1,0 +1,29 @@
+@* An icon button that opens a menu (DESIGN.md Icon actions): a tooltip and an accessible name, like IconAction.
+   MudMenu's activator is itself the button (role=button, focusable), so what goes inside is not interactive: the icon and the
+   name as hidden text. The tooltip sits inside the activator: wrapped around the whole menu, each hover re-rendered the menu
+   and a tooltip that landed under the pointer flickered open and shut. *@
+<MudMenu AnchorOrigin="@AnchorOrigin" TransformOrigin="@TransformOrigin" Dense="true" Class="@($"menu-button {Class}")" OpenChanged="OpenChanged">
+    <ActivatorContent>
+        <MudTooltip Text="@Label" Placement="@Placement" Arrow="false">
+            <span class="menu-button-face icon-action @(Size == Size.Medium ? "medium" : null)">
+                <MudIcon Icon="@Icon" Size="@(Size == Size.Medium ? Size.Medium : Size.Small)" />
+                <span class="visually-hidden">@(AriaLabel ?? Label)</span>
+            </span>
+        </MudTooltip>
+    </ActivatorContent>
+    <ChildContent>@ChildContent</ChildContent>
+</MudMenu>
+
+@code {
+    [Parameter, EditorRequired] public string Icon { get; set; } = "";
+    /// <summary>The tooltip, and the accessible name unless <see cref="AriaLabel"/> gives a longer one.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public Size Size { get; set; } = Size.Small;
+    [Parameter] public Placement Placement { get; set; } = Placement.Top;
+    [Parameter] public Origin AnchorOrigin { get; set; } = Origin.BottomRight;
+    [Parameter] public Origin TransformOrigin { get; set; } = Origin.TopRight;
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

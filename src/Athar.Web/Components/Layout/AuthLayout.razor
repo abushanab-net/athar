@@ -1,0 +1,25 @@
+@inherits LayoutComponentBase
+@inject IStringLocalizer<SharedResource> L
+
+@* Signed-out pages (sign-in, password reset, invitations, OAuth): no app shell. The archive photograph on one side,
+   the form panel on the other (DESIGN.md "The Public Record"); below 900px the photo becomes a band above the form. *@
+<MudThemeProvider Theme="AtharTheme.Theme" IsDarkMode="false" />
+<MudRTLProvider RightToLeft="AuthSetup.IsRightToLeft">
+    <div class="auth-layout">
+        <aside class="auth-art">
+            <img src="img/auth-archive.webp" alt="" width="1400" height="1400" fetchpriority="high" />
+            <div class="auth-art-caption">
+                <p class="auth-art-name"><span>Athar</span><span lang="ar">أثر</span></p>
+                <p class="auth-art-line">@L["AuthTagline"]</p>
+            </div>
+        </aside>
+        <main class="auth-main" id="content">
+            <div class="auth-panel">
+                <a class="auth-brand" href="/"><img src="img/athar-mark.svg" alt="" width="40" height="40" /><span>@L["Athar"]</span></a>
+                @Body
+            </div>
+            <footer class="auth-footer"><LanguageSwitch /></footer>
+        </main>
+    </div>
+</MudRTLProvider>
+

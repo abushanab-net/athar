@@ -1,0 +1,52 @@
+/* A thread as a card (flat: a hairline, no shadow), comments stacked inside, a rule above the reply field. */
+.thread {
+    display: grid;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--athar-rule);
+    border-radius: var(--athar-radius);
+    background: var(--mud-palette-surface);
+}
+
+/* Resolved text goes quiet without fading the whole card (opacity took muted text below AA). */
+.thread.resolved ::deep .text { color: var(--athar-muted) }
+
+.thread-what {
+    display: grid;
+    justify-items: start;
+    gap: 6px;
+}
+
+/* The anchored text: a quiet tinted line in the comment-anchor color, no quote glyphs (they don't travel between languages). */
+.quote {
+    justify-self: stretch;
+    margin: 0;
+    padding: 2px 8px;
+    border-inline-start: 2px solid var(--wiki-anchor-rule);
+    background: var(--wiki-anchor-tint);
+    color: var(--mud-palette-text-primary);
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+.quote button {
+    all: unset;
+    cursor: pointer;
+    text-align: start;
+}
+
+.quote button:hover { text-decoration: underline }
+
+.quote button:focus-visible {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+.thread ::deep .comment-box.reply {
+    padding-block-start: 10px;
+    border-block-start: 1px solid var(--athar-rule);
+}

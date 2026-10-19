@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Athar.AppHost/Athar.AppHost.csproj" />
+    <Project Path="src/Athar.Data/Athar.Data.csproj" />
+    <Project Path="src/Athar.Domain/Athar.Domain.csproj" />
+    <Project Path="src/Athar.ServiceDefaults/Athar.ServiceDefaults.csproj" />
+    <Project Path="src/Athar.Web/Athar.Web.csproj" />
+    <Project Path="src/Athar.Worker/Athar.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Athar.IntegrationTests/Athar.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,7 @@
+@inherits LayoutComponentBase
+
+@* Public pages before sign-in: the theme and direction, no app shell. *@
+<MudThemeProvider Theme="AtharTheme.Theme" IsDarkMode="false" />
+<MudRTLProvider RightToLeft="AuthSetup.IsRightToLeft">
+    @Body
+</MudRTLProvider>

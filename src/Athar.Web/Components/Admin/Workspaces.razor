@@ -1,0 +1,291 @@
+@page "/workspaces"
+@attribute [Authorize]
+@inject WorkspaceAdminService Spaces
+@inject OrgAdminService Org
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+@using Athar.Web.Services
+@inject FavoriteService Favorites
+@inject NavigationManager Nav
+@using Athar.Web.Services.Import
+
+<PageHeader Help="admin-workspaces-and-spaces" Title="@L["Workspaces"]">
+    <Actions>
+        @if (loaded && OrgRules.IsAdmin(orgRole))
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="() => creatingWorkspace = true">@L["NewWorkspace"]</MudButton>
+        }
+    </Actions>
+</PageHeader>
+
+@if (!loaded)
+{
+    <LoadingState />
+}
+else if (workspaces.Count == 0)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.Workspaces" Title="@L["NoWorkspaces"]" />
+}
+else
+{
+    @foreach (var ws in workspaces)
+    {
+        <Section Title="@ws.Name" Description="@($"/{ws.Slug}")" Flush="true">
+            <Actions>
+                <SpaceBadge Name="@ws.Name" Id="ws.Id" Color="@ws.Color" Icon="@ws.Icon" />
+                @{ var fav = favorites.Contains(ws.Id); }
+                <IconAction Icon="@(fav ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarBorder)" Label="@($"{L["Favorite"]}: {ws.Name}")"
+                            Color="@(fav ? Color.Warning : Color.Default)" aria-pressed="@(fav ? "true" : "false")" OnClick="() => ToggleFavoriteAsync(ws.Id)" />
+                @if (ws.CanManage)
+                {
+                    <IconAction Icon="@Icons.Material.Outlined.Palette" Label="@($"{L["Appearance"]}: {ws.Name}")" Color="@(styling == ws.Id ? Color.Primary : Color.Default)"
+                                aria-pressed="@(styling == ws.Id ? "true" : "false")" OnClick="() => styling = styling == ws.Id ? null : ws.Id" />
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="() => NewSpace(ws.Id)">@L["NewSpace"]</MudButton>
+                    @* T161: a Confluence export (or any wiki zip) as new spaces of this workspace. *@
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Outlined.FileUpload" OnClick="() => (importFor, importResult) = (ws.Id, null)">@L["ImportSpaces"]</MudButton>
+                }
+            </Actions>
+            <ChildContent>
+                @if (styling == ws.Id)
+                {
+                    <div class="styling">
+                        <AppearancePicker Name="@ws.Name" Id="ws.Id" Color="@ws.Color" Icon="@ws.Icon"
+                                          OnChange="async a => { await Apply(Spaces.SetWorkspaceAppearanceAsync(OrgId, ActorId, ws.Id, a.Color, a.Icon)); Favorites.Refresh(); }" />
+                    </div>
+                }
+                <DataTable T="WorkspaceAdminService.SpaceRow" Items="@ws.Spaces" EmptyIcon="@Icons.Material.Outlined.FolderOpen"
+                           EmptyTitle="@(ws.MyRole is null ? L["JoinToSeeSpaces"] : L["NoSpaces"])">
+                    <HeaderContent>
+                        <SortTh T="WorkspaceAdminService.SpaceRow" By="s => s.Name" Initial="SortDirection.Ascending">@L["Space"]</SortTh>
+                        <SortTh T="WorkspaceAdminService.SpaceRow" By="s => !s.IsConfidential" Width="160px">@L["Classification"]</SortTh>
+                        <SortTh T="WorkspaceAdminService.SpaceRow" By="s => PolicyRank(s.AiPolicy)" Width="140px">@L["AiPolicy"]</SortTh>
+                        <ActionsTh />
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>
+                            <span class="space-name">
+                                <SpaceBadge Name="@context.Name" Id="context.Id" Color="@context.Color" Icon="@context.Icon" />
+                                <bdi class="athar-truncate cell" title="@context.Name">@context.Name</bdi>
+                            </span>
+                        </MudTd>
+                        <MudTd>
+                            @if (context.IsConfidential)
+                            {
+                                <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.Lock">@L["Confidential"]</Seal>
+                            }
+                        </MudTd>
+                        <MudTd>
+                            @if (PolicyRank(context.AiPolicy) == 0)
+                            {
+                                <span class="muted">@L["AiNone"]</span>
+                            }
+                            else
+                            {
+                                <span class="policy">
+                                    @foreach (var (on, icon, key) in Policy(context.AiPolicy))
+                                    {
+                                        if (on) { <span role="img" aria-label="@L[key]" title="@L[key]"><MudIcon Icon="@icon" Size="Size.Small" /></span> }
+                                    }
+                                </span>
+                            }
+                        </MudTd>
+                        <MudTd Class="actions-col">
+                            <RowActions Done="StateHasChanged" Actions="@([
+                                new RowAction(L["OpenInWiki"], Icons.Material.Outlined.MenuBook, Href: $"/wiki/s/{context.Id}"),
+                                context.CanManage ? new RowAction(L["SpaceSettings"], Icons.Material.Outlined.Settings, Href: $"/wiki/s/{context.Id}/settings") : null,
+                                ws.CanManage ? new RowAction(L["DeleteSpace"], Icons.Material.Outlined.DeleteForever, () => { (deleting, confirmName) = (context, ""); return Task.CompletedTask; }, Danger: true) : null,
+                            ])" />
+                        </MudTd>
+                    </RowTemplate>
+                </DataTable>
+
+                @if (ws.CanManage)
+                {
+                    var current = members.GetValueOrDefault(ws.Id) ?? [];
+                    @* Members fold away: the page is about spaces first, and member tables made it very long. *@
+                    <details class="members">
+                    <summary class="members-head">
+                        <h3>@L["Members"] <span class="count">@current.Count</span></h3>
+                    </summary>
+                    <div class="members-add">
+                        <PrincipalPicker Label="@L["AddMember"]" Roles="@workspaceRoles" DefaultRole="@nameof(WorkspaceRole.Member)"
+                                         Options="@directory.Where(p => !p.IsTeam && !current.Any(m => m.Principal.Id == p.Id))"
+                                         OnAdd="(p, r) => Apply(Spaces.SetWorkspaceMemberAsync(OrgId, ActorId, ws.Id, p.Id, Enum.Parse<WorkspaceRole>(r ?? nameof(WorkspaceRole.Member))))" />
+                    </div>
+                    <MemberTable Items="@current" Roles="@workspaceRoles"
+                                 OnChangeRole="(p, r) => Apply(Spaces.SetWorkspaceMemberAsync(OrgId, ActorId, ws.Id, p.Id, Enum.Parse<WorkspaceRole>(r)))"
+                                 OnRemove="p => Apply(Spaces.SetWorkspaceMemberAsync(OrgId, ActorId, ws.Id, p.Id, null))" />
+                    </details>
+                }
+            </ChildContent>
+        </Section>
+    }
+}
+
+<MudDialog @bind-Visible="creatingWorkspace" Options="dialogOptions">
+    <TitleContent>@L["NewWorkspace"]</TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="newName" Immediate="true" Label="@L["WorkspaceName"]" AutoFocus="true" dir="auto" />
+            <MudTextField @bind-Value="newSlug" Immediate="true" Label="@L["UrlName"]" HelperText="@L["UrlNameHelp"]" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => creatingWorkspace = false">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="string.IsNullOrWhiteSpace(newName) || string.IsNullOrWhiteSpace(newSlug)"
+                   OnClick="CreateWorkspace">@L["CreateWorkspace"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@* T166: deleting a space takes it from everyone, so its name is typed to confirm. *@
+<MudDialog Visible="@(deleting is not null)" VisibleChanged="v => { if (!v) deleting = null; }" Options="dialogOptions">
+    <TitleContent>@L["DeleteSpace"]</TitleContent>
+    <DialogContent>
+        @if (deleting is not null)
+        {
+            <p>@string.Format(L["DeleteSpaceHelp"], deleting.Name)</p>
+            <MudTextField @bind-Value="confirmName" Immediate="true" Label="@L["DeleteSpaceConfirm"]" AutoFocus="true" dir="auto" />
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => deleting = null">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" Disabled="@(deleting is null || confirmName.Trim() != deleting.Name)" OnClick="DeleteSpaceAsync">@L["DeleteSpace"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog Visible="@(importFor is not null)" VisibleChanged="v => { if (!v && !importBusy) importFor = null; }" Options="dialogOptions">
+    <TitleContent>@L["ImportSpaces"]</TitleContent>
+    <DialogContent>
+        <p class="import-help">@L["ImportSpacesHelp"]</p>
+        @if (importFor is { } ws)
+        {
+            @* T164: uploaded over HTTP, imported in the background (up to 4 GB). *@
+            <ImportUpload Mode="workspace" TargetId="ws" BusyChanged="b => importBusy = b" OnDone="ImportedAsync" />
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => importFor = null" Disabled="importBusy">@L[importResult is null ? "Cancel" : "Close"]</MudButton>
+        @if (importResult is not null)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="@($"/wiki/s/{importResult.SpaceId}")">@L["OpenSpace"]</MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+<MudDialog Visible="@(spaceFor is not null)" VisibleChanged="v => { if (!v) spaceFor = null; }" Options="dialogOptions">
+    <TitleContent>@L["NewSpace"]</TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="space.Name" Immediate="true" Label="@L["SpaceName"]" AutoFocus="true" dir="auto" />
+            <MudTextField @bind-Value="space.Slug" Immediate="true" Label="@L["UrlName"]" HelperText="@L["UrlNameHelp"]" />
+            <MudSwitch @bind-Value="space.Pii" Color="Color.Primary" Label="@L["HoldsPersonalData"]" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => spaceFor = null">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="string.IsNullOrWhiteSpace(space.Name) || string.IsNullOrWhiteSpace(space.Slug)"
+                   OnClick="CreateSpace">@L["CreateSpace"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private static readonly DialogOptions dialogOptions = new() { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+    private static readonly string[] workspaceRoles = [nameof(WorkspaceRole.Member), nameof(WorkspaceRole.Admin)];
+    private Guid OrgId, ActorId;
+    private Guid? importFor;
+    private WorkspaceAdminService.SpaceRow? deleting;
+    private string confirmName = "";
+    private bool importBusy;
+    private ImportResult? importResult;
+    private OrgRole? orgRole;
+    private bool loaded, creatingWorkspace;
+    private List<WorkspaceAdminService.WorkspaceRow> workspaces = [];
+    private Dictionary<Guid, List<WorkspaceAdminService.Grant>> members = [];
+    private List<WorkspaceAdminService.Principal> directory = [];
+    private string newName = "", newSlug = "";
+    private Guid? spaceFor;
+    /// <summary>The workspace whose badge is being chosen.</summary>
+    private Guid? styling;
+    private HashSet<Guid> favorites = [];
+    private Draft space = new();
+
+    private sealed class Draft { public string Name { get; set; } = ""; public string Slug { get; set; } = ""; public bool Pii { get; set; } }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await Auth).User;
+        (OrgId, ActorId) = (user.OrgId(), user.UserId());
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        orgRole = await Org.RoleOfAsync(OrgId, ActorId);
+        workspaces = await Spaces.WorkspacesAsync(OrgId, ActorId);
+        members = [];
+        foreach (var ws in workspaces.Where(w => w.CanManage))
+            members[ws.Id] = await Spaces.WorkspaceMembersAsync(OrgId, ActorId, ws.Id);
+        directory = await Spaces.DirectoryAsync(OrgId, ActorId);
+        favorites = [.. (await Favorites.ListAsync(OrgId, ActorId)).Where(f => f.Kind == "workspace").Select(f => f.Id)];
+        loaded = true;
+    }
+
+    private async Task ToggleFavoriteAsync(Guid workspaceId)
+    {
+        try
+        {
+            if (await Favorites.ToggleAsync(OrgId, ActorId, "workspace", workspaceId)) favorites.Add(workspaceId);
+            else favorites.Remove(workspaceId);
+        }
+        catch (AtharError e)
+        {
+            Snackbar.Add(e.Message, Severity.Error);
+        }
+    }
+
+    private static int PolicyRank(AiPolicy p) => (p.Read ? 1 : 0) + (p.Write ? 1 : 0) + (p.DeleteToTrash ? 1 : 0);
+
+    private static (bool, string, string)[] Policy(AiPolicy p) =>
+        [(p.Read, Icons.Material.Outlined.Visibility, "AiRead"), (p.Write, Icons.Material.Outlined.EditNote, "AiWrite"), (p.DeleteToTrash, Icons.Material.Outlined.DeleteOutline, "AiDelete")];
+
+    private void NewSpace(Guid ws) => (spaceFor, space) = (ws, new());
+
+    private async Task DeleteSpaceAsync()
+    {
+        if (deleting is not { } s) return;
+        if (await Apply(Spaces.DeleteSpaceAsync(OrgId, ActorId, s.Id)) == OrgDecision.Allow) deleting = null;
+    }
+
+    private async Task ImportedAsync(ImportResult result)
+    {
+        importResult = result;
+        await LoadAsync();
+    }
+
+    // The dialogs stay open when the service says no, so the person can fix the name.
+    private async Task CreateWorkspace()
+    {
+        if (await Apply(Spaces.CreateWorkspaceAsync(OrgId, ActorId, newName, newSlug)) != OrgDecision.Allow) return;
+        (creatingWorkspace, newName, newSlug) = (false, "", "");
+    }
+
+    private async Task CreateSpace()
+    {
+        if (spaceFor is not { } ws) return;
+        if (await Apply(Spaces.CreateSpaceAsync(OrgId, ActorId, ws, space.Name, space.Slug, space.Pii)) == OrgDecision.Allow) spaceFor = null;
+    }
+
+    private async Task<OrgDecision> Apply(Task<OrgDecision> action)
+    {
+        var decision = await action;
+        Snackbar.Add(decision switch
+        {
+            OrgDecision.Allow => L["Saved"],
+            OrgDecision.Invalid => L["InvalidInput"],
+            _ => L["NotAllowed"],
+        }, decision == OrgDecision.Allow ? Severity.Success : Severity.Warning);
+        await LoadAsync();
+        return decision;
+    }
+}

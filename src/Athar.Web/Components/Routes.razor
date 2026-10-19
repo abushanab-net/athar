@@ -1,0 +1,20 @@
+<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                <RedirectToLogin />
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>
+
+@inject RequestOrigin Origin
+
+@code {
+    // A circuit has no HttpContext after its first request: keep that request's origin for audit events (FR-AU-02).
+    [Parameter] public string? Ip { get; set; }
+    [Parameter] public string? UserAgent { get; set; }
+
+    protected override void OnInitialized() => Origin.Circuit ??= new(Ip, UserAgent is { Length: > 0 } ua ? ua[..Math.Min(ua.Length, 512)] : null);
+}

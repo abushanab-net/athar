@@ -1,0 +1,13 @@
+@* Loading inside the frame the content will fill: skeleton lines, announced once. *@
+<div class="loading" role="status" aria-live="polite">
+    <span class="visually-hidden">@L["Loading"]</span>
+    @for (var i = 0; i < Rows; i++)
+    {
+        <MudSkeleton SkeletonType="SkeletonType.Text" Height="28px" Width="@(i % 3 == 2 ? "60%" : "100%")" />
+    }
+</div>
+
+@code {
+    [Inject] private IStringLocalizer<SharedResource> L { get; set; } = default!;
+    [Parameter] public int Rows { get; set; } = 4;
+}

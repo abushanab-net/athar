@@ -1,0 +1,173 @@
+/* T179: the dashboard. Logical properties only, so Arabic mirrors without overrides. */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+    gap: 12px;
+    margin-block-end: 12px;
+}
+
+.card {
+    border: 1px solid var(--athar-rule);
+    border-radius: var(--athar-radius);
+    padding: 16px;
+    background: var(--mud-palette-surface);
+    min-inline-size: 0;
+}
+
+.card h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--athar-muted);
+    margin: 0 0 8px;
+}
+
+.card .big {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.card .big a { color: inherit; text-decoration: none; }
+.card .big a:hover, .card .big a:focus-visible { text-decoration: underline; }
+
+.card .sub, .facts {
+    font-size: 13px;
+    color: var(--athar-muted);
+    margin: 4px 0 0;
+}
+
+.card dl {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 16px;
+    margin: 0;
+}
+
+dl div { display: flex; flex-direction: column; }
+dt { font-size: 12px; color: var(--athar-muted); }
+dd { margin: 0; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+dl.inline { display: flex; flex-wrap: wrap; gap: 24px; margin: 0 0 8px; }
+
+.bad { color: var(--mud-palette-error); }
+.warn { color: var(--mud-palette-warning-darken); }
+
+::deep .section { margin-block-end: 12px; }
+
+.pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+    gap: 12px;
+}
+
+/* Calls per day: one column per day, the clients stacked, weekends shaded. */
+.bars {
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    block-size: 200px;
+}
+
+.bars .col {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    border-radius: 4px;
+    padding-block-start: 4px;
+}
+
+.bars .col.weekend, .legend .swatch.weekend { background: var(--athar-fill); }
+
+.bars .stack {
+    flex: 1;
+    display: flex;
+    flex-direction: column-reverse;
+    padding-inline: 15%;
+}
+
+.bars .seg { display: block; min-block-size: 2px; }
+.bars .seg:last-child { border-start-start-radius: 2px; border-start-end-radius: 2px; }
+
+.bars .day {
+    font-size: 11px;
+    color: var(--athar-muted);
+    text-align: center;
+    padding-block: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+    font-size: 13px;
+}
+
+.legend li { display: flex; align-items: center; gap: 6px; }
+
+.legend .swatch {
+    inline-size: 12px;
+    block-size: 12px;
+    border-radius: 3px;
+    border: 1px solid var(--athar-rule);
+}
+
+/* Write heatmap: 7 rows (Saturday first), one column per week; RTL flips the column order on its own. */
+.grid {
+    display: grid;
+    grid-template-rows: repeat(7, 11px);
+    grid-auto-flow: column;
+    grid-auto-columns: 11px;
+    gap: 3px;
+    overflow-x: auto;
+    padding-block-end: 4px;
+}
+
+.cell { border-radius: 2px; background: var(--athar-fill); }
+.cell.blank { background: transparent; }
+.cell.l1 { background: color-mix(in srgb, var(--mud-palette-primary) 25%, var(--athar-fill)); }
+.cell.l2 { background: color-mix(in srgb, var(--mud-palette-primary) 50%, var(--athar-fill)); }
+.cell.l3 { background: color-mix(in srgb, var(--mud-palette-primary) 75%, var(--athar-fill)); }
+.cell.l4 { background: var(--mud-palette-primary); }
+
+/* Funnel: label, bar, count. */
+.funnel ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+
+.funnel li {
+    display: grid;
+    grid-template-columns: minmax(80px, 30%) 1fr auto;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.funnel .bar { display: flex; block-size: 10px; background: var(--athar-fill); border-radius: 5px; overflow: hidden; } /* flex: fills from the reading start */
+.funnel .bar span { display: block; block-size: 100%; background: var(--mud-palette-primary); }
+
+.n { font-variant-numeric: tabular-nums; color: var(--athar-muted); font-size: 13px; }
+
+.list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.list li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-inline-size: 0; }
+.list li .n { margin-inline-start: auto; }
+.list a.item { font-size: 13px; }
+
+.tools .num { text-align: end; font-variant-numeric: tabular-nums; }
+
+.error { font-size: 13px; margin: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 600px) {
+    .cards { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+    .card { padding: 12px; }
+    .bars { block-size: 160px; gap: 2px; }
+    .bars .day { font-size: 10px; }
+    /* Fourteen labels don't fit a phone: every other day, today always. */
+    .bars .col:nth-last-child(even) .day { visibility: hidden; }
+    .card .big { font-size: 24px; }
+}

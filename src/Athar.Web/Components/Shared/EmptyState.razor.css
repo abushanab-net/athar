@@ -1,0 +1,6 @@
+.empty { display: grid; justify-items: center; gap: 4px; padding: 40px 16px; text-align: center; color: var(--mud-palette-text-secondary) }
+.empty.compact { padding: 24px 16px }
+::deep .icon { font-size: 2rem; opacity: .7 }
+.title { margin: 4px 0 0; font-weight: 600; color: var(--mud-palette-text-primary) }
+.text { margin: 0; max-width: 52ch }
+.action { margin-block-start: 8px }

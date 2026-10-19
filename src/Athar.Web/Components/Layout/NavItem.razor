@@ -1,0 +1,17 @@
+@* One sidebar link. In the collapsed rail only the icon shows, so the label becomes its tooltip (and stays its accessible name). *@
+<MudTooltip Text="@Label" Placement="Placement.End" Arrow="false" Disabled="!Rail" Inline="false">
+    <MudNavLink Href="@Href" Match="@Match" Icon="@Icon" Class="@Class">
+        <span class="label">@Label</span>@ChildContent
+    </MudNavLink>
+</MudTooltip>
+
+@code {
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
+    [Parameter] public string? Class { get; set; }
+    /// <summary>A count pill after the label.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [CascadingParameter(Name = "NavRail")] public bool Rail { get; set; }
+}

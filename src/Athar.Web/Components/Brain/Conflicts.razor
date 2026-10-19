@@ -1,0 +1,166 @@
+@page "/review/conflicts"
+@attribute [Authorize]
+@inject MemoryService Memories
+@inject ShellCounts Counts
+@inject ISnackbar Snackbar
+@inject IDialogService Dialogs
+@inject IStringLocalizer<SharedResource> L
+
+@* T151, FR-MM-08: two memories that disagree, side by side. Keep one (the other is superseded), merge them into A, or
+   say they don't conflict. A change to a company memory you can only propose becomes a proposal, and the conflict waits for it. *@
+<PageHeader Help="review" Title="@L["Review"]" TabTitle="@L["Conflicts"]" Description="@L["ConflictsHelp"]">
+    <Actions>
+        <MudSwitch T="bool" Value="showResolved" ValueChanged="ToggleResolvedAsync" Color="Color.Primary" Label="@L["ShowResolved"]" />
+    </Actions>
+</PageHeader>
+<ReviewTabs />
+
+@if (conflicts is null)
+{
+    <LoadingState Rows="4" />
+}
+else if (conflicts.Count == 0)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.CompareArrows" Title="@L["NoConflicts"]" Text="@L["NoConflictsHelp"]">
+        <MudButton Variant="Variant.Outlined" Href="/memories" StartIcon="@Icons.Material.Outlined.Hub">@L["Memories"]</MudButton>
+    </EmptyState>
+}
+else
+{
+    <div class="conflicts">
+        @foreach (var c in conflicts)
+        {
+            <article class="conflict @(leaving.Contains(c.Id) ? "athar-leaving" : null)" @key="c.Id">
+                <header class="head">
+                    @if (c.Status == "resolved")
+                    {
+                        <Seal Icon="@Icons.Material.Filled.Verified">@L["ConflictResolved"]</Seal>
+                        <Seal Kind="Seal.Kinds.Quiet">@L["Resolution_" + c.Resolution]</Seal>
+                    }
+                    else if (c.Resolution is not null)
+                    {
+                        <Seal Kind="Seal.Kinds.Ink" Icon="@Icons.Material.Outlined.HourglassTop" Tooltip="@L["ConflictWaitingHelp"]">@L["ConflictWaiting"]</Seal>
+                    }
+                    else
+                    {
+                        <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.CompareArrows">@L["ConflictOpen"]</Seal>
+                    }
+                    @if (c.OpenedBy is { } who) { <span class="by">@L["FlaggedBy"] <bdi>@who</bdi></span> }
+                    <Timestamp Value="c.CreatedAt" Relative="true" Class="when" />
+                </header>
+                @if (c.Note is { Length: > 0 })
+                {
+                    <p class="note" dir="auto">@c.Note</p>
+                }
+                <div class="sides">
+                    @Side("A", c.A)
+                    @Side("B", c.B)
+                </div>
+                @if (c.Status == "open" && c.Resolution is null)
+                {
+                    <footer class="decide">
+                        <MudButton Variant="Variant.Outlined" Disabled="busy" OnClick="@(() => ResolveAsync(c, "keep_a"))">@L["KeepA"]</MudButton>
+                        <MudButton Variant="Variant.Outlined" Disabled="busy" OnClick="@(() => ResolveAsync(c, "keep_b"))">@L["KeepB"]</MudButton>
+                        <MudButton Variant="Variant.Outlined" Disabled="busy" StartIcon="@Icons.Material.Outlined.MergeType" OnClick="@(() => StartMerge(c))">@L["MergeEllipsis"]</MudButton>
+                        <MudButton Variant="Variant.Text" Disabled="busy" OnClick="@(() => ResolveAsync(c, "not_conflict"))">@L["NotAConflict"]</MudButton>
+                    </footer>
+                }
+            </article>
+        }
+    </div>
+}
+
+<MudDialog Visible="@(merging is not null)" VisibleChanged="v => { if (!v) merging = null; }" Options="dialogOptions">
+    <TitleContent>@L["MergeTitle"]</TitleContent>
+    <DialogContent>
+        <p class="athar-muted mb-3">@L["MergeHelp"]</p>
+        <MudTextField @bind-Value="mergeTitle" Immediate="true" Label="@L["Title"]" dir="auto" />
+        <MudTextField @bind-Value="mergeBody" Immediate="true" Label="@L["Body"]" Lines="10" dir="auto" Class="mt-3" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => merging = null">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(busy || string.IsNullOrWhiteSpace(mergeBody))" OnClick="MergeAsync">@L["Merge"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private static readonly DialogOptions dialogOptions = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+    private Actor actor = default!;
+    private List<ConflictView>? conflicts;
+    private readonly HashSet<Guid> leaving = [];
+    private bool showResolved, busy;
+    private ConflictView? merging;
+    private string mergeTitle = "", mergeBody = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        actor = Actor.ForUser((await Auth).User);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync() => conflicts = [.. await Memories.ConflictsAsync(actor, showResolved, default)];
+
+    private async Task ToggleResolvedAsync(bool value)
+    {
+        showResolved = value;
+        await LoadAsync();
+    }
+
+    private RenderFragment Side(string label, ConflictSide m) =>
+        @<section class="side" aria-label="@($"{L["Memory"]} {label}")">
+            <div class="side-head">
+                <span class="letter" aria-hidden="true">@label</span>
+                <a href="@($"/memories/{m.Id}")" class="title athar-truncate" title="@m.Title" dir="auto">@m.Title</a>
+            </div>
+            <div class="meta">
+                <ScopeChip Scope="@m.Scope" />
+                @if (m.Status != "active") { <Seal Kind="Seal.Kinds.Quiet">@L["Status_" + m.Status]</Seal> }
+                <span class="athar-muted">@L["RevisionN", m.Revision]</span>
+            </div>
+            <div class="body"><MarkdownView Text="@m.BodyMd" /></div>
+        </section>;
+
+    private void StartMerge(ConflictView c) => (merging, mergeTitle, mergeBody) = (c, c.A.Title, $"{c.A.BodyMd}\n\n{c.B.BodyMd}");
+
+    private async Task MergeAsync()
+    {
+        if (merging is { } c && await ResolveAsync(c, "merged", mergeTitle, mergeBody)) merging = null;
+    }
+
+    private async Task<bool> ResolveAsync(ConflictView c, string resolution, string? title = null, string? body = null)
+    {
+        if (resolution is "keep_a" or "keep_b")
+        {
+            var loser = resolution == "keep_a" ? c.B : c.A;
+            var keep = L[resolution == "keep_a" ? "KeepA" : "KeepB"].Value;
+            if (await Dialogs.ShowMessageBox(keep, L["KeepConfirm", loser.Title].Value, yesText: keep, cancelText: L["Cancel"].Value) != true) return false;
+        }
+        busy = true;
+        try
+        {
+            var result = await Memories.ResolveConflictAsync(actor, new(c.Id, resolution, Guid.NewGuid().ToString(), title, body), default);
+            // Resolved now, or sent to a knowledge owner: either way the card leaves the open list.
+            Snackbar.Add(result.Status == "resolved" ? L["ConflictResolvedNow"] : L["ConflictSentForApproval"], Severity.Success);
+            if (!showResolved)
+            {
+                leaving.Add(c.Id);
+                StateHasChanged();
+                await Task.Delay(220); // the leave animation (app.css .athar-leaving)
+            }
+            await LoadAsync();
+            await Counts.RefreshAsync();
+            return true;
+        }
+        catch (AtharError e)
+        {
+            Snackbar.Add(e.Message, Severity.Warning);
+            return false;
+        }
+        finally
+        {
+            busy = false;
+            leaving.Remove(c.Id);
+        }
+    }
+}

@@ -1,0 +1,116 @@
+@page "/skills/{Id:guid}"
+@attribute [Authorize]
+@inject IServiceScopeFactory Scopes
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> Shared
+@inject IStringLocalizer<SkillsPage> L
+
+@* T140 (FR-SK-02): one skill. Read its SKILL.md, download it as a zip, and copy the command that installs it. *@
+@if (skill is null)
+{
+    @if (missing) { <EmptyState Icon="@Icons.Material.Outlined.SearchOff" Title="@L["NotFound"]" /> } else { <LoadingState Rows="6" /> }
+}
+else
+{
+    <PageHeader Help="skills" Title="@skill.Name" Description="@skill.Description" Crumbs="@([(L["Title"].Value, "/skills")])">
+        <Actions>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Download" Href="@zip" download="@($"{skill.Name}.zip")">@L["DownloadZip"]</MudButton>
+        </Actions>
+    </PageHeader>
+
+    <div class="skill">
+        <Section Title="@L["InstallTitle"]" Description="@L["InstallHelp"]">
+            <MudSelect T="string" @bind-Value="client" Label="@L["Client"]" Class="client">
+                <MudSelectItem Value="@(".claude/skills")">Claude Code</MudSelectItem>
+                <MudSelectItem Value="@(".agents/skills")">Codex</MudSelectItem>
+            </MudSelect>
+            @Code("macOS / Linux", $"unzip -o ~/Downloads/{skill.Name}.zip -d ~/{client}")
+            @Code("Windows (PowerShell)", $"Expand-Archive -Force \"$HOME\\Downloads\\{skill.Name}.zip\" \"$HOME\\{client.Replace('/', '\\')}\"")
+        </Section>
+
+        <Section Title="SKILL.md">
+            <p class="meta"><ScopeChip Scope="@skill.Scope" /></p>
+            <MarkdownView Text="@skill.BodyMd" Class="body" />
+        </Section>
+
+        <Section Title="@L["History"]" Description="@L["HistoryHelp"]">
+            @if (history.Count == 0)
+            {
+                <MudText Typo="Typo.body2" Class="athar-muted">@L["NoHistory"]</MudText>
+            }
+            else
+            {
+                <ol class="history">
+                    @foreach (var v in history)
+                    {
+                        <li>
+                            <details>
+                                <summary><strong>@L["Revision", v.Revision]</strong> · <bdi>@v.PublishedBy</bdi> · <Timestamp Value="v.PublishedAt" Relative="true" /></summary>
+                                <p class="athar-muted" dir="auto">@v.Description</p>
+                                <MarkdownView Text="@v.BodyMd" />
+                            </details>
+                        </li>
+                    }
+                </ol>
+            }
+        </Section>
+
+        @if (skill.Files.Count > 0)
+        {
+            <Section Title="@L["Files"]">
+                <ul class="files" dir="ltr">
+                    @foreach (var f in skill.Files) { <li><code>@f.Path</code></li> }
+                </ul>
+            </Section>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private SkillDetail? skill;
+    private bool missing;
+    private IReadOnlyList<SkillService.Version> history = [];
+    private string zip = "", client = ".claude/skills";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            var actor = Actor.ForUser((await Auth).User);
+            skill = await Use(s => s.GetAsync(actor, Id, default));
+            history = await Use(s => s.HistoryAsync(actor, Id, default));
+            zip = $"data:application/zip;base64,{Convert.ToBase64String(SkillPackage.Zip(skill))}";
+        }
+        catch (AtharError) { (skill, missing) = (null, true); } // not found, or not visible to this person
+    }
+
+    private async Task CopyAsync(string text)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            Snackbar.Add(Shared["Copied"], Severity.Success);
+        }
+        catch (JSException) { Snackbar.Add(L["CopyFailed"], Severity.Warning); }
+    }
+
+    private RenderFragment Code(string label, string text) =>
+        @<figure class="snippet">
+            <figcaption>
+                <bdi>@label</bdi>
+                <IconAction Icon="@Icons.Material.Outlined.ContentCopy" Label="@($"{L["Copy"]}: {label}")" OnClick="() => CopyAsync(text)" />
+            </figcaption>
+            <pre dir="ltr"><code>@text</code></pre>
+        </figure>;
+
+    // Each load gets its own unit of work: the circuit's scoped DbContext can't serve a debounced list load and the next
+    // page's load at once ("a second operation was started on this context").
+    private async Task<T> Use<T>(Func<SkillService, Task<T>> call)
+    {
+        await using var scope = Scopes.CreateAsyncScope();
+        return await call(scope.ServiceProvider.GetRequiredService<SkillService>());
+    }
+}

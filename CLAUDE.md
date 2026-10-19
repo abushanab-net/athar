@@ -1,0 +1,21 @@
+# Athar: guidance for AI developers
+
+- Before coding, load the `athar-workflow` skill. Use `athar-backend-slice` for server work and `athar-blazor-ui` for UI work.
+- The code is the source of truth. The REST endpoints in `src/Athar.Web/Api` and the MCP tools in `src/Athar.Web/Mcp` are a contract: keep them backward compatible and agree changes with the maintainer first.
+- **Database rules (non-negotiable):**
+  - Never write SQL migration statements by hand: no `.sql` files and no `migrationBuilder.Sql`. Change the EF model and run `dotnet ef migrations add <Name> -p src/Athar.Data -s src/Athar.Web`.
+  - **The database is data-preserving.** Never squash, regenerate or edit a merged migration: add a new one. A change that would lose data needs the maintainer first. Moving existing data goes through EF (the model plus a generated migration, or app code), never hand-written SQL.
+  - `db reset` (drop, migrate, seed) is for dev and test databases only. Production refuses it.
+  - All initial and test data goes into the seed profiles in `src/Athar.Data/Seed` (`minimal`, `qa`, `perf`) with fixed IDs. Tests and QA use the `qa` seed.
+- **Process:** branch from `develop`, one PR per change against `develop`, squash merge.
+- **Verify locally first:** run `python tools/verify.py` (the same steps as `ci.yml`: guards, npm build, dotnet build, integration tests) on your branch rebased on the current `origin/develop`, and paste its `verify: PASSED <sha>` line into the PR body. CI runs the same steps on the PR. If `develop` moves before you merge, rebase and verify again. Never merge on a FAILED or missing verify line.
+- No TDD. Add integration tests (Aspire.Hosting.Testing) after each feature, and Playwright smoke tests for the main UI flows.
+- Every user-facing string is localized (English and Arabic resources), and every screen works right to left.
+- Commands:
+  - `python tools/verify.py` (local CI; `--no-tests` for a quick check)
+  - `dotnet build`
+  - `dotnet test tests/Athar.IntegrationTests`
+  - `dotnet run --project src/Athar.AppHost`
+  - `deploy/local.ps1 up` or `deploy/local.sh up`: the production stack in local Docker (deploy/README.md "Run it locally")
+  - `npm run build` in `src/editor` and `src/collab`
+- Diagrams: use the `illustrate` skill. The theme is `.github/illustration-theme.yml`.

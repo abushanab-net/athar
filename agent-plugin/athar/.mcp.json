@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "athar": {
+      "type": "http",
+      "url": "{{MCP_URL}}",
+      "oauth": { "clientId": "claude-code", "callbackPort": 3118 }
+    }
+  }
+}

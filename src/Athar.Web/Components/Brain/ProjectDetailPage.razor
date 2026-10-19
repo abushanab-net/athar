@@ -1,0 +1,399 @@
+@page "/projects/{Id:guid}"
+@attribute [Authorize]
+@using Athar.Web.Auth
+@using Principal = Athar.Web.Auth.WorkspaceAdminService.Principal
+@using Grant = Athar.Web.Auth.WorkspaceAdminService.Grant
+@implements IDisposable
+@inject ProjectService Projects
+@inject SourceService Sources
+@inject WorkspaceAdminService Directory
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SharedResource> L
+
+@* T151: one project (FR-PJ-01) with its members, the repositories agents resolve it from, and its GitHub sources (FR-KS-01/03).
+   Everything synced is readable by the project's members, and the page says so. Sync state refreshes while a sync runs. *@
+@if (missing)
+{
+    <PageHeader Help="projects" Title="@L["Projects"]" />
+    <EmptyState Icon="@Icons.Material.Outlined.SearchOff" Title="@L["ProjectNotFound"]">
+        <MudButton Href="/projects" Variant="Variant.Outlined">@L["BackToProjects"]</MudButton>
+    </EmptyState>
+}
+else if (detail is null)
+{
+    <LoadingState Rows="6" />
+}
+else
+{
+    var p = detail.Project;
+    <PageHeader Help="projects" Title="@p.Name" Description="@($"/{p.Slug}")" Crumbs="@([(L["Projects"].Value, "/projects")])">
+        <Actions>
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.Hub" Href="@($"/memories?project={p.Id}")">@L["ProjectMemories"]</MudButton>
+        </Actions>
+    </PageHeader>
+
+    <Section Title="@L["Sources"]" Description="@L["SourcesHelp"]" Flush="true">
+        <Actions>
+            @* T142 (FR-KS-06): any member adds a web page or a document; repositories stay with project admins. *@
+            <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Language" OnClick="() => addingUrl = true">@L["AddUrl"]</MudButton>
+            <MudFileUpload @ref="uploader" T="IBrowserFile" FilesChanged="UploadAsync" Accept=".md,.markdown,.txt,.html,.htm,.pdf,.docx,.pptx,.xlsx" Disabled="busy" Class="upload">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Outlined.UploadFile" Disabled="busy">@L["UploadDocument"]</MudButton>
+                </ActivatorContent>
+            </MudFileUpload>
+            @if (detail.CanManage)
+            {
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="() => attaching = true">@L["AttachRepository"]</MudButton>
+            }
+        </Actions>
+        <ChildContent>
+            <DataTable T="SourceView" Items="@sources" EmptyIcon="@Icons.Material.Outlined.LibraryBooks" EmptyTitle="@L["NoSources"]" EmptyText="@L["NoSourcesHelp"]">
+                <HeaderContent>
+                    <SortTh T="SourceView" By="s => s.Title ?? s.Repo" Initial="SortDirection.Ascending">@L["Source"]</SortTh>
+                    <SortTh T="SourceView" By="s => s.Status" Width="180px">@L["Status"]</SortTh>
+                    <SortTh T="SourceView" By="s => s.Documents" Width="120px">@L["Documents"]</SortTh>
+                    <MudTh Style="width: 140px">@L["SourceUpdated"]</MudTh>
+                    <ActionsTh />
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <span class="repo">
+                            @switch (context.Kind)
+                            {
+                                case "url":
+                                    <MudIcon Icon="@Icons.Material.Outlined.Language" Size="Size.Small" Title="@L["SourceKind_url"]" />
+                                    <a href="@context.Repo" target="_blank" rel="noopener noreferrer" dir="auto" class="athar-truncate" title="@context.Repo">@(context.Title ?? context.Repo)</a>
+                                    break;
+                                case "file":
+                                    <MudIcon Icon="@Icons.Material.Outlined.Folder" Size="Size.Small" Title="@L["SourceKind_file"]" />
+                                    <span dir="auto" class="athar-truncate" title="@L["SourceFileHelp"]">@(context.Title ?? context.Repo)</span>
+                                    break;
+                                case "document":
+                                    <MudIcon Icon="@Icons.Material.Outlined.Description" Size="Size.Small" Title="@L["SourceKind_document"]" />
+                                    <span dir="auto" class="athar-truncate" title="@context.Repo">@(context.Title ?? context.Repo)</span>
+                                    break;
+                                default:
+                                    <MudIcon Icon="@Icons.Material.Outlined.Code" Size="Size.Small" Title="@L["SourceKind_github"]" />
+                                    <a href="@($"https://github.com/{context.Repo}")" target="_blank" rel="noopener" dir="ltr" class="athar-truncate" title="@context.Repo">@context.Repo</a>
+                                    break;
+                            }
+                            @if (context.IsConfidential) { <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.Lock">@L["Confidential"]</Seal> }
+                        </span>
+                    </MudTd>
+                    <MudTd>
+                        @switch (context.Status)
+                        {
+                            case "paused_auth":
+                                <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.PauseCircle" Tooltip="@L["SourcePausedHelp"]">@L["SourcePaused"]</Seal>
+                                break;
+                            case "error":
+                                <Seal Kind="Seal.Kinds.Warn" Icon="@Icons.Material.Outlined.ErrorOutline" Tooltip="@(context.Kind == "github" ? null : L["SourceIngestErrorHelp"])">@L["SourceError"]</Seal>
+                                break;
+                            default:
+                                @if (syncing.Contains(context.SourceId))
+                                {
+                                    <span class="syncing" role="status"><MudProgressCircular Size="Size.Small" Indeterminate="true" /> @L["Syncing"]</span>
+                                }
+                                else
+                                {
+                                    <span class="athar-muted">@L["SourceOk"]</span>
+                                }
+                                break;
+                        }
+                    </MudTd>
+                    <MudTd><span class="num" @key="context.Documents">@context.Documents</span></MudTd>
+                    <MudTd>
+                        @if (context.LastCommitSha is { } sha) { <code title="@sha">@sha[..Math.Min(7, sha.Length)]</code> }
+                        else if (context.FetchedAt is { } at) { <Timestamp Value="at" Relative="true" /> }
+                        else { <span class="athar-muted">—</span> }
+                    </MudTd>
+                    <MudTd Class="actions-col">
+                        @if (detail.CanManage || context.Kind != "github")
+                        {
+                            <RowActions Done="StateHasChanged" Actions="@SourceActions(context)" />
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </DataTable>
+            <p class="audience"><MudIcon Icon="@Icons.Material.Outlined.Groups" Size="Size.Small" /> @L["SourcesAudience"]</p>
+        </ChildContent>
+    </Section>
+
+    <Section Title="@L["Members"]" Description="@L["ProjectMembersHelp"]" Flush="true">
+        <ChildContent>
+            @if (detail.CanManage)
+            {
+                <PrincipalPicker Label="@L["AddMember"]" Roles="@roles" DefaultRole="Member"
+                                 Options="@directory.Where(d => !d.IsTeam && detail.Members.All(m => m.UserId != d.Id))" OnAdd="AddMemberAsync" />
+            }
+            @if (detail.CanManage)
+            {
+                <MemberTable Items="@detail.Members.Select(m => new Grant(new Principal(m.UserId, m.Name, false), m.Role == "admin" ? "Admin" : "Member"))"
+                             Roles="@roles" OnChangeRole="ChangeRoleAsync" OnRemove="RemoveMemberAsync" />
+            }
+            else
+            {
+                <ul class="people">
+                    @foreach (var m in detail.Members)
+                    {
+                        <li><Avatar UserId="m.UserId" Name="@m.Name" Size="small" /><bdi>@m.Name</bdi>@if (m.Role == "admin") { <Seal Kind="Seal.Kinds.Quiet">@L["Admin"]</Seal> }</li>
+                    }
+                </ul>
+            }
+        </ChildContent>
+    </Section>
+
+    <Section Title="@L["Repositories"]" Description="@L["ProjectReposHelp"]" Flush="true">
+        <ChildContent>
+            @if (p.RepoRemotes.Count == 0)
+            {
+                <EmptyState Icon="@Icons.Material.Outlined.Link" Title="@L["NoRepositories"]" Compact="true" />
+            }
+            else
+            {
+                <ul class="remotes">
+                    @foreach (var r in p.RepoRemotes) { <li><MudIcon Icon="@Icons.Material.Outlined.Link" Size="Size.Small" /><code dir="ltr">@r</code></li> }
+                </ul>
+            }
+            @if (detail.CanManage)
+            {
+                <form class="add-remote" @onsubmit="LinkRemoteAsync">
+                    <MudTextField @bind-Value="remote" Immediate="true" Label="@L["RepositoryRemote"]" Placeholder="github.com/acme/app" dir="ltr" />
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" Disabled="@string.IsNullOrWhiteSpace(remote)">@L["Add"]</MudButton>
+                </form>
+            }
+        </ChildContent>
+    </Section>
+}
+
+<MudDialog @bind-Visible="attaching" Options="dialogOptions">
+    <TitleContent>@L["AttachRepository"]</TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="repo" Immediate="true" Label="@L["Repository"]" Placeholder="acme/app" HelperText="@L["RepositoryHelp"]" dir="ltr" AutoFocus="true" />
+        <MudTextField @bind-Value="pat" Immediate="true" Label="@L["GitHubToken"]" HelperText="@L["GitHubTokenHelp"]" InputType="InputType.Password" dir="ltr" Class="mt-3" />
+        <MudCheckBox T="bool" @bind-Value="confidential" Color="Color.Primary" Label="@L["SourceConfidential"]" Class="mt-2" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => attaching = false">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(busy || string.IsNullOrWhiteSpace(repo) || string.IsNullOrWhiteSpace(pat))" OnClick="AttachAsync">@L["Attach"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog @bind-Visible="addingUrl" Options="dialogOptions">
+    <TitleContent>@L["AddUrl"]</TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="url" Immediate="true" Label="@L["SourceUrl"]" Placeholder="https://" HelperText="@L["SourceUrlHelp"]" dir="ltr" AutoFocus="true" />
+        <MudCheckBox T="bool" @bind-Value="confidential" Color="Color.Primary" Label="@L["SourceConfidential"]" Class="mt-2" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => addingUrl = false">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(busy || string.IsNullOrWhiteSpace(url))" OnClick="AddUrlAsync">@L["Add"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog Visible="@(renewing is not null)" VisibleChanged="v => { if (!v) renewing = null; }" Options="dialogOptions">
+    <TitleContent>@L["NewGitHubToken"]</TitleContent>
+    <DialogContent>
+        <p class="mb-3"><code dir="ltr">@renewing?.Repo</code></p>
+        <MudTextField @bind-Value="pat" Immediate="true" Label="@L["GitHubToken"]" HelperText="@L["GitHubTokenHelp"]" InputType="InputType.Password" dir="ltr" AutoFocus="true" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => renewing = null">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(busy || string.IsNullOrWhiteSpace(pat))" OnClick="RenewAsync">@L["SaveAndSync"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    private static readonly DialogOptions dialogOptions = new() { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+    private static readonly string[] roles = ["Member", "Admin"];
+    private readonly CancellationTokenSource stop = new();
+    private Actor actor = default!;
+    private ProjectDetail? detail;
+    private List<SourceView> sources = [];
+    private List<Principal> directory = [];
+    private readonly HashSet<Guid> syncing = [];
+    private bool missing, attaching, addingUrl, confidential, busy;
+    private string url = "";
+    private MudFileUpload<IBrowserFile>? uploader;
+    private SourceView? renewing;
+    private string repo = "", pat = "", remote = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        actor = Actor.ForUser((await Auth).User);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            detail = await Projects.GetAsync(actor, Id, default);
+            sources = [.. await Sources.ListAsync(actor, Id, default)];
+            if (detail.CanManage) directory = await Directory.DirectoryAsync(actor.OrgId, actor.UserId);
+        }
+        catch (AtharError e) when (e.Code is "not_found" or "forbidden") { missing = true; }
+    }
+
+    private IEnumerable<RowAction?> SourceActions(SourceView s) => s.Kind != "github"
+        ? [
+            // A folder (T143) is refreshed by running athar ingest again on the laptop that has it.
+            s.Kind == "file" ? null : new RowAction(L["RefreshSource"], Icons.Material.Outlined.Refresh, () => RefreshAsync(s), Disabled: syncing.Contains(s.SourceId)),
+            !detail!.CanManage ? null : new RowAction(L["PurgeSynced"], Icons.Material.Outlined.DeleteSweep, () => Run(async () => { await Sources.PurgeAsync(actor, s.SourceId, default); return L["Purged"]; }),
+                Danger: true, Confirm: L["PurgeConfirm", s.Title ?? s.Repo]),
+        ]
+        : [
+
+        s.Status == "paused_auth" ? null : new RowAction(L["SyncNow"], Icons.Material.Outlined.Sync, () => SyncAsync(s), Disabled: syncing.Contains(s.SourceId)),
+        new RowAction(L["NewGitHubToken"] + "…", Icons.Material.Outlined.Key, () => { (renewing, pat) = (s, ""); return Task.CompletedTask; }),
+        new RowAction(L["PurgeSynced"], Icons.Material.Outlined.DeleteSweep, () => Run(async () => { await Sources.PurgeAsync(actor, s.SourceId, default); return L["Purged"]; }),
+            Danger: true, Confirm: L["PurgeConfirm", s.Repo]),
+    ];
+
+    private async Task AddUrlAsync()
+    {
+        busy = true;
+        try
+        {
+            var s = await Sources.AddUrlAsync(actor, Id, url, confidential, default);
+            (addingUrl, url, confidential) = (false, "", false);
+            Snackbar.Add(L["SourceAdding"], Severity.Info);
+            await LoadAsync();
+            Watch(s.SourceId, s.Documents);
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+        finally { busy = false; }
+    }
+
+    private async Task UploadAsync(IBrowserFile? file)
+    {
+        if (file is null) return;
+        if (file.Size > Athar.Domain.Sources.IngestRules.MaxBytes) { Snackbar.Add(L["DocumentTooLarge"], Severity.Warning); return; }
+        busy = true;
+        try
+        {
+            using var bytes = new MemoryStream();
+            await file.OpenReadStream(Athar.Domain.Sources.IngestRules.MaxBytes).CopyToAsync(bytes);
+            // ponytail: uploads from this page are not confidential; the API takes confidential=true. Add a checkbox if people ask.
+            var s = await Sources.AddDocumentAsync(actor, Id, file.Name, bytes.ToArray(), false, default);
+            Snackbar.Add(L["SourceAdding"], Severity.Info);
+            await LoadAsync();
+            Watch(s.SourceId, -1);
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+        finally
+        {
+            busy = false;
+            if (uploader is not null) await uploader.ClearAsync(); // so the same file name can be picked again (a corrected version)
+        }
+    }
+
+    private async Task RefreshAsync(SourceView s)
+    {
+        try
+        {
+            await Sources.RefreshAsync(actor, s.SourceId, default);
+            Snackbar.Add(L["SourceAdding"], Severity.Info);
+            Watch(s.SourceId, -1);
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+    }
+
+    private async Task AttachAsync()
+    {
+        busy = true;
+        try
+        {
+            var s = await Sources.AttachAsync(actor, Id, repo, pat, confidential, default);
+            (attaching, repo, pat, confidential) = (false, "", "", false);
+            Snackbar.Add(L["SourceAttached", s.Repo], Severity.Success);
+            await LoadAsync();
+            Watch(s.SourceId, s.Documents);
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+        finally { busy = false; }
+    }
+
+    private async Task RenewAsync()
+    {
+        if (renewing is not { } s) return;
+        busy = true;
+        try
+        {
+            await Sources.SetPatAsync(actor, s.SourceId, pat, default);
+            (renewing, pat) = (null, "");
+            Snackbar.Add(L["SourceResumed"], Severity.Success);
+            await LoadAsync();
+            Watch(s.SourceId, s.Documents);
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+        finally { busy = false; }
+    }
+
+    private async Task SyncAsync(SourceView s)
+    {
+        try
+        {
+            await Sources.SyncNowAsync(actor, s.SourceId, default);
+            Snackbar.Add(L["SyncQueued"], Severity.Info);
+            Watch(s.SourceId, s.Documents);
+        }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+    }
+
+    // ponytail: the worker has no push channel, so the page polls the source every 3 s for up to 2 minutes after a sync
+    // is queued, and stops when the document count or the commit changes (or the source pauses).
+    private void Watch(Guid sourceId, int docsBefore)
+    {
+        if (!syncing.Add(sourceId)) return;
+        var shaBefore = sources.FirstOrDefault(x => x.SourceId == sourceId)?.LastCommitSha;
+        var fetchedBefore = sources.FirstOrDefault(x => x.SourceId == sourceId)?.FetchedAt;
+        _ = InvokeAsync(async () =>
+        {
+            try
+            {
+                for (var i = 0; i < 40 && !stop.IsCancellationRequested; i++)
+                {
+                    await Task.Delay(3000, stop.Token);
+                    sources = [.. await Sources.ListAsync(actor, Id, default)];
+                    var now = sources.FirstOrDefault(x => x.SourceId == sourceId);
+                    if (now is null || now.Status != "ok" || (docsBefore >= 0 && now.Documents != docsBefore) || now.LastCommitSha != shaBefore || now.FetchedAt != fetchedBefore) break;
+                    StateHasChanged();
+                }
+            }
+            catch (OperationCanceledException) { return; }
+            syncing.Remove(sourceId);
+            StateHasChanged();
+        });
+    }
+
+    private async Task LinkRemoteAsync()
+    {
+        await Run(async () => { await Projects.LinkAsync(actor, Id, new(remote, null, null), default); return L["Saved"]; });
+        remote = "";
+    }
+
+    private Task AddMemberAsync(Principal who, string? role) =>
+        Run(async () => { await Projects.SetMemberAsync(actor, Id, who.Id, (role ?? "Member").ToLowerInvariant(), default); return L["Saved"]; });
+
+    private Task ChangeRoleAsync(Principal who, string role) =>
+        Run(async () => { await Projects.SetMemberAsync(actor, Id, who.Id, role.ToLowerInvariant(), default); return L["Saved"]; });
+
+    private Task RemoveMemberAsync(Principal who) =>
+        Run(async () => { await Projects.RemoveMemberAsync(actor, Id, who.Id, default); return L["Saved"]; });
+
+    private async Task Run(Func<Task<string>> action)
+    {
+        try { Snackbar.Add(await action(), Severity.Success); }
+        catch (AtharError e) { Snackbar.Add(e.Message, Severity.Warning); }
+        await LoadAsync();
+    }
+
+    public void Dispose()
+    {
+        stop.Cancel();
+        stop.Dispose();
+    }
+}

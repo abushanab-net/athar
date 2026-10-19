@@ -1,0 +1,10 @@
+shared	PendingInvitations	Invitations not accepted yet	دعوات لم تُقبَل بعد
+shared	Sent	Sent	أُرسلت
+shared	ExpiresOn	Expires	تنتهي في
+shared	ResendInvite	Send a new link	إرسال رابط جديد
+shared	RevokeInvite	Withdraw invitation	سحب الدعوة
+shared	RevokeInviteConfirm	Withdraw the invitation for {0}? The link will stop working.	سحب الدعوة الموجّهة إلى {0}؟ سيتوقف الرابط عن العمل.
+shared	InviteResent	A new link was sent.	أُرسل رابط جديد.
+shared	InviteRevoked	The invitation was withdrawn.	سُحبت الدعوة.
+shared	ChangedBy	Changed by	عدّلها
+shared	FormerMember	Former member	عضو سابق

@@ -1,0 +1,32 @@
+@using Athar.Domain.Wiki
+
+@* A workspace's or space's badge: its color with its icon, or its initials (Appearance). Decorative: the name is beside it. *@
+<span class="space-badge @(Large ? "large" : null)" style="background: @Appearance.Hex(Color, Id)" aria-hidden="true">
+    @if (Icon is not null && Glyphs.TryGetValue(Icon, out var glyph))
+    {
+        <MudIcon Icon="@glyph" Size="@(Large ? Size.Medium : Size.Small)" />
+    }
+    else
+    {
+        @Appearance.Initials(Name)
+    }
+</span>
+
+@code {
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+    [Parameter, EditorRequired] public Guid Id { get; set; }
+    [Parameter] public string? Color { get; set; }
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public bool Large { get; set; }
+
+    /// <summary>The Material icon for each <see cref="Appearance.Icons"/> key.</summary>
+    public static readonly IReadOnlyDictionary<string, string> Glyphs = new Dictionary<string, string>
+    {
+        ["code"] = Icons.Material.Outlined.Code, ["rocket"] = Icons.Material.Outlined.RocketLaunch, ["book"] = Icons.Material.Outlined.MenuBook,
+        ["people"] = Icons.Material.Outlined.Groups, ["build"] = Icons.Material.Outlined.Build, ["cloud"] = Icons.Material.Outlined.Cloud,
+        ["security"] = Icons.Material.Outlined.Security, ["chart"] = Icons.Material.Outlined.Insights, ["idea"] = Icons.Material.Outlined.Lightbulb,
+        ["work"] = Icons.Material.Outlined.Work, ["school"] = Icons.Material.Outlined.School, ["support"] = Icons.Material.Outlined.SupportAgent,
+        ["science"] = Icons.Material.Outlined.Science, ["palette"] = Icons.Material.Outlined.Palette, ["home"] = Icons.Material.Outlined.Home,
+        ["star"] = Icons.Material.Outlined.Star,
+    };
+}

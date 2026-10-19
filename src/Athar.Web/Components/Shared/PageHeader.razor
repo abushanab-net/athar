@@ -1,0 +1,39 @@
+@* Every page starts here (DESIGN.md Layout): optional breadcrumb, the 20px title, a one-line description, actions at the end.
+   It also sets the browser tab title, so pages don't add their own PageTitle. *@
+<PageTitle>@(TabTitle ?? Title) · Athar</PageTitle>
+<header class="page-header">
+    @if (Crumbs is { Count: > 0 })
+    {
+        <nav class="crumbs" aria-label="@L["Breadcrumb"]">
+            @foreach (var (label, href) in Crumbs)
+            {
+                <a href="@href" dir="auto">@label</a><span aria-hidden="true" class="sep">/</span>
+            }
+        </nav>
+    }
+    <div class="row">
+        <div class="text">
+            <h1 dir="auto">@Title</h1>
+            @if (Description is not null) { <p dir="auto">@Description</p> }
+        </div>
+        @if (Actions is not null || Help is not null)
+        {
+            <div class="actions">
+                @Actions
+                @* T153: the handbook section for this page (anchors from docs/handbook headings, T144). *@
+                @if (Help is not null) { <IconAction Icon="@Icons.Material.Outlined.HelpOutline" Label="@L["HelpAbout"]" Href="@($"/help#{Help}")" /> }
+            </div>
+        }
+    </div>
+</header>
+
+@code {
+    [Inject] private IStringLocalizer<SharedResource> L { get; set; } = default!;
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? TabTitle { get; set; }
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public IReadOnlyList<(string Label, string Href)>? Crumbs { get; set; }
+    [Parameter] public RenderFragment? Actions { get; set; }
+    /// <summary>The /help anchor for this page (for example "capture" or "admin-users").</summary>
+    [Parameter] public string? Help { get; set; }
+}

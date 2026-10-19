@@ -1,0 +1,54 @@
+# Wiki redesign (ui/wiki): new WikiText keys. Merge with: python .impeccable/i18n/merge.py
+wiki	WikiIntro	Spaces you belong to, grouped by workspace.	المساحات التي تنتمي إليها، مجمّعة حسب مساحة العمل.
+wiki	NoSpacesHelp	Ask a workspace admin to add you to a space.	اطلب من مسؤول مساحة العمل إضافتك إلى مساحة.
+wiki	Space	Space	المساحة
+wiki	YourRole	Your role	دورك
+wiki	Role_Viewer	Viewer	قارئ
+wiki	Role_Commenter	Commenter	معلّق
+wiki	Role_Editor	Editor	محرّر
+wiki	Role_Admin	Admin	مسؤول
+wiki	AiAccess	AI access	وصول الذكاء الاصطناعي
+wiki	AiNone	Agents have no access	لا يصل الوكلاء إلى هذه المساحة
+wiki	AiRead	Agents can read	يمكن للوكلاء القراءة
+wiki	AiWrite	Agents can write	يمكن للوكلاء الكتابة
+wiki	AiDelete	Agents can move pages to the trash	يمكن للوكلاء نقل الصفحات إلى سلة المحذوفات
+wiki	Confidential	Confidential	سرّي
+wiki	PageUnavailable	Page not available	الصفحة غير متاحة
+wiki	PageUnavailableText	This page doesn't exist, or you don't have access to it. Ask the space's admin if you need it.	هذه الصفحة غير موجودة أو ليس لديك صلاحية الوصول إليها. اطلبها من مسؤول المساحة إن كنت تحتاج إليها.
+wiki	BackToWiki	Back to wiki	العودة إلى الويكي
+wiki	Pages	Pages	الصفحات
+wiki	ClosePages	Close pages	إغلاق الصفحات
+wiki	PagePanels	Comments, versions and sharing	التعليقات والنسخ والمشاركة
+wiki	MovePage	Move page	نقل الصفحة
+wiki	InsertImage	Insert an image	إدراج صورة
+wiki	InsertLink	Insert a link	إدراج رابط
+wiki	RevisionN	Revision {0}	المراجعة {0}
+wiki	CommentAction	Comment	تعليق
+wiki	AnchorToSelection	Anchor to selection	ربط بالنص المحدد
+wiki	OpenThreads	Open threads	النقاشات المفتوحة
+wiki	AllThreads	All threads	كل النقاشات
+wiki	ShowInPage	Show in the page	إظهار في الصفحة
+wiki	SendReply	Send reply	إرسال الرد
+wiki	EditComment	Edit comment	تعديل التعليق
+wiki	ConfirmDeleteComment	Delete this comment? This can't be undone.	حذف هذا التعليق؟ لا يمكن التراجع عن ذلك.
+wiki	OnlySpaceMembers	Only space members	أعضاء المساحة فقط
+wiki	ConfirmRemoveAccess	Remove {0}'s access to this page?	إزالة وصول {0} إلى هذه الصفحة؟
+wiki	AddLink	Add link	إضافة رابط
+wiki	NoLinks	No links yet	لا توجد روابط بعد
+wiki	PasswordProtected	Password	بكلمة مرور
+wiki	ExpiresLabel	Expires	تنتهي في
+wiki	LinkActive	Active	نشط
+wiki	LinkExpired	Expired	منتهٍ
+wiki	LinkRevoked	Revoked	ملغى
+wiki	RevokeLink	Revoke link	إلغاء الرابط
+wiki	ConfirmRevokeLink	Revoke this link? Anyone using it loses access.	إلغاء هذا الرابط؟ سيفقد كل من يستخدمه إمكانية الوصول.
+wiki	CopyLink	Copy link	نسخ الرابط
+wiki	LinkCopied	Link copied	تم نسخ الرابط
+wiki	CopyFailed	Couldn't copy. Select the link and copy it instead.	تعذّر النسخ. حدّد الرابط وانسخه يدويًا.
+wiki	History	History	السجل
+wiki	PreviewRevision	Preview revision {0}	معاينة المراجعة {0}
+wiki	RestoreRevision	Restore revision {0}	استعادة المراجعة {0}
+wiki	ClosePreview	Close preview	إغلاق المعاينة
+wiki	ReasonLabel_auto	Automatic	تلقائية
+wiki	ReasonLabel_manual	Snapshot	لقطة
+wiki	ReasonLabel_restore	Restore	استعادة

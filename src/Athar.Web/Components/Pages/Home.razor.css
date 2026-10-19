@@ -1,0 +1,22 @@
+.waiting, .spaces { list-style: none; margin: 0; padding: 0 }
+.waiting li { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-block-end: 1px solid var(--athar-rule) }
+.waiting li:last-child { border-block-end: 0 }
+.waiting ::deep .icon { color: var(--mud-palette-primary); font-size: 1.25rem; flex: none }
+.waiting .what { flex: 1 1 auto; min-width: 0 }
+.home-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 0 24px }
+@media (max-width: 959.98px) { .home-grid { grid-template-columns: minmax(0, 1fr) } }
+.spaces li a { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 10px; padding: 8px 16px;
+    color: var(--mud-palette-text-primary); text-decoration: none; border-block-end: 1px solid var(--athar-rule) }
+.spaces li:last-child a { border-block-end: 0 }
+.spaces li a:hover { background: var(--athar-fill) }
+.spaces ::deep .icon { grid-row: span 2; align-self: center; color: var(--mud-palette-text-secondary); font-size: 1.25rem }
+.spaces .ws { font-size: 0.75rem }
+
+/* T152: the first-agent prompt, shown until any agent has connected. A hairline panel with the ink mark; no card shadow. */
+.get-started { display: flex; align-items: center; gap: 16px; padding: 16px 20px; margin-block-end: 24px; border: 1px solid var(--athar-rule);
+    border-radius: var(--athar-radius); background: var(--mud-palette-surface) }
+.get-started ::deep .mark { flex: none; font-size: 2rem; color: var(--mud-palette-primary) }
+.get-started .text { flex: 1 1 auto; min-width: 0 }
+.get-started h2 { margin: 0 0 2px; font-size: 1rem; font-weight: 600 }
+.get-started p { margin: 0; color: var(--athar-muted); max-inline-size: 70ch }
+@media (max-width: 599.98px) { .get-started { flex-wrap: wrap } }

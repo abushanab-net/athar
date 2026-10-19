@@ -1,0 +1,5 @@
+
+# Phase P: deployment files run on Linux; keep LF so shell continuations in Dockerfiles work
+deploy/** text eol=lf
+*.Dockerfile text eol=lf
+*.sh text eol=lf

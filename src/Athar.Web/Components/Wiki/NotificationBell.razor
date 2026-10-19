@@ -1,0 +1,100 @@
+@using Athar.Web.Services
+@implements IDisposable
+@inject WikiSession Session
+@inject IServiceScopeFactory Scopes
+@inject ShellCounts Counts
+
+@* In-app notifications (FR-NT-01) in the top bar. A menu surface: Esc and an outside click close it, focus moves into it. *@
+<MudTooltip Text="@T("Notifications")" Placement="Placement.Bottom" Arrow="false">
+    <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" OpenChanged="OnOpenChanged" MaxHeight="480"
+             PopoverClass="notification-popover" ListClass="notification-list" AriaLabel="@Label" LockScroll="false">
+        <ActivatorContent>
+            @* The menu's activator is the one button; nothing interactive inside it. *@
+            <span class="bell">
+                <MudIcon Icon="@(unread > 0 ? Icons.Material.Filled.Notifications : Icons.Material.Outlined.Notifications)" />
+                <span class="visually-hidden">@Label</span>
+                @if (unread > 0) { <span class="count" @key="unread" aria-hidden="true">@(unread > 99 ? "99+" : unread)</span> }
+            </span>
+        </ActivatorContent>
+        <ChildContent>
+            <div class="head">
+                <span class="title">@T("Notifications")</span>
+                <IconAction Icon="@Icons.Material.Outlined.DoneAll" Label="@T("MarkAllRead")" Disabled="unread == 0" OnClick="MarkAllReadAsync" />
+            </div>
+            @if (items.Count == 0)
+            {
+                <EmptyState Icon="@Icons.Material.Outlined.NotificationsNone" Title="@T("NoNotifications")" Compact="true" />
+            }
+            @foreach (var n in items)
+            {
+                <MudMenuItem Href="@n.Href" Class="@(n.Read ? "note" : "note unread")">
+                    <span class="what">@if (n.Who is { } who) {<b class="who"><bdi>@who</bdi></b><text> </text>@T($"Kind_{n.Kind}")} else {@Capitalized(T($"Kind_{n.Kind}"))}@if (n.Where is { } where) {<text> </text><span class="where">@T("OnPage") <bdi>@where</bdi></span>}</span>
+                    <Timestamp Value="n.CreatedAt" Relative="true" Class="when" />
+                </MudMenuItem>
+            }
+            <MudDivider />
+            <MudMenuItem Href="/notifications" Class="see-all">@T("SeeAllNotifications")</MudMenuItem>
+        </ChildContent>
+    </MudMenu>
+</MudTooltip>
+
+@code {
+    private readonly CancellationTokenSource stop = new();
+    private List<NotificationView> items = [];
+    private int unread;
+    private bool open;
+
+    private string T(string key) => Session.T(key);
+    // The kind texts read after a name ("Qa Admin mentioned you"); without one they start the sentence.
+    private static string Capitalized(string s) => s.Length == 0 ? s : char.ToUpper(s[0], CultureInfo.CurrentCulture) + s[1..];
+    private string Label => unread > 0 ? $"{T("Notifications")} ({unread})" : T("Notifications");
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await Session.ResolveAsync();
+        await RefreshAsync();
+        _ = PollAsync();
+    }
+
+    // ponytail: polls every 30 s, which covers every writer (memories, proposals, comments) and the sidebar counts. A push hub can replace it.
+    private async Task PollAsync()
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(stop.Token)) await InvokeAsync(RefreshAsync);
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private async Task RefreshAsync()
+    {
+        await using var scope = Scopes.CreateAsyncScope();
+        var service = scope.ServiceProvider.GetRequiredService<NotificationService>();
+        var actor = Session.Actor!;
+        unread = await service.UnreadCountAsync(actor.UserId, actor.OrgId);
+        if (open) items = await service.ListAsync(actor.UserId, actor.OrgId, 10);
+        StateHasChanged();
+        await Counts.RefreshAsync(); // the sidebar's Review count follows agents' captures and other owners' decisions
+    }
+
+    private async Task OnOpenChanged(bool value)
+    {
+        open = value;
+        if (open) await RefreshAsync();
+    }
+
+    private async Task MarkAllReadAsync()
+    {
+        await using (var scope = Scopes.CreateAsyncScope())
+            await scope.ServiceProvider.GetRequiredService<NotificationService>().MarkReadAsync(Session.Actor!.UserId, Session.Actor.OrgId);
+        await RefreshAsync();
+    }
+
+    public void Dispose()
+    {
+        stop.Cancel();
+        stop.Dispose();
+    }
+}

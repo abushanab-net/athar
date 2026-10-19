@@ -1,0 +1,14 @@
+.candidates { display: grid; gap: 16px; max-inline-size: 75ch }
+.candidate { display: grid; gap: 12px; padding: 16px; background: var(--mud-palette-surface); border: 1px solid var(--athar-rule); border-radius: var(--athar-radius) }
+.candidate ::deep .mud-input-control { margin: 0 }
+.head { display: flex; align-items: center; gap: 8px }
+.head ::deep .when { margin-inline-start: auto; font-size: 0.75rem; color: var(--athar-muted) }
+.scope { max-inline-size: 30rem }
+.evidence { margin: 0; display: grid; gap: 4px }
+.evidence figcaption, .similar .label { font-size: 0.75rem; font-weight: 500; color: var(--athar-muted) }
+.evidence blockquote { margin: 0; padding: 8px 12px; background: var(--athar-fill); border-radius: var(--athar-radius); white-space: pre-wrap; overflow-wrap: anywhere }
+.similar { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px }
+.similar .label { flex-basis: 100% }
+.similar a { color: var(--mud-palette-primary); text-decoration: none }
+.similar a:hover { text-decoration: underline }
+.decide { display: flex; align-items: center; gap: 8px; padding-block-start: 4px }

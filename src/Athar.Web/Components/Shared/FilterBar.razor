@@ -1,0 +1,21 @@
+@inject IStringLocalizer<SharedResource> L
+
+@* Filters above a list: one wrapping row of compact fields with consistent widths; the fields keep their own labels.
+   With Fold, phones get the fields behind a "Filters" button so the list starts near the top (not for a page's main search). *@
+<div class="filter-bar @(Fold ? "fold" : null) @(open ? "open" : null)" role="search" aria-label="@Label">
+    @if (Fold)
+    {
+        <button type="button" class="filter-toggle" aria-expanded="@(open ? "true" : "false")" @onclick="() => open = !open">
+            <MudIcon Icon="@Icons.Material.Outlined.FilterList" Size="Size.Small" />@(Label ?? L["Filters"])
+        </button>
+    }
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Fold { get; set; }
+
+    private bool open;
+}

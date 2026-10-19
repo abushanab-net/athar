@@ -1,0 +1,235 @@
+@page "/search"
+@attribute [Authorize]
+@using Athar.Web.Mcp
+@using Athar.Web.Services
+@inject IServiceScopeFactory Scopes
+@inject NavigationManager Nav
+@inject IStringLocalizer<SharedResource> L
+@implements IDisposable
+
+@* T047, FR-SR-01: one search over pages, memories and synced GitHub sources. Access, AI policy and disclosure are applied inside the query (T052). *@
+<PageHeader Help="search" Title="@L["Search"]" TabTitle="@(string.IsNullOrWhiteSpace(Query) ? null : $"{Query} · {L["Search"]}")" />
+
+<FilterBar Label="@L["Search"]">
+    @* Enter submits: the form has one text field, so no Search button is needed. *@
+    <form @onsubmit="Go" class="grow query">
+        <MudTextField @bind-Value="draft" Label="@L["SearchFor"]" Immediate="true" InputType="InputType.Search"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" dir="auto" />
+    </form>
+    <MudToggleGroup T="string" Value="Kind ?? KindAll" ValueChanged="SetKind" Outlined="true" Size="Size.Small" aria-label="@L["SearchIn"]">
+        <MudToggleItem Value="KindAll">@L["All"]</MudToggleItem>
+        <MudToggleItem Value="@("page")">@L["Pages"]</MudToggleItem>
+        <MudToggleItem Value="@("memory")">@L["Memories"]</MudToggleItem>
+        <MudToggleItem Value="@("source")">@L["Sources"]</MudToggleItem>
+    </MudToggleGroup>
+</FilterBar>
+
+@if (loading)
+{
+    <LoadingState Rows="5" />
+}
+else if (result is { } r)
+{
+    @if (r.Degraded)
+    {
+        <MudAlert Severity="Severity.Warning" Class="mb-3">@L["SearchDegraded"]</MudAlert>
+    }
+    <p role="status" class="count">@L["SearchCount", r.Hits.Count]</p>
+    @* T167 (FR-AI-04): an answer from these results, only on request and only with a query model assigned. The server picks the
+       evidence from what this person may read (AI-read policy applied) and owns the citations; the text renders escaped. *@
+    @if (answerAvailable && r.Hits.Count > 0)
+    {
+        <section class="answer" aria-labelledby="answer-title" aria-busy="@(answering ? "true" : "false")">
+            <div class="answer-head">
+                <h2 id="answer-title">@L["AnswerTitle"]</h2>
+                @if (answer is null)
+                {
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Outlined.AutoAwesome"
+                               Disabled="answering" OnClick="AnswerAsync">@(answering ? L["Answering"] : L["AnswerFromResults"])</MudButton>
+                }
+            </div>
+            <div role="status" aria-live="polite">
+                @if (answering)
+                {
+                    <MudProgressLinear Indeterminate="true" Color="Color.Primary" aria-label="@L["Answering"]" Class="mt-2" />
+                }
+                else if (answerError is not null)
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-2">@answerError</MudAlert>
+                }
+                else if (answer is { } a)
+                {
+                    <p class="answer-text" dir="auto">@a.Text</p>
+                    @if (a.Sources.Count > 0)
+                    {
+                        <p class="answer-sources-label">@L["AnswerSources"]</p>
+                        <ol class="answer-sources">
+                            @foreach (var source in a.Sources)
+                            {
+                                <li><a href="@source.Url" dir="auto">@source.Title</a></li>
+                            }
+                        </ol>
+                    }
+                    <p class="answer-note">@L["AnswerNote"]</p>
+                }
+            </div>
+        </section>
+    }
+    @if (r.Hits.Count == 0)
+    {
+        <EmptyState Icon="@Icons.Material.Outlined.SearchOff" Title="@L["SearchNoResults"]" />
+    }
+    else
+    {
+        <ol class="hits">
+            @foreach (var hit in r.Hits)
+            {
+                <li class="hit athar-arrive" @key="(hit.Kind, hit.Id)">
+                    <MudIcon Icon="@KindIcon(hit.Kind)" Class="kind" />
+                    <div class="text">
+                        <a href="@hit.Url" class="title athar-truncate" title="@hit.Title" dir="auto">@hit.Title</a>
+                        <div class="context">
+                            <span>@KindLabel(hit.Kind)</span>
+                            @if (hit.Scope is { } scope) { <ScopeChip Scope="@scope" /> }
+                            @if (hit.Kind == "page" && pages.TryGetValue(hit.Id, out var pageBrief))
+                            {
+                                <span class="athar-truncate" dir="auto" title="@pageBrief.Space">@pageBrief.Space</span>
+                                <Timestamp Value="pageBrief.UpdatedAt" Relative="true" />
+                            }
+                            else if (hit.Kind == "memory" && memories.TryGetValue(hit.Id, out var memory))
+                            {
+                                <Timestamp Value="memory.UpdatedAt" Relative="true" />
+                            }
+                        </div>
+                        <p class="snippet" dir="auto"><MudHighlighter Text="@Plain(hit.Snippet)" HighlightedTexts="terms" /></p>
+                    </div>
+                </li>
+            }
+        </ol>
+    }
+}
+else
+{
+    <EmptyState Icon="@Icons.Material.Outlined.Search" Title="@L["TypeToSearch"]" Text="@L["SearchHelp"]" />
+}
+
+@code {
+    private const string KindAll = "all";
+    [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
+    [SupplyParameterFromQuery(Name = "q")] private string? Query { get; set; }
+    [SupplyParameterFromQuery(Name = "kind")] private string? Kind { get; set; }
+    private string draft = "";
+    private string[] terms = [];
+    private SearchResult? result;
+    private Dictionary<Guid, PageBrief> pages = [];
+    private Dictionary<Guid, MemoryBrief> memories = [];
+    private bool loading;
+    private bool answerAvailable, answering;
+    private QueryAnswer? answer;
+    private string? answerError;
+    // One operation per query: a new query (or a cleared one) cancels the old search and its answer, and anything they finish
+    // later is dropped, so results and the answer always belong to the query on screen.
+    private CancellationTokenSource op = new();
+    // The query and kinds the shown results are for; the answer asks about exactly these.
+    private SearchInput? shown;
+
+    private static string KindIcon(string kind) => kind switch
+    {
+        "page" => Icons.Material.Outlined.Article,
+        "memory" => Icons.Material.Outlined.Psychology,
+        _ => Icons.Material.Outlined.Code,
+    };
+
+    private string KindLabel(string kind) => kind switch { "page" => L["Page"], "memory" => L["Memory"], _ => L["Source"] };
+
+    // The URL holds the query, so results can be shared, bookmarked and reached with Back.
+    protected override async Task OnParametersSetAsync()
+    {
+        draft = Query ?? "";
+        var cts = Restart();
+        if (string.IsNullOrWhiteSpace(Query)) return;
+        // Captured before any await: the parameters may change while this search runs.
+        var input = new SearchInput(Query.Trim(), Kind is "page" or "memory" or "source" ? new[] { Kind } : null, Limit: 20);
+        // ponytail: highlights the literal query words; Arabic spelling variants the search matched stay unmarked.
+        var words = Query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        loading = true;
+        try
+        {
+            await using var scope = Scopes.CreateAsyncScope();
+            var user = (await Auth).User;
+            var sp = scope.ServiceProvider;
+            var found = await sp.GetRequiredService<SearchService>().SearchAsync(Actor.ForUser(user), input, cts.Token);
+            // Where and when, for the hits this person can read (the search contract carries neither).
+            var briefs = await sp.GetRequiredService<PageService>().BriefsAsync(new WikiActor(user.UserId(), user.OrgId()), found.Hits.Where(h => h.Kind == "page").Select(h => h.Id), cts.Token);
+            var memoryBriefs = await sp.GetRequiredService<MemoryService>().BriefsAsync(Actor.ForUser(user), found.Hits.Where(h => h.Kind == "memory").Select(h => h.Id), cts.Token);
+            // Answers are optional: if the check fails, the results still show.
+            bool available;
+            try { available = await sp.GetRequiredService<QueryAnswerService>().AvailableAsync(Actor.ForUser(user), cts.Token); }
+            catch (AtharError) { available = false; }
+            if (cts != op) return; // a newer query owns the page now
+            (result, pages, memories, terms, answerAvailable, shown) = (found, briefs, memoryBriefs, words, available, input);
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested) { }
+        finally { if (cts == op) loading = false; }
+    }
+
+    /// <summary>Cancels the previous query's search and answer, clears what they showed, and starts this query's operation.</summary>
+    private CancellationTokenSource Restart()
+    {
+        op.Cancel();
+        op = new();
+        (result, shown, terms, loading) = (null, null, [], false);
+        (answer, answerError, answering, answerAvailable) = (null, null, false, false);
+        return op;
+    }
+
+    private async Task AnswerAsync()
+    {
+        if (shown is not { } input) return;
+        var cts = op;
+        (answering, answerError) = (true, null);
+        try
+        {
+            await using var scope = Scopes.CreateAsyncScope();
+            var user = (await Auth).User;
+            var found = await scope.ServiceProvider.GetRequiredService<QueryAnswerService>().AnswerAsync(Actor.ForUser(user), input, cts.Token);
+            if (cts == op) answer = found;
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested) { }
+        catch (AtharError e) when (cts == op) { answerError = AnswerErrorText(e.Code); }
+        catch (AtharError) { } // the query has changed since
+        finally { if (cts == op) answering = false; }
+    }
+
+    private string AnswerErrorText(string code) => code switch
+    {
+        "insufficient_evidence" => L["AnswerNoEvidence"],
+        "forbidden" => L["NoAccessText"],
+        _ => L["AnswerUnavailable"],
+    };
+
+    // ponytail: cancel only, never Dispose: an answer still in flight reads the token after the circuit ends.
+    public void Dispose() => op.Cancel();
+
+    private void Go() => Nav.NavigateTo(Nav.GetUriWithQueryParameters("/search", new Dictionary<string, object?>
+    {
+        ["q"] = string.IsNullOrWhiteSpace(draft) ? null : draft.Trim(),
+        ["kind"] = Kind,
+    }));
+
+    private void SetKind(string kind)
+    {
+        Kind = kind == KindAll ? null : kind;
+        Go();
+    }
+
+    /// <summary>A chunk's Markdown as reading text: no fences, callout markers, heading or list marks, emphasis, or link targets.</summary>
+    public static string Plain(string markdown)
+    {
+        var s = System.Text.RegularExpressions.Regex.Replace(markdown, @"(?m)^\s*(```[\w+#-]*|:::callout(\{[^}]*\})?|:::)\s*$", " ");
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"!?\[\[?([^\[\]]*)\]?\]\([^)]*\)", "$1");
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"(?m)^\s*(#{1,6}|[-*+]|\d+\.|>)\s+", "");
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"\*\*|__|~~|`", "");
+        return System.Text.RegularExpressions.Regex.Replace(s, @"\s+", " ").Trim();
+    }
+}

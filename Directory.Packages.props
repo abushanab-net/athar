@@ -1,0 +1,51 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup Label="Aspire">
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.6.0" />
+    <PackageVersion Include="Aspire.Hosting.JavaScript" Version="13.6.0" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.6.0" />
+    <PackageVersion Include="CommunityToolkit.Aspire.Hosting.Ollama" Version="13.6.0" />
+    <PackageVersion Include="CommunityToolkit.Aspire.Hosting.MailPit" Version="13.6.0" />
+    <PackageVersion Include="DocumentFormat.OpenXml" Version="3.5.1" />
+    <PackageVersion Include="Markdig" Version="1.4.0" />
+    <PackageVersion Include="ReverseMarkdown" Version="4.6.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection" Version="10.0.12" />
+    <PackageVersion Include="PdfPig" Version="0.1.16" />
+  </ItemGroup>
+  <ItemGroup Label="ServiceDefaults">
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.10.0" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.10.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.17.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.17.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.17.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.17.0" />
+  </ItemGroup>
+  <ItemGroup Label="Data">
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="Pgvector.EntityFrameworkCore" Version="0.3.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageVersion Include="MudBlazor" Version="8.15.0" />
+    <PackageVersion Include="OpenIddict.AspNetCore" Version="7.7.1" />
+    <PackageVersion Include="OpenIddict.EntityFrameworkCore" Version="7.7.1" />
+  </ItemGroup>
+  <ItemGroup Label="Mcp">
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
+    <PackageVersion Include="ModelContextProtocol.Core" Version="2.2.0" />
+  </ItemGroup>
+  <ItemGroup Label="Hosting">
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+  </ItemGroup>
+  <ItemGroup Label="Tests">
+    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+    <PackageVersion Include="Microsoft.Playwright" Version="1.63.0" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
+  </ItemGroup>
+</Project>

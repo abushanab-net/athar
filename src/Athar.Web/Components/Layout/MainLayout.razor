@@ -1,0 +1,181 @@
+@inherits LayoutComponentBase
+@using System.Security.Claims
+@using Athar.Web.Services
+@using Athar.Web.Mcp
+@inject IStringLocalizer<SharedResource> L
+@inject IServiceScopeFactory Scopes
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject WikiSession Session
+@inject ShellCounts Counts
+@inject TourService Tours
+@implements IDisposable
+
+<MudThemeProvider @ref="provider" Theme="AtharTheme.Theme" IsDarkMode="dark" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudRTLProvider RightToLeft="AuthSetup.IsRightToLeft">
+    <a class="skip-link" href="#content">@L["SkipToContent"]</a>
+    <MudLayout>
+        @if (signedIn)
+        {
+            @* Desktop: the menu button folds the sidebar to a 64px icon rail (remembered in this browser). Phones: a drawer. *@
+            <MudDrawer @bind-Open="drawerOpen" Variant="DrawerVariant.Responsive" Breakpoint="Breakpoint.Md" ClipMode="DrawerClipMode.Never"
+                       Elevation="0" Class="@($"athar-drawer {(rail ? "rail" : null)}")" aria-label="@L["MainNavigation"]">
+                <SideNav IsAdmin="isAdmin" Rail="rail" Dark="dark" />
+            </MudDrawer>
+        }
+        <MudAppBar Elevation="0" Fixed="true" Class="athar-topbar">
+            @if (signedIn)
+            {
+                <IconAction Icon="@Icons.Material.Filled.Menu" Label="@(rail ? L["ExpandNav"] : L["Menu"])" Size="Size.Medium" OnClick="ToggleNavAsync"
+                            aria-expanded="@(drawerOpen && !rail ? "true" : "false")" />
+                <form class="search" action="/search" method="get" role="search">
+                    <label for="athar-search" class="visually-hidden">@L["Search"]</label>
+                    <MudIcon Icon="@Icons.Material.Outlined.Search" Class="search-icon" />
+                    <input id="athar-search" name="q" type="search" placeholder="@L["SearchPlaceholder"]" autocomplete="off" dir="auto" />
+                    <kbd class="hint" aria-hidden="true">/</kbd>
+                </form>
+                @* Phones: the field doesn't fit beside the bell and the account, so search is an icon that opens /search. *@
+                <IconAction Icon="@Icons.Material.Outlined.Search" Label="@L["Search"]" Size="Size.Medium" Href="/search" Class="search-link" />
+                <MudSpacer />
+                @if (Tours.Available)
+                {
+                    @* T152: replays this page's tour; hidden on pages that have none. Its own icon: the "?" in page headers opens /help. *@
+                    <IconAction Icon="@Icons.Material.Outlined.Tour" Label="@L["TourReplay"]" Size="Size.Medium" OnClick="Tours.StartAsync" id="tour-help" />
+                }
+                <NotificationBell />
+                <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" AriaLabel="@L["AccountMenu"]" Dense="true" PopoverClass="account-popover">
+                    <ActivatorContent>
+                        <span class="account">
+                            <Avatar UserId="userId" Name="@name" />
+                            <span class="who" dir="auto">@name</span>
+                            <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Size="Size.Small" />
+                        </span>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem Href="/account/profile" Icon="@Icons.Material.Outlined.AccountCircle">@L["Profile"]</MudMenuItem>
+                        <MudMenuItem Href="/account/tokens" Icon="@Icons.Material.Outlined.Key">@L["Tokens"]</MudMenuItem>
+                        <MudDivider />
+                        <p class="menu-label">@L["Language"]</p>
+                        @foreach (var (culture, label) in Languages)
+                        {
+                            <form method="post" action="/account/language" class="menu-form">
+                                <AntiforgeryToken />
+                                <input type="hidden" name="culture" value="@culture" />
+                                <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+                                <button type="submit" class="menu-button" role="menuitem" lang="@culture" aria-current="@(IsLanguage(culture) ? "true" : null)">
+                                    <MudIcon Icon="@(IsLanguage(culture) ? Icons.Material.Filled.Check : null)" Size="Size.Small" />@label
+                                </button>
+                            </form>
+                        }
+                        <MudDivider />
+                        <p class="menu-label">@L["Theme"]</p>
+                        @foreach (var (mode, key) in Themes)
+                        {
+                            <MudMenuItem Icon="@(themeMode == mode ? Icons.Material.Filled.Check : Icons.Material.Filled.Remove)" IconColor="@(themeMode == mode ? Color.Primary : Color.Transparent)"
+                                         OnClick="() => SetThemeAsync(mode)">@L[key]</MudMenuItem>
+                        }
+                        <MudDivider />
+                        <form method="post" action="/account/logout" class="menu-form">
+                            <AntiforgeryToken />
+                            <button type="submit" class="menu-button" role="menuitem">
+                                <MudIcon Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" Class="flip-rtl" />@L["SignOut"]
+                            </button>
+                        </form>
+                    </ChildContent>
+                </MudMenu>
+            }
+            else
+            {
+                <a class="brand-inline" href="/"><img src="@Mark(dark)" alt="" width="26" height="26" /><span>@L["Athar"]</span></a>
+                <MudSpacer />
+                <MudButton Href="/account/login" Variant="Variant.Filled" Color="Color.Primary">@L["SignIn"]</MudButton>
+            }
+        </MudAppBar>
+        <MudMainContent Class="athar-main">
+            <main id="content" tabindex="-1" class="content">
+                @Body
+            </main>
+        </MudMainContent>
+    </MudLayout>
+</MudRTLProvider>
+
+<div id="blazor-error-ui" data-nosnippet role="alert">
+    @L["UnhandledError"]
+    <a href="." class="reload">@L["Reload"]</a>
+    <span class="dismiss" role="button" tabindex="0" aria-label="@L["Dismiss"]">✕</span>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? Auth { get; set; }
+    private MudThemeProvider provider = default!;
+    private bool signedIn, isAdmin, drawerOpen = true, dark, rail;
+    // The Athar mark has a light and a dark colouring; an <img> can't see MudBlazor's theme, so the shell picks the file.
+    public static string Mark(bool dark) => dark ? "img/athar-mark-dark.svg" : "img/athar-mark.svg";
+    private string name = "";
+    private Guid userId;
+    private string themeMode = "system";
+
+    private static readonly (string Code, string Label)[] Languages = [("en", "English"), ("ar", "العربية")];
+    private static readonly (string Mode, string Key)[] Themes = [("system", "ThemeSystem"), ("light", "ThemeLight"), ("dark", "ThemeDark")];
+
+    private string ReturnUrl => "/" + Nav.ToBaseRelativePath(Nav.Uri);
+    private static bool IsLanguage(string code) => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == code;
+
+    // Admin links show only to owners and admins (the pages check again on every action); counts are recomputed on navigation.
+    protected override async Task OnParametersSetAsync()
+    {
+        var user = Auth is null ? null : (await Auth).User;
+        // Only an app sign-in (cookie) has both claims; a bearer principal (PAT, OAuth) never gets the shell.
+        signedIn = user?.FindFirst(AtharClaims.Org) is not null && user.FindFirst(ClaimTypes.NameIdentifier) is not null;
+        if (!signedIn) return;
+        // Own scope: the page under this layout loads at the same time, and a circuit's DbContext takes one query at a time.
+        await using var scope = Scopes.CreateAsyncScope();
+        var sp = scope.ServiceProvider;
+        isAdmin = OrgRules.IsAdmin(await sp.GetRequiredService<OrgAdminService>().RoleOfAsync(user!.OrgId(), user!.UserId()));
+        await Session.ResolveAsync();
+        name = Session.Name;
+        userId = user!.UserId();
+        await Counts.RefreshAsync(Actor.ForUser(user!));
+    }
+
+    protected override void OnInitialized() => Tours.Changed += OnToursChanged;
+    private void OnToursChanged() => _ = InvokeAsync(StateHasChanged);
+    public void Dispose() => Tours.Changed -= OnToursChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        themeMode = await JS.InvokeAsync<string>("athar.theme.get");
+        rail = await JS.InvokeAsync<bool>("athar.rail.get");
+        await ApplyThemeAsync();
+        await provider.WatchSystemDarkModeAsync(async system => { if (themeMode == "system") { dark = system; await InvokeAsync(StateHasChanged); } });
+    }
+
+    /// <summary>Wide screens fold the sidebar to the rail and back; narrow ones open and close the drawer.</summary>
+    private async Task ToggleNavAsync()
+    {
+        if (await JS.InvokeAsync<bool>("athar.wide"))
+        {
+            (rail, drawerOpen) = (!rail, true);
+            await JS.InvokeVoidAsync("athar.rail.set", rail);
+        }
+        else (rail, drawerOpen) = (false, !drawerOpen);
+    }
+
+    private async Task SetThemeAsync(string mode)
+    {
+        themeMode = mode;
+        await JS.InvokeVoidAsync("athar.theme.set", mode);
+        await ApplyThemeAsync();
+    }
+
+    private async Task ApplyThemeAsync()
+    {
+        dark = themeMode switch { "dark" => true, "light" => false, _ => await provider.GetSystemDarkModeAsync() };
+        StateHasChanged();
+    }
+}
