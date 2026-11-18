@@ -36,7 +36,7 @@ public sealed class AgentPageService(AtharDbContext db, PageService pages, Comme
 
     /// <summary>`delete_page`: to trash only, with the <c>pages:delete</c> scope and, for agents, the space's delete_to_trash policy.</summary>
     public Task<PageDeleted> DeleteAsync(Actor actor, Guid pageId, string reason, string opId, CancellationToken ct) =>
-        OnceAsync(actor, opId, new { tool = "delete_page", pageId, reason }, OperationTarget.Page, async () =>
+        OnceAsync(actor, pageId, opId, new { tool = "delete_page", pageId, reason }, OperationTarget.Page, async () =>
         {
             if (!actor.Scopes.Contains("pages:delete")) throw new AtharError("forbidden", "The token lacks the 'pages:delete' scope.");
             var caller = await CallerAsync(actor, ct);
@@ -64,7 +64,7 @@ public sealed class AgentPageService(AtharDbContext db, PageService pages, Comme
             var inline = await comments.AddInlineThreadAsync(actor, pageId, bodyMd, from: null, to: null, quote, opId, ct, anchorHint: anchorHint);
             return new(inline.Comments[0].Id, inline.Id, inline.Status);
         }
-        return await OnceAsync(actor, opId, new { tool = "add_comment", pageId, bodyMd, threadId }, OperationTarget.Comment, async () =>
+        return await OnceAsync(actor, pageId, opId, new { tool = "add_comment", pageId, bodyMd, threadId }, OperationTarget.Comment, async () =>
         {
             if (threadId is { } t)
             {
@@ -89,12 +89,12 @@ public sealed class AgentPageService(AtharDbContext db, PageService pages, Comme
     /// the same actor and payload get the stored result, another payload <c>op_id_reused</c>, another actor <c>not_found</c>.
     /// ponytail: same rules as MemoryService.WriteOnce; one shared helper if a third copy appears.
     /// </summary>
-    private async Task<T> OnceAsync<T>(Actor actor, string opId, object payload, OperationTarget kind, Func<Task<(T Result, Guid Target)>> work, CancellationToken ct)
+    private async Task<T> OnceAsync<T>(Actor actor, Guid pageId, string opId, object payload, OperationTarget kind, Func<Task<(T Result, Guid Target)>> work, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(opId)) throw new AtharError("invalid_input", "op_id is required.");
         db.CurrentOrgId = actor.OrgId;
         var hash = Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(payload)));
-        if (await StoredAsync<T>(actor, opId, hash, ct) is { } stored) return stored;
+        if (await StoredAsync<T>(actor, pageId, opId, hash, ct) is { } stored) return stored;
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         try
@@ -113,16 +113,18 @@ public sealed class AgentPageService(AtharDbContext db, PageService pages, Comme
         {
             await tx.RollbackAsync(ct);
             db.ChangeTracker.Clear();
-            return await StoredAsync<T>(actor, opId, hash, ct) ?? throw new AtharError("pending", "The operation is still in progress.");
+            return await StoredAsync<T>(actor, pageId, opId, hash, ct) ?? throw new AtharError("pending", "The operation is still in progress.");
         }
     }
 
-    private async Task<T?> StoredAsync<T>(Actor actor, string opId, string hash, CancellationToken ct)
+    private async Task<T?> StoredAsync<T>(Actor actor, Guid pageId, string opId, string hash, CancellationToken ct)
     {
         var op = await db.Operations.AsNoTracking().FirstOrDefaultAsync(o => o.OpId == opId, ct);
         if (op is null) return default;
         if (op.ActorUserId != actor.UserId || op.CredentialId != actor.CredentialId) throw new AtharError("not_found", "Unknown op_id.");
         if (op.RequestHash != hash) throw new AtharError("op_id_reused", "This op_id was already used with a different payload.");
+        if (!await db.CanAsync(await CallerAsync(actor, ct), pageId, PageAction.Read, ct))
+            throw new AtharError("not_found", "Page not found.");
         return JsonSerializer.Deserialize<T>(op.Result!, McpEndpoint.Json);
     }
 }
