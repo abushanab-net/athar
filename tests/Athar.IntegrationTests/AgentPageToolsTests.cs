@@ -88,6 +88,30 @@ public class AgentPageToolsTests(AtharApp athar)
         Mcp.Connect(athar.Web(), new Uri(athar.App.GetEndpoint("web", "https"), "/mcp"), pat, ct);
 
     /// <summary>The error of a refused tool call, from its docs/06 §6.6 code on (the SDK prefixes "An error occurred invoking 'tool': ").</summary>
+    // An op_id is a claim on a stored result, not a standing right to read it: once the page is restricted away from the
+    // caller, neither a replay nor get_operation returns what the first call produced.
+    [Fact]
+    public async Task Stored_results_and_operation_status_are_refused_after_the_caller_loses_the_page()
+    {
+        var ct = AtharApp.Timeout();
+        await using var mcp = await Connect(QaSeed.AgentPat, ct);
+        var title = $"Revoked {Guid.NewGuid():N}";
+        var page = (await Mcp.Call(mcp, "create_page", new() { ["space_id"] = QaSeed.EngWiki, ["title"] = title, ["markdown"] = "Body.", ["op_id"] = $"c-{title}" }, ct))
+            .GetProperty("page_id").GetGuid();
+        var comment = new Dictionary<string, object?> { ["page_id"] = page, ["body_md"] = "Page-level note.", ["op_id"] = $"m-{title}" };
+        var added = await Mcp.Call(mcp, "add_comment", comment, ct);
+        Assert.Equal(added.GetRawText(), (await Mcp.Call(mcp, "add_comment", comment, ct)).GetRawText()); // repeated op_id while the page is readable
+        Assert.Equal("done", (await Mcp.Call(mcp, "get_operation", new() { ["op_id"] = $"m-{title}" }, ct)).GetProperty("status").GetString());
+
+        await using (var db = athar.Db(QaSeed.Org))
+        {
+            db.PageRestrictions.Add(new PageRestriction { Id = Guid.NewGuid(), OrgId = QaSeed.Org, PageId = page, UserId = QaSeed.LabEditor, Level = RestrictionLevel.View });
+            await db.SaveChangesAsync(ct);
+        }
+        Assert.StartsWith("not_found", await Refused(mcp, "add_comment", comment, ct));
+        Assert.StartsWith("not_found", await Refused(mcp, "get_operation", new() { ["op_id"] = $"m-{title}" }, ct));
+    }
+
     private static async Task<string> Refused(McpClient mcp, string tool, Dictionary<string, object?> args, CancellationToken ct)
     {
         var result = await mcp.CallToolAsync(tool, args, cancellationToken: ct);
