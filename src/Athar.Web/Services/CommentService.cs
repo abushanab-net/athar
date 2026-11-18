@@ -213,7 +213,8 @@ public sealed class CommentService(AtharDbContext db, PageOpsService ops, TimePr
     private async Task<CommentThread> ThreadAsync(Actor actor, Guid threadId, PageAction action, CancellationToken ct)
     {
         db.CurrentOrgId = actor.OrgId;
-        var thread = await db.CommentThreads.SingleOrDefaultAsync(t => t.Id == threadId, ct) ?? throw new AtharError("not_found", "Thread not found.");
+        var thread = await db.CommentThreads.SingleOrDefaultAsync(t => t.Id == threadId
+            && db.Pages.Any(p => p.Id == t.PageId), ct) ?? throw new AtharError("not_found", "Thread not found.");
         await RequireAsync(actor, thread.PageId, action, ct);
         return thread;
     }
@@ -221,7 +222,9 @@ public sealed class CommentService(AtharDbContext db, PageOpsService ops, TimePr
     private async Task<Comment> CommentAsync(Actor actor, Guid commentId, CancellationToken ct)
     {
         db.CurrentOrgId = actor.OrgId;
-        var comment = await db.Comments.SingleOrDefaultAsync(c => c.Id == commentId && c.DeletedAt == null, ct) ?? throw new AtharError("not_found", "Comment not found.");
+        var comment = await db.Comments.SingleOrDefaultAsync(c => c.Id == commentId && c.DeletedAt == null
+            && db.CommentThreads.Any(t => t.Id == c.ThreadId && db.Pages.Any(p => p.Id == t.PageId)), ct)
+            ?? throw new AtharError("not_found", "Comment not found.");
         await ThreadAsync(actor, comment.ThreadId, PageAction.Comment, ct);
         return comment;
     }
