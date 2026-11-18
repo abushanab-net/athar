@@ -17,21 +17,22 @@
 <MudSnackbarProvider />
 
 <MudRTLProvider RightToLeft="AuthSetup.IsRightToLeft">
+    <MudBreakpointProvider OnBreakpointChanged="OnBreakpointChanged" />
     <a class="skip-link" href="#content">@L["SkipToContent"]</a>
-    <MudLayout>
+    <MudLayout data-shell-ready="@(interactive ? "true" : "false")">
         @if (signedIn)
         {
             @* Desktop: the menu button folds the sidebar to a 64px icon rail (remembered in this browser). Phones: a drawer. *@
-            <MudDrawer @bind-Open="drawerOpen" Variant="DrawerVariant.Responsive" Breakpoint="Breakpoint.Md" ClipMode="DrawerClipMode.Never"
-                       Elevation="0" Class="@($"athar-drawer {(rail ? "rail" : null)}")" aria-label="@L["MainNavigation"]">
-                <SideNav IsAdmin="isAdmin" Rail="rail" Dark="dark" />
+            <MudDrawer @bind-Open="drawerOpen" Variant="@(wide ? DrawerVariant.Persistent : DrawerVariant.Temporary)" ClipMode="DrawerClipMode.Never"
+                       Elevation="0" Class="@($"athar-drawer {(wide && rail ? "rail" : null)}")" aria-label="@L["MainNavigation"]">
+                <SideNav IsAdmin="isAdmin" Rail="@(wide && rail)" Dark="dark" />
             </MudDrawer>
         }
         <MudAppBar Elevation="0" Fixed="true" Class="athar-topbar">
             @if (signedIn)
             {
-                <IconAction Icon="@Icons.Material.Filled.Menu" Label="@(rail ? L["ExpandNav"] : L["Menu"])" Size="Size.Medium" OnClick="ToggleNavAsync"
-                            aria-expanded="@(drawerOpen && !rail ? "true" : "false")" />
+                <IconAction Icon="@Icons.Material.Filled.Menu" Label="@(wide && rail ? L["ExpandNav"] : L["Menu"])" Size="Size.Medium" OnClick="ToggleNavAsync"
+                            aria-expanded="@(drawerOpen && (!wide || !rail) ? "true" : "false")" />
                 <form class="search" action="/search" method="get" role="search">
                     <label for="athar-search" class="visually-hidden">@L["Search"]</label>
                     <MudIcon Icon="@Icons.Material.Outlined.Search" Class="search-icon" />
@@ -112,7 +113,7 @@
 @code {
     [CascadingParameter] private Task<AuthenticationState>? Auth { get; set; }
     private MudThemeProvider provider = default!;
-    private bool signedIn, isAdmin, drawerOpen = true, dark, rail;
+    private bool signedIn, isAdmin, drawerOpen = true, dark, rail, interactive, wide = true;
     // The Athar mark has a light and a dark colouring; an <img> can't see MudBlazor's theme, so the shell picks the file.
     public static string Mark(bool dark) => dark ? "img/athar-mark-dark.svg" : "img/athar-mark.svg";
     private string name = "";
@@ -152,18 +153,29 @@
         themeMode = await JS.InvokeAsync<string>("athar.theme.get");
         rail = await JS.InvokeAsync<bool>("athar.rail.get");
         await ApplyThemeAsync();
+        interactive = true;
+        StateHasChanged();
         await provider.WatchSystemDarkModeAsync(async system => { if (themeMode == "system") { dark = system; await InvokeAsync(StateHasChanged); } });
+    }
+
+    // One owner for breakpoint transitions; a responsive drawer would race the menu's state.
+    private void OnBreakpointChanged(Breakpoint breakpoint)
+    {
+        var next = breakpoint >= Breakpoint.Md;
+        if (next == wide) return;
+        wide = next;
+        drawerOpen = wide;
     }
 
     /// <summary>Wide screens fold the sidebar to the rail and back; narrow ones open and close the drawer.</summary>
     private async Task ToggleNavAsync()
     {
-        if (await JS.InvokeAsync<bool>("athar.wide"))
+        if (wide)
         {
             (rail, drawerOpen) = (!rail, true);
             await JS.InvokeVoidAsync("athar.rail.set", rail);
         }
-        else (rail, drawerOpen) = (false, !drawerOpen);
+        else drawerOpen = !drawerOpen;
     }
 
     private async Task SetThemeAsync(string mode)
