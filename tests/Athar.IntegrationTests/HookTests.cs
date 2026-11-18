@@ -75,7 +75,7 @@ public class HookTests(AtharApp athar)
 
     private static async Task Hook(string home, string mode, object payload, CancellationToken ct)
     {
-        var psi = new ProcessStartInfo("node", ["--use-system-ca", Path.Combine(RepoRoot(), "agent-skills", "hooks", "athar-hook.mjs"), mode, "claude-code"])
+        var psi = new ProcessStartInfo("node", [OperatingSystem.IsWindows() ? "--use-openssl-ca" : "--use-system-ca", Path.Combine(RepoRoot(), "agent-skills", "hooks", "athar-hook.mjs"), mode, "claude-code"])
             { RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
         psi.Environment["HOME"] = home;
         psi.Environment["USERPROFILE"] = home;
