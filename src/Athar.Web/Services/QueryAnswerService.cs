@@ -9,8 +9,23 @@ namespace Athar.Web.Services;
 public sealed record QueryAnswer(string Text, IReadOnlyList<SearchHit> Sources);
 
 public sealed partial class QueryAnswerService(IDbContextFactory<AtharDbContext> dbs, AiSettingsResolver resolver, QueryEmbedder embedder,
-    IEnumerable<IEvidenceReader>? readers = null)
+    IEnumerable<IEvidenceReader>? readers = null, IAnswerVerifier? verifier = null)
 {
+    // One grounding item: a chunk of Athar's own, or a reader's evidence.
+    private sealed record GroundingEvidence(Chunk? Chunk, ExternalEvidence? Document, double Score)
+    {
+        public string Body => Chunk?.Body ?? Document!.Body;
+        public override string ToString() => nameof(GroundingEvidence);
+    }
+
+    private static GroundingEvidence[] CombineEvidence(Chunk[] chunks, List<RankedChunk> ranked, IReadOnlyList<ExternalEvidence> documents)
+    {
+        var scores = ranked.ToDictionary(r => r.ChunkId, r => r.Score);
+        return chunks.Select(c => new GroundingEvidence(c, null, scores[c.Id]))
+            .Concat(documents.Select(d => new GroundingEvidence(null, d, d.Score)))
+            .OrderByDescending(e => e.Score).ThenBy(e => e.Chunk?.Id ?? e.Document!.ChunkId).Take(6).ToArray();
+    }
+
     public async Task<bool> AvailableAsync(Actor actor, CancellationToken ct = default)
     {
         await using var db = await OpenAsync(actor, ct);
@@ -22,15 +37,20 @@ public sealed partial class QueryAnswerService(IDbContextFactory<AtharDbContext>
     public async Task<QueryAnswer> AnswerAsync(Actor actor, SearchInput input, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(input.Query) || input.Query.Length > 2000) throw new AtharError("invalid_input", "A question of at most 2000 characters is required.");
+        if (input.Query.Contains('\0')) throw new AtharError("invalid_input", "Invalid question.");
         await using var db = await OpenAsync(actor, ct);
         var operation = await resolver.CaptureAsync(db, ct);
         AiSnapshot s;
         try { s = await resolver.ResolveAsync(operation, AiPurpose.Answer, ct); s.RequireGateway(); }
         catch (AiProviderException) { throw new AtharError("answer_unavailable", "AI answers are unavailable."); }
         await using var answerLifetime = s;
-        var search = new SearchService(db, embedder);
-        var kinds = input.Kinds is { Length: > 0 } k ? k.Select(x => x.ToLowerInvariant()).ToHashSet() : ["page", "memory", "source"];
-        if (kinds.Except(["page", "memory", "source"]).Any()) throw new AtharError("invalid_input", "Invalid search kind.");
+        var search = new SearchService(db, embedder, readers);
+        string[] allowed = ["page", "memory", "source", .. EvidenceSessions.Kinds(readers)];
+        var kinds = input.Kinds is { Length: > 0 } k ? k.Select(x => x.ToLowerInvariant()).ToHashSet() : allowed.ToHashSet();
+        if (kinds.Except(allowed).Any()) throw new AtharError("invalid_input", "Invalid search kind.");
+        var evidenceQuery = new EvidenceQuery(actor, input.Query, input.ProjectIds);
+        await using var external = await search.OpenExternalAsync(actor, ct);
+        var hasDocuments = await external.HasAsync(evidenceQuery, kinds, ct);
         var (pages, memories, sources) = await VisibleAsync(db, search, actor, input, ct);
         if (!kinds.Contains("page")) pages = [];
         if (!kinds.Contains("memory")) memories = [];
@@ -38,20 +58,27 @@ public sealed partial class QueryAnswerService(IDbContextFactory<AtharDbContext>
         // No permitted evidence means no inference, including no query-embedding call.
         var eligible = db.Chunks.AsNoTracking().Where(c => c.OwnerKind == ChunkOwner.Page && pages.Contains(c.OwnerId)
             || c.OwnerKind == ChunkOwner.Memory && memories.Contains(c.OwnerId) || c.OwnerKind == ChunkOwner.SourceDocument && sources.Contains(c.OwnerId));
-        if (!await eligible.AnyAsync(ct)) throw new AtharError("insufficient_evidence", "No permitted evidence was found.");
+        if (!hasDocuments && !await eligible.AnyAsync(ct)) throw new AtharError("insufficient_evidence", "No permitted evidence was found.");
         await using var retrieval = await embedder.SnapshotAsync(operation, ct);
-        var (ranked, _) = await search.RankAsync(actor.OrgId, input.Query, pages, memories, 24, ct, sources, retrieval, actor);
-        var ids = ranked.Take(6).Select(r => r.ChunkId).ToArray();
+        var captured = await search.CaptureQueryAsync(actor, input.Query, pages, memories, sources, hasDocuments && external.AcceptsEmbedding(retrieval), retrieval, ct);
+        var (ranked, _) = await search.RankAsync(actor.OrgId, input.Query, pages, memories, 24, ct, sources, retrieval, actor, captured);
+        var documentRanking = hasDocuments ? await external.RankAsync(evidenceQuery, captured.Vector, retrieval.EmbeddingIdentity, 24, ct) : EvidenceSessions.Empty;
+        var ids = ranked.Select(r => r.ChunkId).ToArray();
         var rows = await eligible.Where(c => ids.Contains(c.Id)).ToDictionaryAsync(c => c.Id, ct);
         var evidence = ids.Where(rows.ContainsKey).Select(id => rows[id]).ToArray();
-        var texts = evidence.Select(e => e.Body).ToArray();
-        if (evidence.Length == 0) throw new AtharError("insufficient_evidence", "No permitted evidence was found.");
+        var grounding = CombineEvidence(evidence, ranked, documentRanking.Evidence);
+        evidence = grounding.Where(e => e.Chunk is not null).Select(e => e.Chunk!).ToArray();
+        var documentEvidence = grounding.Where(e => e.Document is not null).Select(e => e.Document!).ToArray();
+        external.RequireAnswerModel(s, documentEvidence);
+        var texts = grounding.Select(e => e.Body).ToArray();
+        if (grounding.Length == 0) throw new AtharError("insufficient_evidence", "No permitted evidence was found.");
         var sourceIds = evidence.Where(c => c.OwnerKind == ChunkOwner.SourceDocument).Select(c => c.OwnerId).ToArray();
         var sourceHashes = await db.SourceDocuments.AsNoTracking().Where(d => sourceIds.Contains(d.Id)).ToDictionaryAsync(d => d.Id, d => d.ContentHash, ct);
         var schema = new { type = "object", additionalProperties = false, required = new[] { "answer", "citations" }, properties = new {
             answer = new { type = "string" }, citations = new { type = "array", items = new { type = "integer" } } } };
         await using (var before = await OpenAsync(actor, ct))
             await RequireEvidenceAsync(before, actor, input, evidence, sourceIds, sourceHashes, ct);
+        await external.RequireCurrentAsync(evidenceQuery, documentEvidence, ct);
         string output;
         try
         {
@@ -76,15 +103,31 @@ public sealed partial class QueryAnswerService(IDbContextFactory<AtharDbContext>
         { throw new AtharError("provider_unavailable", "The answer could not be validated."); }
 
         if (citations.Length == 0) throw new AtharError("insufficient_evidence", "The evidence did not support an answer.");
+        // The answer model has just held this evidence for seconds; access may have changed. Every grounding chunk, cited or not
+        // (the draft can paraphrase any of them), is re-authorized before its text or the draft reaches a verifier's model.
+        if (verifier is not null) await verifier.CheckAsync(operation, answer, citations.Select(i => texts[i - 1][..Math.Min(texts[i - 1].Length, 2000)]).ToArray(), async () =>
+        {
+            await using var recheck = await OpenAsync(actor, ct);
+            await RequireEvidenceAsync(recheck, actor, input, evidence, sourceIds, sourceHashes, ct);
+            await using var recheckExternal = await EvidenceSessions.OpenAsync(readers, recheck, actor, ct);
+            await recheckExternal.RequireCurrentAsync(evidenceQuery, documentEvidence, ct);
+        }, ct);
 
         // Fresh context after inference: deletion, policy changes, revocation and evidence edits all invalidate the answer.
         await using var check = await OpenAsync(actor, ct);
         await using var tx = await check.Database.BeginTransactionAsync(ct);
         await RequireEvidenceAsync(check, actor, input, evidence, sourceIds, sourceHashes, ct);
+        await using var currentExternal = await EvidenceSessions.OpenAsync(readers, check, actor, ct);
+        await currentExternal.RequireCurrentAsync(evidenceQuery, documentEvidence, ct);
         var hits = new List<SearchHit>();
         foreach (var i in citations)
         {
-            var c = evidence[i - 1];
+            if (grounding[i - 1].Document is { } document)
+            {
+                hits.Add(document.Hit);
+                continue;
+            }
+            var c = grounding[i - 1].Chunk!;
             var snippet = c.Body[..Math.Min(c.Body.Length, 200)];
             if (c.OwnerKind == ChunkOwner.Page)
             {
@@ -110,6 +153,8 @@ public sealed partial class QueryAnswerService(IDbContextFactory<AtharDbContext>
             after: new { SourceIds = hits.Select(h => h.Id).Distinct().ToArray(), SourceCount = hits.Count }, credentialId: actor.CredentialId);
         await operation.CheckAsync(check, ct);
         await check.SaveChangesAsync(ct);
+        await RequireEvidenceAsync(check, actor, input, evidence, sourceIds, sourceHashes, ct);
+        await currentExternal.RequireCurrentAsync(evidenceQuery, documentEvidence, ct);
         await operation.CheckAsync(check, ct);
         await tx.CommitAsync(ct);
         await operation.CheckAsync(check, ct);

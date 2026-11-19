@@ -18,6 +18,7 @@ public sealed record ShadowResult(Guid MemoryId, int BaseRevision);
 public sealed record RecallResult(bool Degraded, IReadOnlyList<RecallGroup> Groups);
 public sealed record RecallGroup(IReadOnlyList<RecallItem> Items, Guid? ProjectId = null)
 {
+    public IReadOnlyList<SearchHit>? Documents { get; init; }
 }
 public sealed record RecallItem(string Kind, Guid Id, string Title, string Snippet, string Scope, string Status,
     RecallAnnotations Annotations, Provenance Provenance, string Url);
