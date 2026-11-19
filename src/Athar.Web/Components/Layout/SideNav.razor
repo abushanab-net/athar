@@ -2,6 +2,7 @@
 @inject IStringLocalizer<SharedResource> L
 @inject Athar.Web.Services.FavoriteService Favorites
 @inject Athar.Web.Services.ShellCounts Counts
+@inject IEnumerable<ShellContribution> Contributions
 @implements IDisposable
 
 <nav class="side-nav @(Rail ? "rail" : null)" aria-label="@L["MainNavigation"]">
@@ -14,6 +15,7 @@
             @* Search lives in the top bar (and "/" or Ctrl+K), so it isn't repeated here. *@
             <NavItem Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Home" Label="@L["Home"]" />
             <NavItem Href="/wiki" Icon="@Icons.Material.Outlined.MenuBook" Label="@L["Wiki"]" />
+            @foreach (var c in Slot(ShellContribution.MainNavigation)) { <DynamicComponent Type="c.Component" /> }
             <NavItem Href="/dashboard" Icon="@Icons.Material.Outlined.Insights" Label="@L["Dashboard"]" /> @* T179 (FR-AG-11): third, after Home and Wiki *@
 
             @if (favorites.Count > 0)
@@ -52,6 +54,7 @@
                 <NavItem Href="/admin/teams" Icon="@Icons.Material.Outlined.Groups" Label="@L["Teams"]" />
                 <NavItem Href="/workspaces" Icon="@Icons.Material.Outlined.Workspaces" Label="@L["Workspaces"]" />
                 <NavItem Href="/admin/ai-models" Icon="@Icons.Material.Outlined.ModelTraining" Label="@L["AiModels"]" />
+                @foreach (var c in Slot(ShellContribution.AdminAiNavigation)) { <DynamicComponent Type="c.Component" /> }
                 <NavItem Href="/admin/tokens" Icon="@Icons.Material.Outlined.Key" Label="@L["AllTokens"]" />
                 <NavItem Href="/admin/audit" Icon="@Icons.Material.Outlined.Policy" Label="@L["Audit"]" />
             }
@@ -64,6 +67,8 @@
 </nav>
 
 @code {
+    private IEnumerable<ShellContribution> Slot(string slot) => Contributions.Where(c => c.Slot == slot).OrderBy(c => c.Order);
+
     [CascadingParameter] private Task<AuthenticationState>? Auth { get; set; }
     [Parameter] public bool IsAdmin { get; set; }
     /// <summary>Collapsed to the 64px icon rail (desktop).</summary>
