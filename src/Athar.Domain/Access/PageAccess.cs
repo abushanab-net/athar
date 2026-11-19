@@ -41,7 +41,7 @@ public static class PageAccess
 
     // Without drafts: roles, shares and restrictions for the action. CanRule adds the draft rule on top.
     private static readonly Expression<Func<AccessSource, Caller, PageAction, Page, bool>> BaseRule = (s, c, action, p) =>
-        s.Users.Any(x => x.Id == c.UserId && x.DeactivatedAt == null) && s.OrgMembers.Any(m => m.UserId == c.UserId)
+        p.Status != PageStatus.Managed && s.Users.Any(x => x.Id == c.UserId && x.DeactivatedAt == null) && s.OrgMembers.Any(m => m.UserId == c.UserId)
         && s.Spaces.Any(sp => sp.Id == p.SpaceId && (!c.External || !sp.IsConfidential)
             && (!c.Agent || sp.AiPolicy.Read && (action == PageAction.Read || sp.AiPolicy.Write))
             && s.WorkspaceMembers.Any(w => w.WorkspaceId == sp.WorkspaceId && w.UserId == c.UserId))
@@ -77,7 +77,7 @@ public static class PageAccess
     /// exists, as a placeholder, and may take ownership. Never for external agents.
     /// </summary>
     private static readonly Expression<Func<AccessSource, Caller, Page, bool>> PlaceholderRule = Compose(
-        (s, c, p) => !c.External && !c.Agent
+        (s, c, p) => p.Status != PageStatus.Managed && !c.External && !c.Agent
             && s.Users.Any(x => x.Id == c.UserId && x.DeactivatedAt == null)
             && (s.OrgMembers.Any(m => m.UserId == c.UserId && (m.Role == OrgRole.Owner || m.Role == OrgRole.Admin))
                 || s.Spaces.Any(sp => sp.Id == p.SpaceId && s.WorkspaceMembers.Any(w => w.WorkspaceId == sp.WorkspaceId && w.UserId == c.UserId))

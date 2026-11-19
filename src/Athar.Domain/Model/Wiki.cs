@@ -123,7 +123,8 @@ public class Page : OrgEntity
     public Guid? CreatedBy { get; set; }
 }
 
-public enum PageStatus { Published, Draft }
+/// <summary><c>Managed</c>: a read-only page owned by an extension, which lists and serves it itself (IPageTreeContributor); Athar's own queries, access rules and editor never see it.</summary>
+public enum PageStatus { Published, Draft, Managed }
 
 /// <summary>Someone watching a page (U-3): notified of its updates, comments and trashing.</summary>
 public class PageWatch : OrgEntity

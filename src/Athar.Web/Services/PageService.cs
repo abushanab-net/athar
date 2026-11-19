@@ -12,7 +12,17 @@ public sealed record WikiActor(Guid UserId, Guid OrgId);
 /// <summary>Where a dragged page lands relative to the page it is dropped on.</summary>
 public enum DropPlace { Before, After, Inside }
 
-public sealed record PageNode(Guid Id, Guid SpaceId, Guid? ParentId, string Title, double Position, DateTimeOffset? DeletedAt, PageStatus Status = PageStatus.Published);
+/// <param name="Link">Where the node opens when it isn't an ordinary wiki page (a managed page's own viewer).</param>
+public sealed record PageNode(Guid Id, Guid SpaceId, Guid? ParentId, string Title, double Position, DateTimeOffset? DeletedAt, PageStatus Status = PageStatus.Published, string? Link = null)
+{
+    public string Href => Link ?? $"/wiki/p/{Id}";
+}
+
+/// <summary>Adds an extension's managed pages to a space's tree. Each contributor returns only what the caller may see.</summary>
+public interface IPageTreeContributor
+{
+    Task<IReadOnlyList<PageNode>> TreeAsync(Athar.Web.Mcp.Actor actor, Guid spaceId, CancellationToken ct = default);
+}
 public sealed record RecentPage(Guid Id, string Title, Guid SpaceId, string Space, DateTimeOffset UpdatedAt);
 public sealed record PageBrief(string Title, string Space, DateTimeOffset UpdatedAt);
 

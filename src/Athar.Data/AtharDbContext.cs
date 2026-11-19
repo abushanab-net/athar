@@ -123,6 +123,8 @@ public partial class AtharDbContext(DbContextOptions<AtharDbContext> options) : 
         b.HasQueryFilter(e => e.OrgId == CurrentOrgId);
         // T166: deleted spaces are gone for every query (this replaces the tenant filter, so it repeats the org check).
         if (typeof(T) == typeof(Space)) mb.Entity<Space>().HasQueryFilter(e => e.OrgId == CurrentOrgId && e.DeletedAt == null);
+        // Managed pages belong to an extension (PageStatus.Managed): no ordinary page query, access rule or editor sees them.
+        if (typeof(T) == typeof(Page)) mb.Entity<Page>().HasQueryFilter(e => e.OrgId == CurrentOrgId && e.Status != PageStatus.Managed);
     }
 
     /// <summary>Same-org foreign key: (org_id, column) → principal (org_id, id).</summary>

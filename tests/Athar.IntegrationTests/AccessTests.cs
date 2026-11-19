@@ -76,6 +76,27 @@ public class AccessTests(AtharApp athar)
         Assert.True(await db.CanAsync(new Caller(QaSeed.LabViewer), QaSeed.LabSharedChild, PageAction.Read, ct));
     }
 
+    // A managed page belongs to an extension: Athar's own page queries and access rules never return it, even to an owner.
+    [Fact]
+    public async Task A_managed_page_is_invisible_to_page_queries_and_access_rules()
+    {
+        var ct = AtharApp.Timeout();
+        await using var db = athar.Db(QaSeed.Org);
+        var id = Guid.NewGuid();
+        db.Pages.Add(new Page { Id = id, OrgId = QaSeed.Org, SpaceId = QaSeed.AccessLab, ParentId = QaSeed.LabRoot, Position = 99, Title = $"Managed {id:N}", ContentMd = "x", Status = PageStatus.Managed });
+        await db.SaveChangesAsync(ct);
+        db.ChangeTracker.Clear();
+        try
+        {
+            Assert.False(await db.Pages.AnyAsync(p => p.Id == id, ct));
+            Assert.True(await db.Pages.IgnoreQueryFilters().AnyAsync(p => p.Id == id, ct));
+            Assert.False(await db.CanAsync(new Caller(QaSeed.Owner), id, PageAction.Read, ct));
+            Assert.False(await db.SeesPlaceholderAsync(new Caller(QaSeed.Owner), id, ct));
+            Assert.DoesNotContain(id, await db.PagesFor(new Caller(QaSeed.Owner)).Select(p => p.Id).ToListAsync(ct));
+        }
+        finally { await db.Pages.IgnoreQueryFilters().Where(p => p.Id == id).ExecuteDeleteAsync(ct); }
+    }
+
     [Fact]
     public async Task AT_06_admin_outside_a_restriction_sees_a_placeholder_and_taking_ownership_is_audited()
     {
