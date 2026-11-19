@@ -3,6 +3,7 @@ namespace Athar.Worker.Jobs.Embed;
 /// <summary>Document embeddings for the index: the model gateway in the pilot, the local Ollama as the fallback (docs/03 D8).</summary>
 public interface IEmbedder
 {
+    ValueTask DisposeAsync() => ValueTask.CompletedTask;
     /// <summary>What <c>chunk_embeddings.model_id</c> records for these vectors.</summary>
     string ModelId { get; }
 

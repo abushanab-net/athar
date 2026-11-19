@@ -26,7 +26,7 @@ public sealed class AiRuntimeTests(AtharApp app)
             ["Athar:Ai:BaseUrl"] = "http://127.0.0.1:1/v1", ["Athar:Ai:ApiKey"] = null }).Build();
         var draft = AiTestDatabase.Draft(gateway);
         await data.Settings.SaveAsync(AiTestDatabase.Admin, draft, ct);
-        var original = await data.Resolver.ResolveAsync(QaSeed.Org, ct);
+        var original = await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct);
         await using var db = data.CreateDbContext();
         var search = new SearchService(db, data.Embedder);
         Assert.True((await search.RankAsync(QaSeed.Org, "deployment", [], [QaSeed.MemoryProject], 10, ct)).Degraded);
@@ -48,7 +48,7 @@ public sealed class AiRuntimeTests(AtharApp app)
             await data.Settings.SaveAsync(AiTestDatabase.Admin, draft with { ExpectedRevision = 1, EmbeddingModel = "qa-next" }, ct);
         };
         Assert.False((await search.RankAsync(QaSeed.Org, "deployment", [], [QaSeed.MemoryProject], 10, ct)).Degraded);
-        Assert.NotEqual(original.EmbeddingIdentity, (await data.Resolver.ResolveAsync(QaSeed.Org, ct)).EmbeddingIdentity);
+        Assert.NotEqual(original.EmbeddingIdentity, (await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct)).EmbeddingIdentity);
         Assert.True((await search.RankAsync(QaSeed.Org, "deployment", [], [QaSeed.MemoryProject], 10, ct)).Degraded);
         var calls = gateway.Requests.Count;
         await new EmbedVectorsJob(data.Clients).RunAsync(job, db, ct); // obsolete targeted job
@@ -69,8 +69,8 @@ public sealed class AiRuntimeTests(AtharApp app)
         var services = new ServiceCollection().AddScoped(_ => data.CreateDbContext()).BuildServiceProvider();
         await using var provider = services;
         var sweep = new ReembedSweep(provider.GetRequiredService<IServiceScopeFactory>(), data.Resolver, TimeProvider.System, NullLogger<ReembedSweep>.Instance);
-        Assert.True(await sweep.SweepAsync(ct) > 0);
-        var original = await data.Resolver.ResolveAsync(QaSeed.Org, ct);
+        Assert.True(await sweep.SweepOrganizationAsync(QaSeed.Org, ct) > 0);
+        var original = await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct);
         await using (var db = data.CreateDbContext())
         {
             var jobs = await db.Jobs.Where(j => j.Kind == IndexJobs.EmbedVectors && j.Key.EndsWith(original.EmbeddingIdentity)).OrderBy(j => j.Id).ToListAsync(ct);
@@ -79,17 +79,17 @@ public sealed class AiRuntimeTests(AtharApp app)
             jobs[1].Status = JobStatus.Running;
             await db.SaveChangesAsync(ct);
         }
-        await sweep.SweepAsync(ct);
+        await sweep.SweepOrganizationAsync(QaSeed.Org, ct);
         await using (var check = data.CreateDbContext())
             Assert.True(await check.Jobs.AnyAsync(j => j.Kind == IndexJobs.EmbedVectors && j.Key.EndsWith(original.EmbeddingIdentity) && j.Status == JobStatus.Dead, ct));
         await data.Settings.ReindexAsync(AiTestDatabase.Admin, 1, ct);
-        await sweep.SweepAsync(ct);
-        var next = await data.Resolver.ResolveAsync(QaSeed.Org, ct);
+        await sweep.SweepOrganizationAsync(QaSeed.Org, ct);
+        var next = await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct);
         await using var final = data.CreateDbContext();
         Assert.True(await final.Jobs.AnyAsync(j => j.Key.EndsWith(next.EmbeddingIdentity) && j.Status == JobStatus.Ready, ct));
         final.CurrentOrgId = QaSeed.OtherOrg;
         Assert.False(await final.AiSettings.AnyAsync(ct));
-        Assert.Equal("bge-m3", (await data.Resolver.ResolveAsync(QaSeed.OtherOrg, ct)).EmbeddingIdentity);
+        Assert.Equal("bge-m3", (await data.Resolver.ResolveMetadataAsync(QaSeed.OtherOrg, ct)).EmbeddingIdentity);
     }
 
     [Fact]

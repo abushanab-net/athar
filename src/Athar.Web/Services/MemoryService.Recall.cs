@@ -24,6 +24,7 @@ public sealed partial class MemoryService
     {
         Require(actor, "read");
         db.CurrentOrgId = actor.OrgId;
+        await using var snapshot = await search.SnapshotAsync(actor.OrgId, ct);
         var who = await LoadActor(actor, ct);
         var limit = Math.Clamp(input.Limit, 1, 50);
         var scopes = input.Scopes?.Select(s => ParseEnum<Scope>(s, "scopes")).ToArray();
@@ -44,9 +45,8 @@ public sealed partial class MemoryService
         // T092: one ranking over every group's memories (each group then keeps its own), not both queries per group.
         bool InGroup(Guid? project, Scope scope, Guid? owner) => scope != Scope.Project || project == null || owner == project;
         Guid[] GroupScope(Guid? project) => [.. candidates.Where(m => InGroup(project, m.Scope, m.OwnerProjectId)).Select(m => m.Id)];
-        var snapshot = await search.SnapshotAsync(actor.OrgId, ct);
         var k = limit * 4 * groupIds.Length;
-        var (shared, degraded) = await search.RankAsync(actor.OrgId, input.Query, [], [.. groupIds.SelectMany(GroupScope).Distinct()], k, ct, snapshot: snapshot);
+        var (shared, degraded) = await search.RankAsync(actor.OrgId, input.Query, [], [.. groupIds.SelectMany(GroupScope).Distinct()], k, ct, snapshot: snapshot, actor: actor);
         var byId = candidates.ToDictionary(m => m.Id);
 
         var slotsByGroup = new List<(Guid? Project, List<Slot> Slots)>();
@@ -55,7 +55,7 @@ public sealed partial class MemoryService
             var ranked = shared.Where(r => byId[r.OwnerId] is var m && InGroup(project, m.Scope, m.OwnerProjectId)).ToList();
             // The shared list was cut off before this group filled up (other groups' memories took the places): rank it alone.
             if (groupIds.Length > 1 && shared.Count >= k && ranked.Select(r => r.OwnerId).Distinct().Count() < limit)
-                (ranked, _) = await search.RankAsync(actor.OrgId, input.Query, [], GroupScope(project), limit * 4, ct, snapshot: snapshot);
+                (ranked, _) = await search.RankAsync(actor.OrgId, input.Query, [], GroupScope(project), limit * 4, ct, snapshot: snapshot, actor: actor);
             var owners = ranked.GroupBy(r => r.OwnerId).Select(g => g.MaxBy(r => r.Score)!).OrderByDescending(r => r.Score).ThenBy(r => r.OwnerId);
 
             // This project's active shadows, and whether the caller may see each (unfiltered by scopes/types: it's the
@@ -123,13 +123,18 @@ public sealed partial class MemoryService
         }
 
         var groups = slotsByGroup.Select(g => new RecallGroup([.. g.Slots.Select(Item)], g.Project)).ToList();
+        await using var admissionTx = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(ct) : null;
+        await snapshot.CheckAsync(ct);
         Audit(actor, "memory.recall", "memory", "*", null, new
         {
             query = input.Query.Length <= 500 ? input.Query : input.Query[..500],
             degraded,
             groups = groups.Select(g => new { project_id = g.ProjectId, ids = g.Items.Select(i => i.Id) }),
         });
+        await snapshot.CheckAsync(ct);
         await db.SaveChangesAsync(ct);
+        await snapshot.CheckAsync(ct);
+        if (admissionTx is not null) { await admissionTx.CommitAsync(ct); await snapshot.CheckAsync(ct); }
         return new(degraded, groups);
     }
 

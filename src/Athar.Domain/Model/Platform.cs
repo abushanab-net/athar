@@ -71,7 +71,7 @@ public class McpCall : OrgEntity
     public int? ResultCount { get; set; }
 }
 
-public enum ModelRole { Embedding, Query, Vision }
+public enum ModelRole { Embedding, Query, Vision, Answer, Extraction, WikiSummary, AnswerCheck }
 
 /// <summary>One model gateway call (FR-AG-12b): tokens from the response's usage, zero when absent. Raw rows kept 90 days.</summary>
 public class ModelUsage : OrgEntity

@@ -13,14 +13,15 @@
 <FilterBar Label="@L["Search"]">
     @* Enter submits: the form has one text field, so no Search button is needed. *@
     <form @onsubmit="Go" class="grow query">
-        <MudTextField @bind-Value="draft" Label="@L["SearchFor"]" Immediate="true" InputType="InputType.Search"
+        <MudTextField @bind-Value="draft" Label="@SearchForText" Immediate="true" InputType="InputType.Search"
                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" dir="auto" />
     </form>
-    <MudToggleGroup T="string" Value="Kind ?? KindAll" ValueChanged="SetKind" Outlined="true" Size="Size.Small" aria-label="@L["SearchIn"]">
+    <MudToggleGroup T="string" Value="Kind ?? KindAll" ValueChanged="SetKind" Outlined="true" Size="Size.Small" Style="@DocumentFilterStyle" aria-label="@L["SearchIn"]">
         <MudToggleItem Value="KindAll">@L["All"]</MudToggleItem>
         <MudToggleItem Value="@("page")">@L["Pages"]</MudToggleItem>
         <MudToggleItem Value="@("memory")">@L["Memories"]</MudToggleItem>
         <MudToggleItem Value="@("source")">@L["Sources"]</MudToggleItem>
+        @DocumentFilter()
     </MudToggleGroup>
 </FilterBar>
 
@@ -34,7 +35,7 @@ else if (result is { } r)
     {
         <MudAlert Severity="Severity.Warning" Class="mb-3">@L["SearchDegraded"]</MudAlert>
     }
-    <p role="status" class="count">@L["SearchCount", r.Hits.Count]</p>
+    <p role="status" class="count">@ResultCountText(r.Hits.Count)</p>
     @* T167 (FR-AI-04): an answer from these results, only on request and only with a query model assigned. The server picks the
        evidence from what this person may read (AI-read policy applied) and owns the citations; the text renders escaped. *@
     @if (answerAvailable && r.Hits.Count > 0)
@@ -66,7 +67,7 @@ else if (result is { } r)
                         <ol class="answer-sources">
                             @foreach (var source in a.Sources)
                             {
-                                <li><a href="@source.Url" dir="auto">@source.Title</a></li>
+                                <li><a href="@source.Url" dir="auto">@source.Title</a> @DocumentLocation(source)</li>
                             }
                         </ol>
                     }
@@ -91,6 +92,7 @@ else if (result is { } r)
                         <div class="context">
                             <span>@KindLabel(hit.Kind)</span>
                             @if (hit.Scope is { } scope) { <ScopeChip Scope="@scope" /> }
+                            @DocumentLocation(hit)
                             @if (hit.Kind == "page" && pages.TryGetValue(hit.Id, out var pageBrief))
                             {
                                 <span class="athar-truncate" dir="auto" title="@pageBrief.Space">@pageBrief.Space</span>
@@ -110,10 +112,14 @@ else if (result is { } r)
 }
 else
 {
-    <EmptyState Icon="@Icons.Material.Outlined.Search" Title="@L["TypeToSearch"]" Text="@L["SearchHelp"]" />
+    <EmptyState Icon="@Icons.Material.Outlined.Search" Title="@L["TypeToSearch"]" Text="@SearchHelpText" />
 }
 
 @code {
+    private const string? DocumentFilterStyle = null;
+    private string SearchForText => L["SearchFor"];
+    private string SearchHelpText => L["SearchHelp"];
+    private string ResultCountText(int count) => L["SearchCount", count];
     private const string KindAll = "all";
     [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
     [SupplyParameterFromQuery(Name = "q")] private string? Query { get; set; }
@@ -137,10 +143,21 @@ else
     {
         "page" => Icons.Material.Outlined.Article,
         "memory" => Icons.Material.Outlined.Psychology,
+        "document" => Icons.Material.Outlined.Description,
         _ => Icons.Material.Outlined.Code,
     };
 
-    private string KindLabel(string kind) => kind switch { "page" => L["Page"], "memory" => L["Memory"], _ => L["Source"] };
+    private string KindLabel(string kind) => kind switch { "page" => L["Page"], "memory" => L["Memory"], "document" => L["Documents"], _ => L["Source"] };
+
+    private RenderFragment? DocumentFilter()
+    {
+        return null;
+    }
+
+    private RenderFragment? DocumentLocation(SearchHit hit)
+    {
+        return null;
+    }
 
     // The URL holds the query, so results can be shared, bookmarked and reached with Back.
     protected override async Task OnParametersSetAsync()
@@ -149,7 +166,8 @@ else
         var cts = Restart();
         if (string.IsNullOrWhiteSpace(Query)) return;
         // Captured before any await: the parameters may change while this search runs.
-        var input = new SearchInput(Query.Trim(), Kind is "page" or "memory" or "source" ? new[] { Kind } : null, Limit: 20);
+        var input = new SearchInput(Query.Trim(), Kind is "page" or "memory" or "source"
+            ? new[] { Kind } : null, Limit: 20);
         // ponytail: highlights the literal query words; Arabic spelling variants the search matched stay unmarked.
         var words = Query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         loading = true;

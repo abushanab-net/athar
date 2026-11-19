@@ -61,10 +61,11 @@ public class AiGatewayTests(AtharApp athar)
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         var options = Options();
-        var vectors = await new GatewayEmbedder(options).EmbedAsync(["Deploys need two approvals.", "يحتاج النشر إلى موافقتين."], cts.Token);
+        var embedding = new GatewayEmbedder(options);
+        var extractor = new GatewayExtractor(options, NullLogger<GatewayExtractor>.Instance);
+        var vectors = await embedding.EmbedAsync(["Deploys need two approvals.", "يحتاج النشر إلى موافقتين."], cts.Token);
         Assert.All(vectors, v => Assert.Equal((1024, 1.0), (v.Length, Math.Round(Math.Sqrt(v.Sum(x => (double)x * x)), 4))));
 
-        var extractor = new GatewayExtractor(options, NullLogger<GatewayExtractor>.Instance);
         var arabic = await extractor.ExtractAsync("user: قررنا أن تكون مدة الاحتفاظ بالنسخ الاحتياطية خمسة وثلاثين يومًا.", cts.Token);
         Assert.NotEmpty(arabic);
         Assert.All(arabic, c => Assert.Matches(@"\p{IsArabic}", c.Title + c.BodyMd));

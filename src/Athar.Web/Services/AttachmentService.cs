@@ -78,7 +78,8 @@ public sealed class AttachmentService(AtharDbContext db, AttachmentStore store, 
         {
             if (AttachmentRules.Vision(mime) && size <= AiGatewayClient.MaxImageBytes && ai is not null)
             {
-                var settings = await ai.ResolveAsync(actor.OrgId, ct);
+                var operation = await ai.CaptureAsync(db, ct);
+                await using var settings = await ai.ResolveAsync(operation, AiPurpose.Vision, ct);
                 extract = settings.Gateway && !string.IsNullOrWhiteSpace(settings.VisionModel)
                     && await db.Pages.AnyAsync(p => p.Id == pageId && p.DeletedAt == null && db.Spaces.Any(s => s.Id == p.SpaceId && s.AiPolicy.Read), ct);
             }
@@ -103,7 +104,9 @@ public sealed class AttachmentService(AtharDbContext db, AttachmentStore store, 
             });
         db.Audit(actor.OrgId, actor.UserId, "attachment.upload", "attachment", attachment.Id,
             after: new { page_id = pageId, attachment.FileName, mime, size }, credentialId: actor.CredentialId);
+        if (db.ModelOperation is { } admission) await admission.CheckAsync(ct);
         await db.SaveChangesAsync(ct);
+        if (db.ModelOperation is { } returnAdmission) await returnAdmission.CheckAsync(ct);
         return View(attachment);
     }
 
@@ -118,7 +121,8 @@ public sealed class AttachmentService(AtharDbContext db, AttachmentStore store, 
     public async Task<AttachmentFile> OpenAsync(Actor actor, Guid attachmentId, CancellationToken ct)
     {
         db.CurrentOrgId = actor.OrgId;
-        var a = await db.Attachments.AsNoTracking().SingleOrDefaultAsync(x => x.Id == attachmentId, ct)
+        var a = await db.Attachments.AsNoTracking().SingleOrDefaultAsync(x => x.Id == attachmentId
+            && db.Pages.Any(p => p.Id == x.PageId), ct)
             ?? throw new AtharError("not_found", "Attachment not found.");
         await RequireAsync(actor, a.PageId, PageAction.Read, ct);
         return new(store.Open(a.StorageKey), a.MimeSniffed, a.FileName, AttachmentRules.Inline(a.MimeSniffed));

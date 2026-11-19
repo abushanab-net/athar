@@ -112,7 +112,8 @@ public class UiDataTests(AtharApp athar)
     private async Task<MemoryService> Memories()
     {
         var db = athar.Db(QaSeed.Org);
-        var embedder = new QueryEmbedder(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        var embedder = new QueryEmbedder(new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ConnectionStrings:ollama"] = await athar.App.GetConnectionStringAsync("ollama", AtharApp.Timeout()),
         }).Build(), NullLogger<QueryEmbedder>.Instance);

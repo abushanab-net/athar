@@ -20,6 +20,7 @@ public partial class AtharDbContext(DbContextOptions<AtharDbContext> options) : 
     /// so an unset value matches nothing. Cross-org system work (seeding, retention) uses IgnoreQueryFilters.
     /// New rows with an empty OrgId get this value.
     /// </summary>
+    public AiModelOperation? ModelOperation { get; set; }
     public Guid CurrentOrgId { get; set; }
 
     /// <summary>Where this unit of work's changes come from, read at SaveChanges and stamped on every audit event it adds (FR-AU-02).</summary>
@@ -448,16 +449,33 @@ public partial class AtharDbContext(DbContextOptions<AtharDbContext> options) : 
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
+        ModelOperation?.CheckAsync(this, CancellationToken.None).GetAwaiter().GetResult();
+        using var admissionTx = ModelOperation is not null && Database.CurrentTransaction is null ? Database.BeginTransaction() : null;
+        ModelOperation?.CheckAsync(this, CancellationToken.None).GetAwaiter().GetResult();
         Stamp();
         MaintainAncestryAsync(CancellationToken.None).GetAwaiter().GetResult();
-        return base.SaveChanges(acceptAllChangesOnSuccess);
+        ModelOperation?.CheckAsync(this, CancellationToken.None).GetAwaiter().GetResult();
+        var changed = base.SaveChanges(acceptAllChangesOnSuccess);
+        ModelOperation?.CheckAsync(this, CancellationToken.None).GetAwaiter().GetResult();
+        admissionTx?.Commit();
+        ModelOperation?.CheckAsync(this, CancellationToken.None).GetAwaiter().GetResult();
+        return changed;
     }
 
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
+        if (ModelOperation is { } beforeTransaction) await beforeTransaction.CheckAsync(this, cancellationToken);
+        await using var admissionTx = ModelOperation is not null && Database.CurrentTransaction is null
+            ? await Database.BeginTransactionAsync(cancellationToken) : null;
+        if (ModelOperation is { } admission) await admission.CheckAsync(this, cancellationToken);
         Stamp();
         await MaintainAncestryAsync(cancellationToken);
-        return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        if (ModelOperation is { } beforeSave) await beforeSave.CheckAsync(this, cancellationToken);
+        var changed = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        if (ModelOperation is { } beforeCommit) await beforeCommit.CheckAsync(this, cancellationToken);
+        if (admissionTx is not null) await admissionTx.CommitAsync(cancellationToken);
+        if (ModelOperation is { } beforeReturn) await beforeReturn.CheckAsync(this, cancellationToken);
+        return changed;
     }
 
     // Timestamps, the tenant of new rows, and the origin of new audit events. Explicit values (seeds) are kept.

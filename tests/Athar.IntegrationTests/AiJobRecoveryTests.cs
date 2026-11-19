@@ -27,7 +27,7 @@ public sealed class AiJobRecoveryTests(AtharApp app)
         await data.InitializeAsync(ct);
         await using var gateway = await FakeAiGateway.StartAsync();
         await data.Settings.SaveAsync(AiTestDatabase.Admin, AiTestDatabase.Draft(gateway), ct);
-        var original = await data.Resolver.ResolveAsync(QaSeed.Org, ct);
+        var original = await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct);
         var store = new AttachmentStore(data.Configuration);
         string? storageKey = null;
         Guid? attachmentId = null;
@@ -84,7 +84,7 @@ public sealed class AiJobRecoveryTests(AtharApp app)
             await AssertDeferredAndMakeDueAsync("key_unreadable");
             Assert.Equal(calls, gateway.Requests.Count);
             await data.Settings.SaveAsync(AiTestDatabase.Admin, AiTestDatabase.Draft(gateway, revision: 1), ct);
-            Assert.Equal(original.EmbeddingIdentity, (await data.Resolver.ResolveAsync(QaSeed.Org, ct)).EmbeddingIdentity);
+            Assert.Equal(original.EmbeddingIdentity, (await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct)).EmbeddingIdentity);
             var claim = Assert.NotNull(await runner.ClaimAsync(ct));
             Assert.Equal(queued.Id, claim.Id);
             Assert.True(await runner.RunClaimedAsync(claim, ct));

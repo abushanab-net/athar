@@ -31,12 +31,17 @@ public sealed record RankedChunk(Guid ChunkId, ChunkOwner OwnerKind, Guid OwnerI
 /// from the EF access predicates first, and the raw FTS and vector SQL takes them, with <c>org_id</c>, as parameters.
 /// Without a query embedding (Ollama down), results are FTS only and flagged <c>degraded</c>.
 /// </summary>
-public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
+public sealed partial class SearchService(AtharDbContext db, QueryEmbedder embedder, IEnumerable<IEvidenceReader>? readers = null)
 {
     /// <summary>RRF's k (Cormack et al.): dampens the weight of top ranks so both lists count.</summary>
     public const int RrfK = 60;
 
-    public Task<AiSnapshot> SnapshotAsync(Guid org, CancellationToken ct) => embedder.SnapshotAsync(org, ct);
+    public async Task<AiSnapshot> SnapshotAsync(Guid org, CancellationToken ct)
+    {
+        if (db.CurrentOrgId != org)
+            throw new InvalidOperationException("ai_operation_org_changed");
+        return await embedder.SnapshotAsync(await embedder.CaptureAsync(db, ct), ct);
+    }
 
     /// <summary>Below this many permitted rows an exact scan is cheaper and complete; above it, HNSW with iterative scans (docs/03 §4.3).</summary>
     public const int ExactBelow = 5000;
@@ -47,12 +52,13 @@ public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
         db.CurrentOrgId = actor.OrgId;
         var kinds = input.Kinds is { Length: > 0 } k ? k.Select(x => x.ToLowerInvariant()).ToHashSet() : ["page", "memory", "source"];
         if (kinds.Except(["page", "memory", "source"]).Any()) throw new AtharError("invalid_input", "kinds must be page, memory or source");
+        var operation = await embedder.CaptureAsync(db, ct);
         var limit = Math.Clamp(input.Limit, 1, 50);
 
         Guid[] pages = kinds.Contains("page") ? await VisiblePagesAsync(actor, input.SpaceIds, ct) : [];
         Guid[] memories = kinds.Contains("memory") ? await VisibleMemoriesAsync(actor, input.ProjectIds, ct) : [];
         Guid[] sources = kinds.Contains("source") ? await VisibleSourceDocsAsync(actor, input.ProjectIds, ct) : []; // Lane D (T070)
-        var (ranked, degraded) = await RankAsync(actor.OrgId, input.Query, pages, memories, limit * 4, ct, sources);
+        var (ranked, degraded) = await RankAsync(actor.OrgId, input.Query, pages, memories, limit * 4, ct, sources, actor: actor);
 
         // Collapse to owners (best chunk wins), then hydrate titles and snippets.
         var best = ranked.GroupBy(r => (r.OwnerKind, r.OwnerId)).Select(g => g.MaxBy(r => r.Score)!)
@@ -79,8 +85,12 @@ public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
                     Scope: memoryRows[b.OwnerId].Scope.ToString().ToLowerInvariant()),
             };
         }).ToList();
+        await operation.CheckAsync(ct);
         return new(degraded, hits);
     }
+
+    /// <summary>The registered evidence readers, opened on this service's context for the caller.</summary>
+    public Task<EvidenceSessions> OpenExternalAsync(Actor actor, CancellationToken ct) => EvidenceSessions.OpenAsync(readers, db, actor, ct);
 
     /// <summary>Pages the caller may read now (access, AI policy, disclosure), not trashed, optionally in some spaces.</summary>
     /// <remarks>U-1 (T119): never drafts, not even for their editors: search finds published knowledge (the tree shows drafts).</remarks>
@@ -114,14 +124,17 @@ public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
     /// The fused chunk ranking over the given visible owners (shared with recall). <paramref name="k"/> candidates come from
     /// each list; collapse and top-up are the caller's.
     /// </summary>
-    public async Task<(List<RankedChunk> Ranked, bool Degraded)> RankAsync(Guid org, string query, Guid[] pages, Guid[] memories, int k, CancellationToken ct, Guid[]? sources = null, AiSnapshot? snapshot = null)
+    public async Task<(List<RankedChunk> Ranked, bool Degraded)> RankAsync(Guid org, string query, Guid[] pages, Guid[] memories, int k, CancellationToken ct, Guid[]? sources = null, AiSnapshot? snapshot = null, Actor? actor = null
+        )
     {
         sources ??= [];
-        if (pages.Length + memories.Length + sources.Length == 0 || string.IsNullOrWhiteSpace(query)) return ([], false);
+        await using var ownedSnapshot = snapshot is null ? await SnapshotAsync(org, ct) : null;
+        snapshot ??= ownedSnapshot!;
+        await snapshot.CheckAsync(ct);
+        if (pages.Length + memories.Length + sources.Length == 0 || string.IsNullOrWhiteSpace(query)) { await snapshot.CheckAsync(ct); return ([], false); }
         var fts = await FtsAsync(org, query, pages, memories, k, ct, sources);
-        snapshot ??= await SnapshotAsync(org, ct);
         var vector = await embedder.EmbedAsync(snapshot, query, ct);
-        if (vector is null) return (Fuse(fts), true);
+        if (vector is null) { await snapshot.CheckAsync(ct); return (Fuse(fts), true); }
         var exact = pages.Length + memories.Length + sources.Length < ExactBelow;
         List<RankedChunk> nearest;
         try { nearest = await NearestAsync(org, new Vector(vector), pages, memories, k, exact, ct, sources, snapshot.EmbeddingIdentity); }
@@ -133,6 +146,7 @@ public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
             NpgsqlConnection.ClearAllPools();
             nearest = await NearestAsync(org, new Vector(vector), pages, memories, k, exact, ct, sources, snapshot.EmbeddingIdentity);
         }
+        await snapshot.CheckAsync(ct);
         return (Fuse(fts, nearest), nearest.Count == 0);
     }
 
@@ -186,7 +200,8 @@ public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
     public async Task<List<RankedChunk>> NearestAsync(Guid org, Vector v, Guid[] pages, Guid[] memories, int k, bool exact, CancellationToken ct, Guid[]? sources = null, string? modelId = null)
     {
         sources ??= [];
-        modelId ??= (await SnapshotAsync(org, ct)).EmbeddingIdentity;
+        await using var ownedSnapshot = modelId is null ? await SnapshotAsync(org, ct) : null;
+        modelId ??= ownedSnapshot!.EmbeddingIdentity;
         // SET LOCAL needs a transaction; join the caller's if there is one.
         await using var tx = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(ct) : null;
         List<Row> rows;
