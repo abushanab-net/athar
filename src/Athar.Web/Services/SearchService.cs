@@ -13,6 +13,8 @@ public sealed record SearchResult(bool Degraded, IReadOnlyList<SearchHit> Hits);
 // Nullable members default to null so the generated output schema marks them optional.
 public sealed record SearchHit(string Kind, Guid Id, string Title, string Snippet, string Url, double Score, Guid? SpaceId = null, string? Scope = null)
 {
+    /// <summary>Where a registered evidence reader says its hit comes from (its own citation record); null for pages, memories and sources.</summary>
+    public object? DocumentCitation { get; init; }
     /// <summary>A source document's hit, linked per kind: GitHub at the synced commit (T070), a URL to the page itself, a document to its project (T142).</summary>
     public static SearchHit Source(SourceKind kind, string repo, string? title, string path, string? commit, Guid projectId, Guid id, string snippet, double score) => kind switch
     {

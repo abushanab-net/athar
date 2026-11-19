@@ -237,8 +237,10 @@ public class CaptureTests(AtharApp athar)
         }).Build();
         await using var db = athar.Db(QaSeed.Org);
         var embedder = new OllamaEmbedder(config, NullLogger<OllamaEmbedder>.Instance);
-        await embedder.EnsureReadyAsync(ct);
-        IEmbedder admitted = embedder;
+        var operation = Athar.Data.AiOperationPolicy.Create(db);
+        db.ModelOperation = operation;
+        await embedder.EnsureReadyAsync(operation, ct); // the worker's job would defer until then
+        var admitted = embedder.ForOperation(operation);
         await new ExtractSessionJob(extractor, admitted).RunAsync(job, db, ct);
         await db.SaveChangesAsync(ct);
     }

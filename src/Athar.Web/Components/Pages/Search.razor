@@ -116,10 +116,11 @@ else
 }
 
 @code {
-    private const string? DocumentFilterStyle = null;
-    private string SearchForText => L["SearchFor"];
-    private string SearchHelpText => L["SearchHelp"];
-    private string ResultCountText(int count) => L["SearchCount", count];
+    [Inject] private IEnumerable<ISearchPageExtension> Extensions { get; set; } = default!;
+    private string? DocumentFilterStyle => Extensions.Any() ? $"grid-template-columns: repeat({4 + Extensions.Count()}, auto)" : null;
+    private string SearchForText => Extensions.Select(e => e.SearchFor).FirstOrDefault(t => t is not null) ?? L["SearchFor"];
+    private string SearchHelpText => Extensions.Select(e => e.Help).FirstOrDefault(t => t is not null) ?? L["SearchHelp"];
+    private string ResultCountText(int count) => Extensions.Select(e => e.Count(count)).FirstOrDefault(t => t is not null) ?? L["SearchCount", count];
     private const string KindAll = "all";
     [CascadingParameter] private Task<AuthenticationState> Auth { get; set; } = default!;
     [SupplyParameterFromQuery(Name = "q")] private string? Query { get; set; }
@@ -151,12 +152,29 @@ else
 
     private RenderFragment? DocumentFilter()
     {
-        return null;
+        if (!Extensions.Any()) return null;
+        return builder =>
+        {
+            foreach (var extension in Extensions)
+            {
+                builder.OpenComponent<MudToggleItem<string>>(0);
+                builder.SetKey(extension.Kind);
+                builder.AddAttribute(1, "Value", extension.Kind);
+                builder.AddAttribute(2, "ChildContent", (RenderFragment<bool>)(_ => label => label.AddContent(0, extension.Label)));
+                builder.CloseComponent();
+            }
+        };
     }
 
     private RenderFragment? DocumentLocation(SearchHit hit)
     {
-        return null;
+        if (Extensions.FirstOrDefault(e => e.Kind == hit.Kind)?.CitationComponent is not { } component) return null;
+        return builder =>
+        {
+            builder.OpenComponent(0, component);
+            builder.AddAttribute(1, "Hit", hit);
+            builder.CloseComponent();
+        };
     }
 
     // The URL holds the query, so results can be shared, bookmarked and reached with Back.
@@ -167,6 +185,7 @@ else
         if (string.IsNullOrWhiteSpace(Query)) return;
         // Captured before any await: the parameters may change while this search runs.
         var input = new SearchInput(Query.Trim(), Kind is "page" or "memory" or "source"
+            || Extensions.Any(e => e.Kind == Kind)
             ? new[] { Kind } : null, Limit: 20);
         // ponytail: highlights the literal query words; Arabic spelling variants the search matched stay unmarked.
         var words = Query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

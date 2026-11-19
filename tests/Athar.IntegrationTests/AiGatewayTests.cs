@@ -61,8 +61,12 @@ public class AiGatewayTests(AtharApp athar)
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         var options = Options();
-        var embedding = new GatewayEmbedder(options);
-        var extractor = new GatewayExtractor(options, NullLogger<GatewayExtractor>.Instance);
+        await using var work = athar.Db(QaSeed.Org);
+        var operation = Athar.Data.AiOperationPolicy.Create(work);
+        var snapshot = new Athar.Data.AiSnapshot(options.BaseUrl, options.EmbeddingModel, options.QueryModel ?? options.ChatModel,
+            options.VisionModel, options.ApiKey, false, true, AiModels.EmbeddingId(options), options.QueryInstruction) { Admission = operation.CheckAsync };
+        var embedding = new GatewayEmbedder(snapshot);
+        var extractor = new GatewayExtractor(snapshot, NullLogger<GatewayExtractor>.Instance);
         var vectors = await embedding.EmbedAsync(["Deploys need two approvals.", "يحتاج النشر إلى موافقتين."], cts.Token);
         Assert.All(vectors, v => Assert.Equal((1024, 1.0), (v.Length, Math.Round(Math.Sqrt(v.Sum(x => (double)x * x)), 4))));
 
