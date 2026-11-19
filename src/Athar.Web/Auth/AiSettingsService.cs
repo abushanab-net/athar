@@ -100,6 +100,7 @@ public sealed class AiSettingsService(IDbContextFactory<AtharDbContext> dbs, AiS
     private async Task<AiSnapshot> DraftAsync(AtharDbContext db, Actor actor, AiSettingsWrite input, CancellationToken ct, bool requireModels = true)
     {
         var operation = await resolver.CaptureAsync(db, ct);
+        AiOperationPolicy.Require(operation);
         var row = await db.AiSettings.AsNoTracking().SingleOrDefaultAsync(ct);
         CheckRevision(row, input.ExpectedRevision);
         return resolver.ForOperation(Draft(actor.OrgId, row, input, requireModels), operation, ct);

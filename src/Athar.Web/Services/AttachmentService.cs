@@ -76,9 +76,11 @@ public sealed class AttachmentService(AtharDbContext db, AttachmentStore store, 
         var extract = AttachmentRules.HasText(mime) && size <= AttachmentRules.MaxExtractBytes;
         try
         {
+            if (AttachmentRules.Vision(mime) && size <= AiGatewayClient.MaxImageBytes && ai is null) AiOperationPolicy.Require(null);
             if (AttachmentRules.Vision(mime) && size <= AiGatewayClient.MaxImageBytes && ai is not null)
             {
                 var operation = await ai.CaptureAsync(db, ct);
+                AiOperationPolicy.Require(operation);
                 await using var settings = await ai.ResolveAsync(operation, AiPurpose.Vision, ct);
                 extract = settings.Gateway && !string.IsNullOrWhiteSpace(settings.VisionModel)
                     && await db.Pages.AnyAsync(p => p.Id == pageId && p.DeletedAt == null && db.Spaces.Any(s => s.Id == p.SpaceId && s.AiPolicy.Read), ct);

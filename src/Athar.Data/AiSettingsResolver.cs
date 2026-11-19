@@ -137,7 +137,7 @@ public sealed record AiSnapshot(string? BaseUrl, string EmbeddingModel, string Q
     public Func<CancellationToken, Task>? Admission { get; init; }
     public Func<AiCallRequest, CancellationToken, Task<AiCallLease>>? CallAdmission { get; init; }
     public Task<AiCallLease> BeginCallAsync(AiCallRequest request, CancellationToken ct) => CallAdmission is not null ? CallAdmission(request, ct) :
-        AiCallLease.UnrestrictedAsync(request, ct);
+        AiOperationPolicy.Strict ? throw AiOperationPolicy.Missing() : AiCallLease.UnrestrictedAsync(request, ct);
     public Task CheckAsync(CancellationToken ct) => Admission?.Invoke(ct) ?? Task.CompletedTask;
     public IAsyncDisposable? Lifetime { get; init; }
     public ValueTask DisposeAsync() => Lifetime?.DisposeAsync() ?? ValueTask.CompletedTask;

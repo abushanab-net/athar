@@ -30,6 +30,7 @@ public sealed partial class QueryAnswerService(IDbContextFactory<AtharDbContext>
     {
         await using var db = await OpenAsync(actor, ct);
         var operation = await resolver.CaptureAsync(db, ct);
+        AiOperationPolicy.Require(operation);
         try { await using var s = await resolver.ResolveAsync(operation, AiPurpose.Answer, ct); s.RequireGateway(); await operation.CheckAsync(ct); return true; }
         catch (AiProviderException) { return false; }
     }
@@ -40,6 +41,7 @@ public sealed partial class QueryAnswerService(IDbContextFactory<AtharDbContext>
         if (input.Query.Contains('\0')) throw new AtharError("invalid_input", "Invalid question.");
         await using var db = await OpenAsync(actor, ct);
         var operation = await resolver.CaptureAsync(db, ct);
+        AiOperationPolicy.Require(operation);
         AiSnapshot s;
         try { s = await resolver.ResolveAsync(operation, AiPurpose.Answer, ct); s.RequireGateway(); }
         catch (AiProviderException) { throw new AtharError("answer_unavailable", "AI answers are unavailable."); }

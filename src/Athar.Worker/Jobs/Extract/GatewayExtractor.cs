@@ -10,10 +10,12 @@ public sealed class GatewayExtractor(AiSnapshot snapshot, ILogger<GatewayExtract
     public GatewayExtractor(AiOptions options, ILogger<GatewayExtractor> log) : this(new AiSnapshot(options.BaseUrl,
         options.EmbeddingModel, options.QueryModel ?? options.ChatModel, options.VisionModel, options.ApiKey, false, true,
         AiModels.EmbeddingId(options), options.QueryInstruction)
+        { Admission = AiOperationPolicy.Unadmitted }
         , log) { }
 
     public async Task<IReadOnlyList<ExtractedCandidate>> ExtractAsync(string transcript, CancellationToken ct)
     {
+        if (snapshot.Admission is null) AiOperationPolicy.Require(null);
         await snapshot.CheckAsync(ct);
         try
         {

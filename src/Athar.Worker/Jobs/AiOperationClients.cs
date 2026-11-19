@@ -10,6 +10,7 @@ public sealed class AiOperationClients(AiSettingsResolver resolver, IServiceProv
     public async Task<(IEmbedder Embedder, ICandidateExtractor Extractor)> ResolveAsync(AtharDbContext work, CancellationToken ct)
     {
         var operation = await resolver.CaptureAsync(work, ct);
+        AiOperationPolicy.Require(operation);
         var embedder = await ResolveEmbedderAsync(operation, ct);
         try
         {
@@ -23,6 +24,7 @@ public sealed class AiOperationClients(AiSettingsResolver resolver, IServiceProv
 
     private async Task<IEmbedder> ResolveEmbedderAsync(AiModelOperation operation, CancellationToken ct)
     {
+        AiOperationPolicy.Require(operation);
         var s = await resolver.ResolveAsync(operation, AiPurpose.Embedding, ct);
         return s.Gateway ? new GatewayEmbedder(s) : new LocalEmbedder(services.GetRequiredService<OllamaEmbedder>(), s, operation);
     }

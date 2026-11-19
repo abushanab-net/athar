@@ -8,12 +8,14 @@ public sealed class GatewayEmbedder(AiSnapshot snapshot) : IEmbedder
     public GatewayEmbedder(AiOptions options) : this(new AiSnapshot(options.BaseUrl, options.EmbeddingModel,
         options.QueryModel ?? options.ChatModel, options.VisionModel, options.ApiKey, false, true,
         AiModels.EmbeddingId(options), options.QueryInstruction)
+        { Admission = AiOperationPolicy.Unadmitted }
         ) { }
 
     public ValueTask DisposeAsync() => snapshot.DisposeAsync();
     public string ModelId => snapshot.EmbeddingIdentity;
     public async Task<float[][]> EmbedAsync(IReadOnlyList<string> texts, CancellationToken ct)
     {
+        if (snapshot.Admission is null) AiOperationPolicy.Require(null);
         await snapshot.CheckAsync(ct);
         try { return await new AiGatewayClient(snapshot).EmbedAsync(texts, false, ct, TimeSpan.FromMinutes(5)); }
         catch (AiProviderException e) when (e.Retryable) { throw new JobDeferred(e.Code, TimeSpan.FromMinutes(1)); }

@@ -21,7 +21,7 @@ public sealed class OllamaEmbedder(IConfiguration config, ILogger<OllamaEmbedder
     // cut off a model pull and CPU batch embeds. One client for the process.
     private readonly HttpClient _http = testTransport is null ? new() { BaseAddress = OllamaEndpoint(config), Timeout = TimeSpan.FromMinutes(15) } : new(testTransport, disposeHandler: false) { BaseAddress = OllamaEndpoint(config), Timeout = TimeSpan.FromMinutes(15) };
     public Task EnsureReadyAsync(CancellationToken ct) =>
-        PrepareAsync(_ => Task.CompletedTask, AiCallLease.UnrestrictedAsync, ct);
+        AiOperationPolicy.Strict ? throw AiOperationPolicy.Missing() : PrepareAsync(_ => Task.CompletedTask, AiCallLease.UnrestrictedAsync, ct);
     public Task EnsureReadyAsync(AiModelOperation operation, CancellationToken ct)
     { Require(operation); return PrepareAsync(operation.CheckAsync, operation.BeginCallAsync, ct); }
 
@@ -33,13 +33,14 @@ public sealed class OllamaEmbedder(IConfiguration config, ILogger<OllamaEmbedder
     }
 
     public Task<float[][]> EmbedAsync(IReadOnlyList<string> texts, CancellationToken ct) =>
-        EmbedAdmittedAsync(texts, _ => Task.CompletedTask, AiCallLease.UnrestrictedAsync, ct);
+        AiOperationPolicy.Strict ? throw AiOperationPolicy.Missing() : EmbedAdmittedAsync(texts, _ => Task.CompletedTask, AiCallLease.UnrestrictedAsync, ct);
 
     public Task<float[][]> EmbedAsync(IReadOnlyList<string> texts, AiModelOperation operation, CancellationToken ct)
     { Require(operation); return EmbedAdmittedAsync(texts, operation.CheckAsync, operation.BeginCallAsync, ct); }
 
     private static void Require(AiModelOperation operation)
     {
+        AiOperationPolicy.Require(operation);
     }
 
     private async Task<float[][]> EmbedAdmittedAsync(IReadOnlyList<string> texts, Func<CancellationToken, Task> admission, Func<AiCallRequest, CancellationToken, Task<AiCallLease>> begin, CancellationToken ct)
@@ -56,7 +57,7 @@ public sealed class OllamaEmbedder(IConfiguration config, ILogger<OllamaEmbedder
     }
 
     private static Task CheckAsync(Func<CancellationToken, Task> admission, CancellationToken ct) => admission is not null ? admission(ct) :
-        throw new ArgumentNullException(nameof(admission));
+        throw (AiOperationPolicy.Strict ? AiOperationPolicy.Missing() : new ArgumentNullException(nameof(admission)));
 
     private async Task PrepareAsync(Func<CancellationToken, Task> admission, Func<AiCallRequest, CancellationToken, Task<AiCallLease>> begin, CancellationToken ct)
     {

@@ -256,6 +256,9 @@ public sealed partial class SearchService(AtharDbContext db, QueryEmbedder embed
         sources ??= [];
         await using var ownedSnapshot = modelId is null ? await SnapshotAsync(org, ct) : null;
         modelId ??= ownedSnapshot!.EmbeddingIdentity;
+        if (VectorIndexes.For(modelId) is { } index)
+            return [.. (await index.NearestAsync(db, org, modelId, v, pages, memories, sources, k, exact, ct))
+                .Select(r => new RankedChunk(r.ChunkId, Enum.Parse<ChunkOwner>(r.OwnerKind.Replace("_", ""), true), r.OwnerId, r.Score))];
         // SET LOCAL needs a transaction; join the caller's if there is one.
         await using var tx = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(ct) : null;
         List<Row> rows;

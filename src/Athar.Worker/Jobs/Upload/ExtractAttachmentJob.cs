@@ -42,7 +42,10 @@ public sealed class ExtractAttachmentJob(AttachmentStore store, TimeProvider clo
         string? text, error;
         if (vision)
         {
-            await using var settings = ai is null ? null : await ai.ResolveAsync(db, AiPurpose.Vision, ct);
+            if (ai is null) AiOperationPolicy.Require(null);
+            var operation = ai is null ? null : await ai.CaptureAsync(db, ct);
+            if (operation is not null) AiOperationPolicy.Require(operation);
+            await using var settings = ai is null ? null : await ai.ResolveAsync(operation!, AiPurpose.Vision, ct);
             if (settings is null || !settings.Gateway || string.IsNullOrWhiteSpace(settings.VisionModel)
                 || attachment.Size > AiGatewayClient.MaxImageBytes || !await db.Spaces.AnyAsync(s => s.Id == page.SpaceId && s.AiPolicy.Read, ct))
             { Finish(ExtractStatus.Skipped); return; }

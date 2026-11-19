@@ -14,14 +14,22 @@ public sealed class QueryEmbedder(IConfiguration config, ILogger<QueryEmbedder> 
     public Task<AiSnapshot> SnapshotAsync(Guid org, CancellationToken ct) => resolver is not null ? resolver.ResolveAsync(org, AiPurpose.Embedding, ct)
         : Task.FromResult(new AiSnapshot(environment.BaseUrl, environment.Gateway ? environment.EmbeddingModel : AiModels.OllamaEmbeddingId,
             environment.QueryModel ?? environment.ChatModel, environment.VisionModel, environment.ApiKey, false, true, ModelId, environment.QueryInstruction)
+            { Admission = AiOperationPolicy.Unadmitted }
             );
 
     public Task<AiModelOperation> CaptureAsync(AtharDbContext work, CancellationToken ct) => resolver is not null ? resolver.CaptureAsync(work, ct)
-        : Task.FromResult(new AiModelOperation(work));
+        : AiOperationPolicy.Strict ? CaptureLocalAsync(work, ct) : Task.FromResult(new AiModelOperation(work));
 
+    private static async Task<AiModelOperation> CaptureLocalAsync(AtharDbContext work, CancellationToken ct)
+    {
+        var operation = work.ModelOperation ??= AiOperationPolicy.Create(work);
+        AiOperationPolicy.Require(operation);
+        await operation.CheckAsync(ct); return operation;
+    }
 
     public async Task<AiSnapshot> SnapshotAsync(AiModelOperation operation, CancellationToken ct)
     {
+        AiOperationPolicy.Require(operation);
         await operation.CheckAsync(ct);
         var snapshot = resolver is not null ? await resolver.ResolveAsync(operation, AiPurpose.Embedding, ct)
             : new AiSnapshot(environment.BaseUrl, environment.Gateway ? environment.EmbeddingModel : AiModels.OllamaEmbeddingId,

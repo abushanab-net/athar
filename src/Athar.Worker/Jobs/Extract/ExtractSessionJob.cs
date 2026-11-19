@@ -130,6 +130,12 @@ public sealed class ExtractSessionJob(ICandidateExtractor? extractor, IEmbedder?
         if (await db.ActorAsync(session.UserId, session.CredentialId, ct) is null || currentOwner.IsKnowledgeOwner != owner.IsKnowledgeOwner
             || !currentOwner.TeamIds.ToHashSet().SetEquals(owner.TeamIds) || !currentOwner.ProjectIds.ToHashSet().SetEquals(owner.ProjectIds)
             || !currentOwner.AdminProjectIds.ToHashSet().SetEquals(owner.AdminProjectIds)) throw new AiProviderException("processing_access_revoked");
+        // The memories shown as similar must still be visible to the owner when the candidates are saved.
+        var similarIds = db.ChangeTracker.Entries<CaptureCandidate>().Where(e => e.State == EntityState.Added)
+            .SelectMany(e => e.Entity.SimilarIds).Distinct().ToArray();
+        var currentVisible = await db.Memories.Where(MemoryRules.Visible(currentOwner)).Where(m => m.Status == MemoryStatus.Active && similarIds.Contains(m.Id))
+            .Select(m => m.Id).ToArrayAsync(ct);
+        if (!similarIds.ToHashSet().IsSubsetOf(currentVisible)) throw new AiProviderException("processing_access_revoked");
         if (db.ModelOperation is { } finalAdmission) await finalAdmission.CheckAsync(ct);
         session.ExtractedUpto = p.AckedIndex;
         db.Audit(session.OrgId, session.UserId, "session.extract", "session", session.Id,
@@ -140,6 +146,7 @@ public sealed class ExtractSessionJob(ICandidateExtractor? extractor, IEmbedder?
     private async Task<Guid[]> SimilarAsync(AtharDbContext db, Guid org, string text, Guid[] visible, IEmbedder embedder, CancellationToken ct)
     {
         var v = new Vector((await embedder.EmbedAsync([text], ct))[0]);
+        if (VectorIndexes.For(embedder.ModelId) is { } index) return await index.SimilarAsync(db, org, embedder.ModelId, v, visible, SimilarAt, ct);
         var rows = await db.Database.SqlQuery<Guid>($"""
             SELECT c.owner_id AS "Value"
             FROM chunk_embeddings e JOIN chunks c ON c.org_id = e.org_id AND c.id = e.chunk_id

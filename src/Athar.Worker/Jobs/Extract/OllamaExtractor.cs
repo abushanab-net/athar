@@ -30,10 +30,11 @@ public sealed class OllamaExtractor(IConfiguration config, ILogger<OllamaExtract
     private readonly HttpClient _http = testTransport is null ? new() { BaseAddress = OllamaEmbedder.OllamaEndpoint(config), Timeout = TimeSpan.FromMinutes(10) } : new(testTransport, disposeHandler: false) { BaseAddress = OllamaEmbedder.OllamaEndpoint(config), Timeout = TimeSpan.FromMinutes(10) };
 
     public Task<IReadOnlyList<ExtractedCandidate>> ExtractAsync(string transcript, CancellationToken ct) =>
-        ExtractAdmittedAsync(transcript, _ => Task.CompletedTask, AiCallLease.UnrestrictedAsync, ct);
+        AiOperationPolicy.Strict ? throw AiOperationPolicy.Missing() : ExtractAdmittedAsync(transcript, _ => Task.CompletedTask, AiCallLease.UnrestrictedAsync, ct);
 
     public Task<IReadOnlyList<ExtractedCandidate>> ExtractAsync(string transcript, AiModelOperation operation, CancellationToken ct)
     {
+        AiOperationPolicy.Require(operation);
         return ExtractAdmittedAsync(transcript, operation.CheckAsync, operation.BeginCallAsync, ct);
     }
 
@@ -59,7 +60,7 @@ public sealed class OllamaExtractor(IConfiguration config, ILogger<OllamaExtract
 
     /// <summary>Pulls the model if it's missing, then checks the pinned digest (docs/03 D8). Ollama can't pull by digest.</summary>
     private static Task CheckAsync(Func<CancellationToken, Task> admission, CancellationToken ct) => admission is not null ? admission(ct) :
-        throw new ArgumentNullException(nameof(admission));
+        throw (AiOperationPolicy.Strict ? AiOperationPolicy.Missing() : new ArgumentNullException(nameof(admission)));
 
     private async Task PrepareAsync(Func<CancellationToken, Task> admission, Func<AiCallRequest, CancellationToken, Task<AiCallLease>> begin, CancellationToken ct)
     {
