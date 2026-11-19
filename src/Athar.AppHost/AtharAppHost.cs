@@ -1,0 +1,89 @@
+using System.Diagnostics;
+
+namespace Athar.AppHost;
+
+/// <summary>
+/// Athar's development and test topology (database, model server, mail sink, web, collaboration sidecar, worker).
+/// <c>Program.cs</c> calls this with Athar's own web and worker; a host that builds on Athar passes its own two projects.
+/// </summary>
+public static class AtharAppHost
+{
+    /// <param name="configureProject">Applied to the web and the worker resource, for settings the calling host needs on both.</param>
+    public static IDistributedApplicationBuilder Create<TWeb, TWorker>(string[] args, Action<IResourceBuilder<ProjectResource>>? configureProject = null)
+        where TWeb : IProjectMetadata, new() where TWorker : IProjectMetadata, new()
+    {
+        var builder = DistributedApplication.CreateBuilder(args);
+        // Athar's own source folder, wherever the calling app host lives.
+        var source = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(new Projects.Athar_Web().ProjectPath)!, ".."));
+
+        // ponytail: no data volume; G1-b migrates and seeds at startup, and `db reset` is the reset path anyway.
+        var db = builder.AddPostgres("postgres")
+            .WithImage("pgvector/pgvector", "pg17")
+            // Exact local digest (PostgreSQL 17.11, pgvector 0.8.7) so test runs are reproducible; update deliberately.
+            .WithImageSHA256("ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d")
+            .AddDatabase("athar");
+
+        // Image pinned here; model digests are pinned in G1-f (docs/03 D8). The volume keeps pulled models across runs.
+        var ollama = builder.AddOllama("ollama")
+            .WithImageTag("0.34.4")
+            .WithDataVolume();
+
+        // Pinned (CI pre-pulls this exact tag, .github/workflows/ci.yml), so a toolkit upgrade can't swap it unseen.
+        var mailpit = builder.AddMailPit("mailpit").WithImageTag("v1.31.2");
+
+        // Port 7100 comes from the web project's launch profile (https://localhost:7100).
+        var web = builder.AddProject<TWeb>("web")
+            .WithReference(db).WaitFor(db)
+            .WithReference(ollama)
+            .WithReference(mailpit)
+            .WithHttpHealthCheck("/health");
+        // Lane D (T081): `dotnet run --project src/Athar.AppHost -- --Athar:Seed=perf` seeds web with the perf profile (default: qa).
+        if (builder.Configuration["Athar:Seed"] is { Length: > 0 } seed) web.WithEnvironment("Athar__Seed", seed);
+
+        // Dashboard button for `dotnet run --project src/Athar.Web -- db reset` with this run's connection string.
+        web.WithCommand("db-reset", "Reset database", async ctx =>
+        {
+            var start = new ProcessStartInfo("dotnet", ["run", "--no-build", "--project", new TWeb().ProjectPath, "--", "db", "reset"]);
+            start.Environment["ConnectionStrings__athar"] = await db.Resource.ConnectionStringExpression.GetValueAsync(ctx.CancellationToken);
+            using var reset = Process.Start(start)!;
+            await reset.WaitForExitAsync(ctx.CancellationToken);
+            return reset.ExitCode == 0 ? CommandResults.Success() : CommandResults.Failure($"db reset exited with code {reset.ExitCode}; see the AppHost console.");
+        }, new CommandOptions { ConfirmationMessage = "Drop the database, migrate and seed it again?", IconName = "DatabaseArrowDown" });
+
+        // Hocuspocus sidecar (Lane B). Aspire runs `npm install`, then `npm run dev` with PORT set.
+        // It calls web's internal collab API over plain HTTP with a shared secret (docs/06 §6.4).
+        var collabSecret = builder.AddParameter("collab-secret", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true);
+        var collab = builder.AddJavaScriptApp("collab", Path.Combine(source, "collab"))
+            .WithHttpEndpoint(env: "PORT")
+            .WithHttpHealthCheck("/")
+            .WithEnvironment("WEB_URL", web.GetEndpoint("http"))
+            .WithEnvironment("COLLAB_SECRET", collabSecret);
+        web.WithReference(collab.GetEndpoint("http"))
+            .WithEnvironment("Collab__Secret", collabSecret);
+
+        var worker = builder.AddProject<TWorker>("worker")
+            .WithReference(db).WaitFor(db)
+            .WaitFor(web) // web applies the migrations
+            .WithReference(ollama);
+        configureProject?.Invoke(web);
+        configureProject?.Invoke(worker);
+        // T100: how often an edited page is re-indexed (tests set 0); the worker's default otherwise.
+        if (builder.Configuration["Athar:Index:PageEvery"] is { Length: > 0 } pageEvery) worker.WithEnvironment("Athar__Index__PageEvery", pageEvery);
+
+        // AI model gateway (T090, docs/03 D8): the on-prem model gateway when the `ai-key` secret is set (user-secrets in dev:
+        // `dotnet user-secrets set Parameters:ai-key <key> --project src/Athar.AppHost`), else the local Ollama models.
+        // Base URL and model ids are in appsettings (`Athar:Ai`); the key never is. Tests opt in (AtharApp).
+        if (!string.IsNullOrEmpty(builder.Configuration["Parameters:ai-key"]))
+        {
+            var aiKey = builder.AddParameter("ai-key", secret: true);
+            foreach (var app in new IResourceBuilder<IResourceWithEnvironment>[] { web, worker })
+            {
+                app.WithEnvironment("Athar__Ai__ApiKey", aiKey);
+                foreach (var setting in builder.Configuration.GetSection("Athar:Ai").GetChildren())
+                    app.WithEnvironment($"Athar__Ai__{setting.Key}", setting.Value);
+            }
+        }
+
+        return builder;
+    }
+}

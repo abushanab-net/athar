@@ -10,6 +10,7 @@ using Athar.Worker.Jobs.Extract;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Athar.IntegrationTests;
@@ -19,19 +20,38 @@ public class AiTestDatabase(AtharApp app) : IDbContextFactory<AtharDbContext>, I
 {
     public string Name { get; } = "athar_ai_" + Guid.NewGuid().ToString("N");
     private readonly IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
+    /// <summary>An edition's own services for these tests (they may supply an <see cref="IAiFunctionRouter"/>). Set once, before any test runs.</summary>
+    public static Action<IServiceCollection>? EditionServices { get; set; }
+    /// <summary>An edition's own schema and seed, applied after Athar's on the same database (the connection string is the test's).</summary>
+    public static Func<AtharDbContext, string, CancellationToken, Task>? EditionSchema { get; set; }
+    private readonly List<ServiceProvider> runtimes = [];
+    private ServiceProvider? runtime;
     public virtual IConfiguration Configuration
     {
         get => configuration;
         set
         {
             var incoming = value.AsEnumerable().ToDictionary(p => p.Key, p => p.Value);
+            runtime = null;
             foreach (var key in configuration.AsEnumerable().Select(p => p.Key).ToArray()) configuration[key] = null;
             foreach (var pair in incoming) configuration[pair.Key] = pair.Value;
         }
     }
     public IDataProtectionProvider Protection { get; } = new EphemeralDataProtectionProvider();
-    public virtual AiSettingsResolver Resolver => new(this, Configuration, Protection
-        );
+    public virtual AiSettingsResolver Resolver => new(this, Configuration, Protection, router: Router);
+    /// <summary>The edition's router, or null when Athar runs on its own.</summary>
+    public IAiFunctionRouter? Router => EditionServices is null ? null : (runtime ??= CreateRuntime(Protection)).GetService<IAiFunctionRouter>();
+    public IAiFunctionRouter? RouterFor(IDataProtectionProvider actualProtection) =>
+        EditionServices is null ? null : CreateRuntime(actualProtection).GetService<IAiFunctionRouter>();
+    private ServiceProvider CreateRuntime(IDataProtectionProvider actualProtection)
+    {
+        var services = new ServiceCollection().AddLogging().AddSingleton<IConfiguration>(Configuration)
+            .AddSingleton<IDataProtectionProvider>(actualProtection).AddSingleton<IDbContextFactory<AtharDbContext>>(this)
+            .AddScoped(_ => CreateDbContext()).AddScoped<AiSettingsResolver>();
+        EditionServices!(services);
+        var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
+        runtimes.Add(provider); return provider;
+    }
     public AiSettingsService Settings => new(this, Resolver);
     public QueryEmbedder Embedder => new(Configuration, NullLogger<QueryEmbedder>.Instance, Resolver);
     public QueryAnswerService Answers => new(this, Resolver, Embedder);
@@ -54,9 +74,12 @@ public class AiTestDatabase(AtharApp app) : IDbContextFactory<AtharDbContext>, I
     {
         await using var db = CreateDbContext();
         await db.Database.MigrateAsync(ct);
+        if (EditionSchema is { } schema) await schema(db, OwnedConnection, ct);
     }
     public virtual async ValueTask DisposeAsync()
     {
+        var owners = runtimes.ToArray(); runtimes.Clear(); runtime = null;
+        foreach (var owner in owners) await owner.DisposeAsync();
         await using var db = CreateDbContext(); await db.Database.EnsureDeletedAsync();
     }
 }

@@ -166,8 +166,7 @@ public sealed class AiSettingsTests(AtharApp app)
             Assert.Equal("invalid_input", (await Assert.ThrowsAsync<AtharError>(() => operation(draft with { ExpectedRevision = 1, BaseUrl = gateway.BaseUrl + "/different" }))).Code);
         Assert.Empty(gateway.Requests);
         var brokenProtection = new EphemeralDataProtectionProvider();
-        var brokenResolver = new AiSettingsResolver(data, data.Configuration, brokenProtection
-            );
+        var brokenResolver = new AiSettingsResolver(data, data.Configuration, brokenProtection, router: data.RouterFor(brokenProtection));
         var broken = new AiSettingsService(data, brokenResolver);
         var read = await broken.ReadAsync(AiTestDatabase.Admin, ct);
         Assert.True(read.KeyUnreadable);

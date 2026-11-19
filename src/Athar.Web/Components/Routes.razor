@@ -1,4 +1,4 @@
-<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="Edition.PageAssemblies" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
             <NotAuthorized>
@@ -10,6 +10,7 @@
 </Router>
 
 @inject RequestOrigin Origin
+@inject AtharEdition Edition
 
 @code {
     // A circuit has no HttpContext after its first request: keep that request's origin for audit events (FR-AU-02).
