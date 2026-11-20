@@ -23,6 +23,7 @@ public sealed class FakeAiGateway : IAsyncDisposable
     public bool MalformedChat { get; set; }
     public Func<HttpContext, Task>? AfterHeaders { get; set; }
     public string? ChatOverride { get; set; }
+    public string[]? ResearchQueries { get; set; }
     public int StatusCode { get; set; } = 200;
     public string? RedirectTo { get; set; }
     public string VisionText { get; set; } = "Synthetic image transcription: zephyr approval procedure.";
@@ -77,6 +78,18 @@ public sealed class FakeAiGateway : IAsyncDisposable
                 else if (root.TryGetProperty("response_format", out format)
                     && format.GetProperty("json_schema").GetProperty("schema").GetProperty("properties").TryGetProperty("candidates", out _))
                     text = JsonSerializer.Serialize(new { candidates = fake.Candidates });
+                else if (root.TryGetProperty("response_format", out format)
+                    && format.GetProperty("json_schema").GetProperty("schema").GetProperty("properties") is var shape
+                    && (shape.TryGetProperty("query", out _) || shape.TryGetProperty("queries", out _) || shape.TryGetProperty("summary", out _)))
+                {
+                    // Grounded answers: a rewrite, a research plan or a report. The plan and the rewrite echo the question.
+                    using var asked = JsonDocument.Parse(root.GetProperty("messages")[1].GetProperty("content").GetString()!);
+                    var question = asked.RootElement.GetProperty("question").GetString();
+                    text = shape.TryGetProperty("query", out _) ? JsonSerializer.Serialize(new { query = question })
+                        : shape.TryGetProperty("queries", out _) ? JsonSerializer.Serialize(new { queries = fake.ResearchQueries ?? [question!] })
+                        : JsonSerializer.Serialize(new { summary = "Synthetic summary.", gaps = "Nothing else was found.",
+                            findings = new[] { new { title = "Synthetic finding", text = "The evidence describes the procedure.", citations = new[] { 1 } } } });
+                }
                 else text = "{\"answer\":\"The supplied evidence describes the approval procedure.\",\"citations\":[1]}";
                 return Results.Json(new { choices = new[] { new { finish_reason = "stop", message = new { role = "assistant", content = text } } },
                     usage = new { prompt_tokens = 12, completion_tokens = 3 } });

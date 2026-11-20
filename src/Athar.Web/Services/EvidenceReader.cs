@@ -7,6 +7,15 @@ namespace Athar.Web.Services;
 /// <summary>What a reader is asked: the caller, the text and the caller's project and scope filters.</summary>
 public sealed record EvidenceQuery(Actor Actor, string Text, Guid[]? ProjectIds = null, Scope[]? Scopes = null)
 {
+    /// <summary>With <see cref="ProjectIds"/>: only rows that belong to those projects. Without it the project filter leaves company and personal rows in.</summary>
+    public bool ProjectOnly { get; init; }
+
+    /// <summary>
+    /// The only owners that may be read, by search kind. Null: no restriction. A reader whose kind is missing, or listed with
+    /// no ids, has nothing to read.
+    /// </summary>
+    public IReadOnlyDictionary<string, Guid[]>? Owners { get; init; }
+
     public override string ToString() => nameof(EvidenceQuery);
 }
 
@@ -16,8 +25,17 @@ public sealed record EvidenceQuery(Actor Actor, string Text, Guid[]? ProjectIds 
 /// </summary>
 public sealed record ExternalEvidence(Guid ChunkId, Guid OwnerId, string Body, double Score, SearchHit Hit, object State)
 {
+    /// <summary>What a stored <see cref="GroundingRef"/> keeps of this item: the reader's own version mark, never text.</summary>
+    public string Version { get; init; } = "";
+
     public override string ToString() => $"{nameof(ExternalEvidence)}:{Hit.Kind}:{OwnerId}:{ChunkId}"; // never the body
 }
+
+/// <summary>
+/// A stored pointer to one piece of evidence an answer depended on: where it was and which version, without its text.
+/// <see cref="Version"/> is opaque to everyone but whoever wrote it.
+/// </summary>
+public sealed record GroundingRef(string Kind, Guid OwnerId, Guid ChunkId, string Version);
 
 public sealed record ExternalEvidenceBatch(IReadOnlyList<ExternalEvidence> Evidence, bool Degraded);
 
@@ -51,6 +69,12 @@ public interface IEvidenceSession : IAsyncDisposable
 
     /// <summary>Throws <see cref="AtharError"/> unless the caller may still read every item exactly as it was ranked.</summary>
     Task RequireCurrentAsync(EvidenceQuery query, IReadOnlyList<ExternalEvidence> evidence, CancellationToken ct);
+
+    /// <summary>
+    /// Whether the caller may still read every stored reference of this reader's kind, unchanged and inside the query's
+    /// scope. A reader that does not keep versions answers false for any reference.
+    /// </summary>
+    Task<bool> IsCurrentAsync(EvidenceQuery query, IReadOnlyList<GroundingRef> refs, CancellationToken ct) => Task.FromResult(refs.Count == 0);
 }
 
 /// <summary>The registered readers opened for one request, addressed as one.</summary>
@@ -112,6 +136,15 @@ public sealed class EvidenceSessions : IAsyncDisposable
     {
         foreach (var (kind, session) in sessions)
             await session.RequireCurrentAsync(query, [.. evidence.Where(e => e.Hit.Kind == kind)], ct);
+    }
+
+    /// <summary>Whether every stored reference is still current for the caller. A reference no open reader owns is not.</summary>
+    public async Task<bool> IsCurrentAsync(EvidenceQuery query, IReadOnlyList<GroundingRef> refs, CancellationToken ct)
+    {
+        if (refs.Any(r => sessions.All(s => s.Kind != r.Kind))) return false;
+        foreach (var (kind, session) in sessions)
+            if (!await session.IsCurrentAsync(query, [.. refs.Where(r => r.Kind == kind)], ct)) return false;
+        return true;
     }
 
     /// <summary>One hit per owner: its best chunk.</summary>
