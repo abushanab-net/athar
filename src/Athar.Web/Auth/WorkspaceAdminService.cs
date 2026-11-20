@@ -22,7 +22,8 @@ public sealed class WorkspaceAdminService(IDbContextFactory<AtharDbContext> dbs)
     /// <summary>
     /// Workspaces the caller belongs to; org admins also see the others so they can manage them. Spaces are listed only to
     /// workspace members (FR-WS-01): all of them to whoever manages the workspace, otherwise only those the access rules
-    /// show the caller (a space role or a share), so a confidential space's name doesn't leak.
+    /// show the caller (a space role or a share), so a confidential space's name doesn't leak. Someone who is not a member
+    /// still sees the spaces they hold a role in themselves (an org admin who created one there), and no others.
     /// </summary>
     public async Task<List<WorkspaceRow>> WorkspacesAsync(Guid orgId, Guid actorId, CancellationToken ct = default)
     {
@@ -32,9 +33,10 @@ public sealed class WorkspaceAdminService(IDbContextFactory<AtharDbContext> dbs)
         var mine = await db.WorkspaceMembers.Where(m => m.UserId == actorId).ToDictionaryAsync(m => m.WorkspaceId, m => m.Role, ct);
         var isAdmin = OrgRules.IsAdmin(orgRole);
         var workspaces = await db.Workspaces.Where(w => isAdmin || mine.Keys.Contains(w.Id)).OrderBy(w => w.Name).ToListAsync(ct);
-        var spaces = await db.Spaces.Where(s => mine.Keys.Contains(s.WorkspaceId)).OrderBy(s => s.Name).ToListAsync(ct);
-        var visible = (await db.SpacesFor(new Caller(actorId)).Select(s => s.Id).ToListAsync(ct)).ToHashSet();
         var teams = db.TeamMembers.Where(t => t.UserId == actorId).Select(t => (Guid?)t.TeamId);
+        var held = (await db.SpaceMembers.Where(m => m.UserId == actorId || teams.Contains(m.TeamId)).Select(m => m.SpaceId).ToListAsync(ct)).ToHashSet();
+        var spaces = await db.Spaces.Where(s => mine.Keys.Contains(s.WorkspaceId) || held.Contains(s.Id)).OrderBy(s => s.Name).ToListAsync(ct);
+        var visible = (await db.SpacesFor(new Caller(actorId)).Select(s => s.Id).ToListAsync(ct)).ToHashSet();
         var spaceAdmin = (await db.SpaceMembers.Where(m => m.Role == SpaceRole.Admin && (m.UserId == actorId || teams.Contains(m.TeamId)))
             .Select(m => m.SpaceId).ToListAsync(ct)).ToHashSet();
         return workspaces.Select(w =>
@@ -42,7 +44,7 @@ public sealed class WorkspaceAdminService(IDbContextFactory<AtharDbContext> dbs)
             WorkspaceRole? role = mine.TryGetValue(w.Id, out var r) ? r : null;
             var manages = WorkspaceRules.ManageWorkspace(orgRole, role) == OrgDecision.Allow;
             return new WorkspaceRow(w.Id, w.Name, w.Slug, role, manages,
-                spaces.Where(s => s.WorkspaceId == w.Id && (manages || visible.Contains(s.Id)))
+                spaces.Where(s => s.WorkspaceId == w.Id && (role is null ? held.Contains(s.Id) : manages || visible.Contains(s.Id)))
                     .Select(s => Row(s) with { CanManage = manages || spaceAdmin.Contains(s.Id) }).ToList(), w.Color, w.Icon);
         }).ToList();
     }
