@@ -178,7 +178,7 @@ public class IngestTests(AtharApp athar)
 
     private static async Task<(int Code, string Output)> Node(string? home, string[] args, CancellationToken ct)
     {
-        var psi = new System.Diagnostics.ProcessStartInfo("node", ["--use-system-ca", .. args]) { RedirectStandardOutput = true, RedirectStandardError = true };
+        var psi = new System.Diagnostics.ProcessStartInfo("node", [OperatingSystem.IsWindows() ? "--use-openssl-ca" : "--use-system-ca", .. args]) { RedirectStandardOutput = true, RedirectStandardError = true };
         if (home is not null) { psi.Environment["HOME"] = home; psi.Environment["USERPROFILE"] = home; }
         psi.Environment.Remove("ATHAR_URL");
         psi.Environment.Remove("ATHAR_TOKEN");

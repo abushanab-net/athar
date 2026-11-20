@@ -99,7 +99,8 @@ public sealed class PageOpsService(AtharDbContext db, CollabClient collab, PageS
     public async Task<PageOpResult> RestoreAsync(Actor actor, Guid pageId, Guid versionId, string opId, CancellationToken ct = default)
     {
         db.CurrentOrgId = actor.OrgId;
-        var version = await db.PageVersions.AsNoTracking().SingleOrDefaultAsync(v => v.Id == versionId && v.PageId == pageId, ct)
+        var version = await db.PageVersions.AsNoTracking().SingleOrDefaultAsync(v => v.Id == versionId && v.PageId == pageId
+            && db.Pages.Any(p => p.Id == v.PageId), ct)
             ?? throw new AtharError("not_found", "Version not found.");
         var json = JsonSerializer.Deserialize<JsonElement>(version.ContentJson ?? """{"type":"doc"}""");
         return await RunAsync(actor, pageId, opId, new PageOp("restore", VersionId: versionId, Json: json), ct);
@@ -131,8 +132,14 @@ public sealed class PageOpsService(AtharDbContext db, CollabClient collab, PageS
         var row = await db.Operations.AsNoTracking().SingleOrDefaultAsync(o => o.OpId == opId, ct);
         if (row is null || row.ActorUserId != actor.UserId || row.CredentialId != actor.CredentialId)
             throw new AtharError("not_found", "Unknown op_id.");
-        if (row.TargetKind == OperationTarget.Page && Guid.TryParse(row.TargetId, out var page))
+        if (row.TargetKind is OperationTarget.Page or OperationTarget.Comment)
+        {
+            if (!Guid.TryParse(row.TargetId, out var target)) throw new AtharError("not_found", "Unknown op_id.");
+            var page = row.TargetKind == OperationTarget.Page ? target
+                : await db.CommentThreads.Where(t => t.Id == target).Select(t => (Guid?)t.PageId).SingleOrDefaultAsync(ct)
+                    ?? throw new AtharError("not_found", "Unknown op_id.");
             await RequireAsync(actor, page, PageAction.Read, ct);
+        }
         var result = row.Result is null ? (JsonElement?)null : JsonSerializer.Deserialize<JsonElement>(row.Result);
         var failed = row.Status == OperationStatus.Failed;
         return new(row.OpId, row.Status.ToString().ToLowerInvariant(), row.TargetKind.ToString().ToLowerInvariant(), row.TargetId,

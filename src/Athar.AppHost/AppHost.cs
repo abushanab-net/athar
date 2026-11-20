@@ -5,6 +5,8 @@ var builder = DistributedApplication.CreateBuilder(args);
 // ponytail: no data volume; G1-b migrates and seeds at startup, and `db reset` is the reset path anyway.
 var db = builder.AddPostgres("postgres")
     .WithImage("pgvector/pgvector", "pg17")
+    // Exact local digest (PostgreSQL 17.11, pgvector 0.8.7) so test runs are reproducible; update deliberately.
+    .WithImageSHA256("ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d")
     .AddDatabase("athar");
 
 // Image pinned here; model digests are pinned in G1-f (docs/03 D8). The volume keeps pulled models across runs.

@@ -5,7 +5,7 @@
 <MudTable T="T" Items="@Items" Dense="true" Hover="true" Elevation="0" Outlined="true" Breakpoint="@Breakpoint"
           Loading="@Loading" LoadingProgressColor="Color.Primary" RowsPerPage="@(PageSize > 0 ? PageSize : int.MaxValue)"
           HorizontalScrollbar="true" RowClassFunc="@RowClass" OnRowClick="@OnRowClick" Class="@($"ledger {Class}")"
-          AllowUnsorted="false" UserAttributes="@Attributes" ToolBarContent="@ToolBar"
+          SortLabel="@SortLabel" AllowUnsorted="false" UserAttributes="@Attributes" ToolBarContent="@ToolBar"
           PagerContent="@(PageSize > 0 && Items?.Count() > PageSize ? Pager : null)">
     <HeaderContent>@HeaderContent</HeaderContent>
     <RowTemplate>@RowTemplate(context)</RowTemplate>
@@ -33,6 +33,7 @@
     [Parameter] public EventCallback<TableRowClickEventArgs<T>> OnRowClick { get; set; }
     [Parameter] public Breakpoint Breakpoint { get; set; } = Breakpoint.None; // DESIGN.md: tables scroll sideways on phones, never stack
     [Parameter] public string? Class { get; set; }
+    [Parameter] public string? SortLabel { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attributes { get; set; }
 
     private static readonly RenderFragment Pager = b => { b.OpenComponent<MudTablePager>(0); b.AddAttribute(1, nameof(MudTablePager.HideRowsPerPage), true); b.CloseComponent(); };

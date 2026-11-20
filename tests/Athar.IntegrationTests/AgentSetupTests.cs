@@ -61,7 +61,7 @@ public class AgentSetupTests(AtharApp athar)
             var web = athar.App.GetEndpoint("web", "https").ToString().TrimEnd('/');
             async Task<(int Code, string Out)> Setup(string token)
             {
-                var psi = new ProcessStartInfo("node", ["--use-system-ca", Path.Combine(bundle, "setup.mjs"), bundle, web, mcp])
+                var psi = new ProcessStartInfo("node", [OperatingSystem.IsWindows() ? "--use-openssl-ca" : "--use-system-ca", Path.Combine(bundle, "setup.mjs"), bundle, web, mcp])
                     { RedirectStandardOutput = true, RedirectStandardError = true };
                 psi.Environment["ATHAR_TOKEN"] = token;
                 psi.Environment["HOME"] = home;
