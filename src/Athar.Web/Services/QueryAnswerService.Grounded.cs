@@ -169,7 +169,7 @@ public sealed partial class QueryAnswerService
                 new { type = "object", additionalProperties = false, required = new[] { "summary", "findings", "gaps" }, properties = new {
                     summary = new { type = "string" }, gaps = new { type = "string" },
                     findings = new { type = "array", items = new { type = "object", additionalProperties = false, required = new[] { "title", "text", "citations" },
-                        properties = new { title = new { type = "string" }, text = new { type = "string" }, citations = new { type = "array", items = new { type = "integer" } } } } } } }, 6000, ct);
+                        properties = new { title = new { type = "string" }, text = new { type = "string" }, citations = new { type = "array", items = new { type = "integer" } } } } } } }, 4096, ct);
             (text, gaps) = Read(() => (output.RootElement.GetProperty("summary").GetString()!, output.RootElement.GetProperty("gaps").GetString()));
             findings = Read(() => output.RootElement.GetProperty("findings").EnumerateArray().Select(f => new GroundedFinding(f.GetProperty("title").GetString()!,
                 f.GetProperty("text").GetString()!, [.. f.GetProperty("citations").EnumerateArray().Select(x => x.GetInt32()).Distinct()])).ToList());
