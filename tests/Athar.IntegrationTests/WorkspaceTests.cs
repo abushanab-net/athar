@@ -41,6 +41,11 @@ public class WorkspaceTests(AtharApp athar)
         var asOwner = (await s.WorkspacesAsync(Org, QaSeed.Owner, ct)).Single(w => w.Id == research.Id);
         Assert.Null(asOwner.MyRole);
         Assert.Empty(asOwner.Spaces);
+        // A space they create there is theirs, so it is listed for them: that one and no other.
+        Assert.Equal(OrgDecision.Allow, await s.CreateSpaceAsync(Org, QaSeed.Owner, research.Id, "Owner's", "owners", holdsPersonalData: false, ct));
+        var own = Assert.Single((await s.WorkspacesAsync(Org, QaSeed.Owner, ct)).Single(w => w.Id == research.Id).Spaces);
+        Assert.Equal("owners", own.Slug);
+        Assert.True(own.CanManage);
         // A plain workspace member sees the same spaces as in the wiki: none until a space role or share opens one (T085: it listed HR).
         var asMember = await s.WorkspacesAsync(Org, QaSeed.Member, ct);
         Assert.Empty(asMember.Single(w => w.Id == research.Id).Spaces);
