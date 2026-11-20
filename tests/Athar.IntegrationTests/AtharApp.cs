@@ -32,6 +32,9 @@ public sealed class AtharApp : IAsyncLifetime
     public FakeGitHub GitHub { get; private set; } = null!;
     public const string GitHubOrg = "qa-org";
 
+    /// <summary>The app host these tests start: Athar's own unless a host that builds on Athar sets its own before any test runs.</summary>
+    public static Type AppHost { get; set; } = typeof(Projects.Athar_AppHost);
+
     public async Task InitializeAsync()
     {
         using var cts = new CancellationTokenSource(StartTimeout);
@@ -40,7 +43,7 @@ public sealed class AtharApp : IAsyncLifetime
         // in the AppHost's user-secrets (T090; T091 runs AT-40 that way). Blanking the key turns the gateway off.
         // Edited pages re-index at once in tests (the hosts throttle it, T100).
         string[] args = Environment.GetEnvironmentVariable("ATHAR_TEST_AI") == "gateway" ? ["--Athar:Index:PageEvery=00:00:00"] : ["--Parameters:ai-key=", "--Athar:Index:PageEvery=00:00:00"];
-        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Athar_AppHost>(args, ct);
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync(AppHost, args, ct);
         appHost.Services.AddLogging(b => b.SetMinimumLevel(LogLevel.Debug).AddProvider(_log));
         GitHub = await FakeGitHub.StartAsync();
         foreach (var name in new[] { "web", "worker" })
