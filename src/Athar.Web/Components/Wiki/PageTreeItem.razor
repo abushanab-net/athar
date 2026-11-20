@@ -3,7 +3,7 @@
 
 <li>
     @* Editors drag rows to move pages (WikiPage.razor.js); the ⋮ menu does the same from the keyboard. *@
-    <div class="tree-row @(Node.Id == SelectedId ? "selected" : null)" data-page-id="@Node.Id" draggable="@(CanEdit ? "true" : "false")">
+    <div class="tree-row @(Node.Id == SelectedId ? "selected" : null)" data-page-id="@Node.Id" draggable="@(Editable ? "true" : "false")">
         @if (kids.Count > 0)
         {
             <IconAction Icon="@(open ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.ChevronRight)" Class="@(open ? "tree-toggle-node" : "tree-toggle-node flip-rtl")"
@@ -18,14 +18,14 @@
         <MudIcon Class="tree-icon" Size="Size.Small" aria-hidden="true"
                  Icon="@(kids.Count == 0 ? Icons.Material.Outlined.Description : open ? Icons.Material.Outlined.FolderOpen : Icons.Material.Outlined.Folder)" />
         @* One line: long titles end in an ellipsis, the full title is the tooltip. *@
-        <a href="@($"/wiki/p/{Node.Id}")" class="tree-title" title="@Node.Title" dir="auto" aria-current="@(Node.Id == SelectedId ? "page" : null)">@Node.Title</a>
-        @if (CanEdit)
+        <a href="@Node.Href" class="tree-title" title="@Node.Title" dir="auto" aria-current="@(Node.Id == SelectedId ? "page" : null)">@Node.Title</a>
+        @if (Editable)
         {
             <IconAction Icon="@Icons.Material.Filled.Add" Class="tree-add" Label="@($"{T("AddSubpage")}: {Node.Title}")" OnClick="() => Act(TreeAction.NewChild)" />
         }
         <MenuButton Icon="@Icons.Material.Filled.MoreVert" Class="tree-menu" Label="@T("PageActions")" AriaLabel="@($"{T("PageActions")}: {Node.Title}")">
             <MudMenuItem Icon="@Icons.Material.Outlined.Link" OnClick="() => Act(TreeAction.CopyLink)">@T("CopyLink")</MudMenuItem>
-            @if (CanEdit)
+            @if (Editable)
             {
                 <MudMenuItem Icon="@Icons.Material.Outlined.PersonAdd" OnClick="() => Act(TreeAction.Share)">@T("Share")</MudMenuItem>
                 <MudMenuItem Icon="@Icons.Material.Outlined.FileCopy" OnClick="() => Act(TreeAction.Duplicate)">@T("Duplicate")</MudMenuItem>
@@ -85,6 +85,7 @@
     private int shown = Step, rendered = -1;
 
     private string T(string key) => Session.T(key);
+    private bool Editable => CanEdit && Node.Status != Athar.Domain.Model.PageStatus.Managed;
 
     protected override void OnParametersSet()
     {

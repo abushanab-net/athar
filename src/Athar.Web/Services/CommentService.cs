@@ -158,7 +158,8 @@ public sealed class CommentService(AtharDbContext db, PageOpsService ops, TimePr
     {
         var cutoff = clock.GetUtcNow() - AnchorTimeout;
         var stale = await db.CommentThreads.IgnoreQueryFilters()
-            .Where(t => t.Status == ThreadStatus.PendingAnchor && t.OpId != null && t.CreatedAt < cutoff).ToListAsync(ct);
+            .Where(t => t.Status == ThreadStatus.PendingAnchor && t.OpId != null && t.CreatedAt < cutoff
+                && db.Pages.IgnoreQueryFilters().Any(p => p.OrgId == t.OrgId && p.Id == t.PageId && p.Status != PageStatus.Managed)).ToListAsync(ct);
         foreach (var thread in stale) await FailAnchorAsync(thread, ct);
         return stale.Count;
     }

@@ -713,6 +713,13 @@ else
     private async Task LoadTreeAsync(PageService pages)
     {
         tree = await pages.TreeAsync(actor!, space!.Id);
+        await using (var scope = Scopes.CreateAsyncScope())
+        {
+            var contributed = new List<PageNode>();
+            foreach (var contributor in scope.ServiceProvider.GetServices<IPageTreeContributor>())
+                contributed.AddRange(await contributor.TreeAsync(Session.AsActor(), space.Id));
+            if (contributed.Count > 0) tree = [.. tree.Concat(contributed).OrderBy(p => p.Position).ThenBy(p => p.Id)];
+        }
         children = tree.ToLookup(p => p.ParentId);
         treeStamp++;
         if (showTrash) trash = await pages.TreeAsync(actor!, space.Id, trash: true);
@@ -745,7 +752,7 @@ else
                 await MoveSpaceChangedAsync(e.Node.SpaceId);
                 break;
             case PageTreeItem.TreeAction.CopyLink:
-                await CopyAsync(Nav.ToAbsoluteUri($"/wiki/p/{e.Node.Id}").ToString());
+                await CopyAsync(Nav.ToAbsoluteUri(e.Node.Href).ToString());
                 break;
             case PageTreeItem.TreeAction.Share:
                 // Open the page with its Share panel showing.

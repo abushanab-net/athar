@@ -12,6 +12,19 @@ public interface IJob
     Task RunAsync(Job job, AtharDbContext db, CancellationToken ct);
 }
 
+/// <summary>A job that does bounded external work first (no transaction held), then a fenced database-only commit.</summary>
+public interface IPreparedJob : IJob
+{
+    Task<object?> PrepareAsync(Job job, CancellationToken ct);
+    Task CommitAsync(Job job, object? prepared, AtharDbContext db, CancellationToken ct);
+}
+
+/// <summary>Optional validation after the runner's final save, before the shared transaction commits.</summary>
+public interface IJobCommitCheck
+{
+    Task CheckCommitAsync(Job job, object? prepared, AtharDbContext db, CancellationToken ct);
+}
+
 /// <summary>Thrown when a job can't run yet (a model still downloading): it's rescheduled without using up an attempt.</summary>
 public sealed class JobDeferred(string reason, TimeSpan delay) : Exception(reason)
 {
@@ -118,12 +131,15 @@ public sealed class JobRunner(IServiceScopeFactory scopes, IEnumerable<IJob> job
         var renewing = RenewWhileRunningAsync(claim, lost, stopRenewing.Token);
         try
         {
-            await using var tx = await db.Database.BeginTransactionAsync(ct);
             // A detached copy for the job: the completion lock below must read the row fresh (renewals moved its xmin).
             var job = await db.Jobs.AsNoTracking().IgnoreQueryFilters().SingleAsync(j => j.Id == claim.Id, ct);
-            if (job.LeaseId != claim.LeaseId) return false;
+            if (job.Status != JobStatus.Running || job.LeaseId != claim.LeaseId || job.LeaseUntil <= clock.GetUtcNow()) return false;
             db.CurrentOrgId = job.OrgId;
-            await _byKind[job.Kind].RunAsync(job, db, lost.Token);
+            var handler = _byKind[job.Kind];
+            var prepared = handler is IPreparedJob p ? await p.PrepareAsync(job, lost.Token) : null;
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            if (handler is IPreparedJob staged) await staged.CommitAsync(job, prepared, db, lost.Token);
+            else await handler.RunAsync(job, db, lost.Token);
 
             await stopRenewing.CancelAsync();
             await renewing;
@@ -133,6 +149,7 @@ public sealed class JobRunner(IServiceScopeFactory scopes, IEnumerable<IJob> job
             locked.LeaseId = null;
             locked.LeaseUntil = null;
             await db.SaveChangesAsync(ct);
+            if (handler is IJobCommitCheck final) await final.CheckCommitAsync(job, prepared, db, lost.Token);
             await tx.CommitAsync(ct);
             return true;
         }

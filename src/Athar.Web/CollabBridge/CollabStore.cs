@@ -25,12 +25,12 @@ public sealed class CollabStore(AtharDbContext db, TimeProvider clock, Notificat
 {
     /// <summary>The live page with its org, whatever org the caller is in (collab knows only the page id).</summary>
     public Task<Page?> FindAsync(Guid id, CancellationToken ct = default) =>
-        db.Pages.IgnoreQueryFilters().AsNoTracking().SingleOrDefaultAsync(p => p.Id == id && p.DeletedAt == null, ct);
+        db.Pages.IgnoreQueryFilters().AsNoTracking().SingleOrDefaultAsync(p => p.Id == id && p.DeletedAt == null && p.Status != PageStatus.Managed, ct);
 
     /// <summary>Stores a new revision if <c>BaseRevision</c> matches; otherwise returns the stored state for the 409.</summary>
     public async Task<(long? Revision, CollabState? Stored)> PersistAsync(Guid id, CollabPersist r, CancellationToken ct = default)
     {
-        var page = await db.Pages.IgnoreQueryFilters().SingleOrDefaultAsync(p => p.Id == id && p.DeletedAt == null, ct);
+        var page = await db.Pages.IgnoreQueryFilters().SingleOrDefaultAsync(p => p.Id == id && p.DeletedAt == null && p.Status != PageStatus.Managed, ct);
         if (page is null) return (null, null);
         if (r.BaseRevision != page.Revision) return (null, new(page.Ydoc, page.Revision));
         db.CurrentOrgId = page.OrgId;
@@ -113,8 +113,8 @@ public sealed class CollabStore(AtharDbContext db, TimeProvider clock, Notificat
         {
             // A concurrent persist took this revision number first: answer like any stale base.
             db.ChangeTracker.Clear();
-            var stored = await db.Pages.IgnoreQueryFilters().AsNoTracking().SingleAsync(p => p.Id == id, ct);
-            return (null, new(stored.Ydoc, stored.Revision));
+            var stored = await db.Pages.IgnoreQueryFilters().AsNoTracking().SingleOrDefaultAsync(p => p.Id == id && p.Status != PageStatus.Managed, ct);
+            return (null, stored is null ? null : new(stored.Ydoc, stored.Revision));
         }
     }
 
@@ -155,5 +155,7 @@ public sealed class CollabStore(AtharDbContext db, TimeProvider clock, Notificat
     }
 
     public Task<List<PageRevision>> RevisionsAsync(Guid id, CancellationToken ct = default) =>
-        db.PageRevisions.IgnoreQueryFilters().AsNoTracking().Where(r => r.PageId == id).OrderBy(r => r.Revision).ToListAsync(ct);
+        db.PageRevisions.IgnoreQueryFilters().AsNoTracking().Where(r => r.PageId == id
+            && db.Pages.IgnoreQueryFilters().Any(p => p.OrgId == r.OrgId && p.Id == r.PageId && p.Status != PageStatus.Managed))
+            .OrderBy(r => r.Revision).ToListAsync(ct);
 }
