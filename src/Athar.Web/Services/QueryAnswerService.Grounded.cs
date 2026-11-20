@@ -181,7 +181,7 @@ public sealed partial class QueryAnswerService
         string text; string? gaps = null; var findings = new List<GroundedFinding>(); int[] cited;
         if (report)
         {
-            using var output = await AskAsync(s, "Write a research report: a short summary, then findings, then what the evidence leaves open." + rules + " Every finding needs at least one citation. If the evidence supports no finding, return none.",
+            using var output = await AskAsync(s, "Write a compact research report: a summary of at most 80 words, then at most 5 findings of at most 90 words each, then in at most 60 words what the evidence leaves open." + rules + " Every finding needs at least one citation. If the evidence supports no finding, return none.",
                 new { conversation, question, searches = queries, evidence = numbered },
                 new { type = "object", additionalProperties = false, required = new[] { "summary", "findings", "gaps" }, properties = new {
                     summary = new { type = "string" }, gaps = new { type = "string" },
@@ -322,6 +322,8 @@ public sealed partial class QueryAnswerService
             output = await new AiGatewayClient(s).ChatAsync(s.QueryModel,
                 [new { role = "system", content = system }, new { role = "user", content = JsonSerializer.Serialize(user) }], schema, maxTokens, ct);
         }
+        // Cut off at the output limit: asking again changes nothing, a smaller request or a higher limit does.
+        catch (AiProviderException e) when (e.Code == "output_truncated") { throw new AtharError("answer_too_long", "The reply did not fit the output limit."); }
         catch (AiProviderException) { throw new AtharError("provider_unavailable", "AI answers are temporarily unavailable."); }
         try { return JsonDocument.Parse(output); }
         catch (JsonException) { throw Invalid(); }
