@@ -74,11 +74,19 @@ public sealed class GroundedAnswerTests(AtharApp app)
         Assert.Equal(new[] { false }, await data.Answers.CurrentAsync(AiTestDatabase.Admin, new(Owners: new Dictionary<string, Guid[]> { ["page"] = [QaSeed.HomePage] }), [second.Dependencies], ct));
 
         // The page moves on: the old answers may no longer be shown to a model, or to the reader.
-        await using (var changed = data.CreateDbContext())
+        // It moves while the follow-up is being rewritten: the rewritten query may carry the old answer, so it is not even embedded.
+        gateway.BeforeResponse = async r =>
         {
+            if (r.Path != "chat/completions") return;
+            gateway.BeforeResponse = null;
+            await using var changed = data.CreateDbContext();
             (await changed.Pages.SingleAsync(p => p.Id == QaSeed.DeployRunbookPage, ct)).Revision++;
             await changed.SaveChangesAsync(ct);
-        }
+        };
+        var embedded = gateway.Requests.Count(r => r.Path == "embeddings");
+        Assert.Equal("context_changed", (await Assert.ThrowsAsync<AtharError>(() => data.Answers.GroundedAsync(AiTestDatabase.Admin,
+            new("And after that?", scope, Context: context, ContextDependencies: first.Dependencies), ct: ct))).Code);
+        Assert.Equal(embedded, gateway.Requests.Count(r => r.Path == "embeddings"));
         before = gateway.Requests.Count;
         Assert.Equal("context_changed", (await Assert.ThrowsAsync<AtharError>(() => data.Answers.GroundedAsync(AiTestDatabase.Admin,
             new("And after that?", scope, Context: context, ContextDependencies: first.Dependencies), ct: ct))).Code);
