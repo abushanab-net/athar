@@ -47,14 +47,16 @@ public sealed class AiSettingsService(IDbContextFactory<AtharDbContext> dbs, AiS
 
     public async Task<IReadOnlyList<string>> ListModelsAsync(Actor actor, AiSettingsWrite draft, CancellationToken ct = default)
     {
-        var snapshot = await DraftAsync(actor, draft, ct, requireModels: false);
+        await using var db = await OpenAsync(actor, ct);
+        await using var snapshot = await DraftAsync(db, actor, draft, ct, requireModels: false);
         try { return await new AiGatewayClient(snapshot).ModelsAsync(ct); }
         catch (AiProviderException) { throw new AtharError("provider_unavailable", "Model discovery is unavailable."); }
     }
 
     public async Task<AiTestResult> TestAsync(Actor actor, AiSettingsWrite draft, CancellationToken ct = default)
     {
-        var s = await DraftAsync(actor, draft, ct);
+        await using var db = await OpenAsync(actor, ct);
+        await using var s = await DraftAsync(db, actor, draft, ct);
         var client = new AiGatewayClient(s);
         var roles = new List<AiRoleTest>();
         async Task Probe(string role, Func<Task> run)
@@ -76,6 +78,7 @@ public sealed class AiSettingsService(IDbContextFactory<AtharDbContext> dbs, AiS
         if (s.VisionModel is not null)
             await Probe("vision", async () => await client.TranscribeAsync(Convert.FromBase64String(
                 "iVBORw0KGgoAAAANSUhEUgAAAHAAAAAsCAIAAAAyzquQAAAAtklEQVR4nO3QMRaEMAzEUN//0lDgkiLBMoE8qWad2R+HocXqAbslKJygcILCCQonKJygcEOgMVDlt7M3K3XvERTeIyi8R1B4zxDE7NCO71clKJygcILCCQpU2SboTYLCCQrXDjpb9+iOqD2CZoLCCQr3KmjHoC+AdmwQVFAuQeEEhRMUTlA4QeF+CRqFqn/u6ebSTeoxQfMm9ZigeZN6TNC8SR2yK0HhBIUTFE5QOEHhBIUTFO4EnqZRYD1jbn8AAAAASUVORK5CYII="), "image/png", ct));
+        await s.CheckAsync(ct);
         return new(roles);
     }
 
@@ -94,12 +97,13 @@ public sealed class AiSettingsService(IDbContextFactory<AtharDbContext> dbs, AiS
             current.LongCount(j => j.Status == JobStatus.Running), current.LongCount(j => j.Status == JobStatus.Dead));
     }
 
-    private async Task<AiSnapshot> DraftAsync(Actor actor, AiSettingsWrite input, CancellationToken ct, bool requireModels = true)
+    private async Task<AiSnapshot> DraftAsync(AtharDbContext db, Actor actor, AiSettingsWrite input, CancellationToken ct, bool requireModels = true)
     {
-        await using var db = await OpenAsync(actor, ct);
+        var operation = await resolver.CaptureAsync(db, ct);
+        AiOperationPolicy.Require(operation);
         var row = await db.AiSettings.AsNoTracking().SingleOrDefaultAsync(ct);
         CheckRevision(row, input.ExpectedRevision);
-        return Draft(actor.OrgId, row, input, requireModels);
+        return resolver.ForOperation(Draft(actor.OrgId, row, input, requireModels), operation, ct);
     }
 
     private AiSnapshot Draft(Guid org, AiSettings? row, AiSettingsWrite input, bool requireModels = true)

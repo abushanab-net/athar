@@ -874,4 +874,8 @@
   <data name="DashUnused" xml:space="preserve"><value>غير مستخدمة منذ ٣٠ يومًا</value></data>
   <data name="DashExpired" xml:space="preserve"><value>منتهية</value></data>
   <data name="DashManageTokens" xml:space="preserve"><value>إدارة الرموز</value></data>
+  <data name="Role_answer" xml:space="preserve"><value>الإجابات</value></data>
+  <data name="Role_extraction" xml:space="preserve"><value>الاستخراج المنظم</value></data>
+  <data name="Role_wikisummary" xml:space="preserve"><value>ملخصات الويكي</value></data>
+  <data name="Role_answercheck" xml:space="preserve"><value>التحقق من الإجابات</value></data>
 </root>

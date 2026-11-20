@@ -70,7 +70,7 @@ public sealed class AiSettingsTests(AtharApp app)
 
         await using var gateway = await FakeAiGateway.StartAsync();
         await data.Settings.SaveAsync(AiTestDatabase.Admin, AiTestDatabase.Draft(gateway), ct);
-        var active = (await data.Resolver.ResolveAsync(QaSeed.Org, ct)).EmbeddingIdentity;
+        var active = (await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct)).EmbeddingIdentity;
         foreach (var state in new[] { JobStatus.Ready, JobStatus.Running, JobStatus.Dead })
         {
             await Add(state, active);
@@ -100,7 +100,7 @@ public sealed class AiSettingsTests(AtharApp app)
         var service = data.Settings;
         var actor = AiTestDatabase.Admin;
         const string secret = "synthetic-key-never-returned";
-        Assert.Equal("bge-m3", (await data.Resolver.ResolveAsync(QaSeed.Org, ct)).EmbeddingIdentity);
+        Assert.Equal("bge-m3", (await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct)).EmbeddingIdentity);
         var first = AiTestDatabase.Draft(gateway, key: ApiKeyChange.Replace, secret: secret);
         // Two first writers serialize on the organization row; exactly one wins.
         var attempts = await Task.WhenAll(Enumerable.Range(0, 2).Select(async _ =>
@@ -109,18 +109,18 @@ public sealed class AiSettingsTests(AtharApp app)
             catch (AtharError e) { return e.Code; }
         }));
         Assert.Equal(new[] { "conflict", "saved" }, attempts.Order().ToArray());
-        var s1 = await data.Resolver.ResolveAsync(QaSeed.Org, ct);
+        var s1 = await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct);
         Assert.Equal(secret, s1.ApiKey);
         Assert.DoesNotContain(secret, JsonSerializer.Serialize(await service.ReadAsync(actor, ct)));
         await service.SaveAsync(actor, first with { ExpectedRevision = 1, QueryModel = "changed-query", VisionModel = null, KeyChange = ApiKeyChange.Clear, NewApiKey = null }, ct);
-        var s2 = await data.Resolver.ResolveAsync(QaSeed.Org, ct);
+        var s2 = await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct);
         Assert.Equal(s1.EmbeddingIdentity, s2.EmbeddingIdentity);
         Assert.Null(s2.ApiKey);
         await service.ResetAsync(actor, 2, ct);
         var reset = await service.ReadAsync(actor, ct);
         Assert.True(reset.UsesEnvironment);
         Assert.Equal(3, reset.Revision);
-        Assert.Equal("bge-m3", (await data.Resolver.ResolveAsync(QaSeed.Org, ct)).EmbeddingIdentity);
+        Assert.Equal("bge-m3", (await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct)).EmbeddingIdentity);
         await service.SaveAsync(actor, first with { ExpectedRevision = 3 }, ct);
         foreach (var stale in new long[] { 0, 1, 2, 3 })
         {
@@ -129,12 +129,12 @@ public sealed class AiSettingsTests(AtharApp app)
             Assert.Equal("conflict", (await Assert.ThrowsAsync<AtharError>(() => service.ReindexAsync(actor, stale, ct))).Code);
         }
         await service.ResetAsync(actor, 4, ct);
-        var before = await data.Resolver.ResolveAsync(QaSeed.Org, ct);
+        var before = await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct);
         await service.ReindexAsync(actor, 5, ct);
-        var after = await data.Resolver.ResolveAsync(QaSeed.Org, ct);
+        var after = await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct);
         Assert.True(after.UsesEnvironment);
         Assert.NotEqual(before.EmbeddingIdentity, after.EmbeddingIdentity);
-        Assert.Equal(after.EmbeddingIdentity, (await data.Resolver.ResolveAsync(QaSeed.Org, ct)).EmbeddingIdentity);
+        Assert.Equal(after.EmbeddingIdentity, (await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct)).EmbeddingIdentity);
         await using var db = data.CreateDbContext();
         Assert.Equal(6, (await db.AiSettings.SingleAsync(ct)).Revision);
         var audit = await db.AuditEvents.Where(a => a.Action.StartsWith("ai_settings.")).ToListAsync(ct);
@@ -142,7 +142,7 @@ public sealed class AiSettingsTests(AtharApp app)
         Assert.DoesNotContain(secret, JsonSerializer.Serialize(audit));
         await service.SaveAsync(actor, first with { ExpectedRevision = 6 }, ct);
         await service.ResetAsync(actor, 7, ct);
-        Assert.Equal(after.EmbeddingIdentity, (await data.Resolver.ResolveAsync(QaSeed.Org, ct)).EmbeddingIdentity);
+        Assert.Equal(after.EmbeddingIdentity, (await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct)).EmbeddingIdentity);
         Assert.Equal(8, (await service.ReadAsync(actor, ct)).Revision);
     }
 
@@ -158,14 +158,16 @@ public sealed class AiSettingsTests(AtharApp app)
             ["Athar:Ai:EmbeddingModel"] = gateway.EmbeddingModel }).Build();
         var draft = AiTestDatabase.Draft(gateway, key: ApiKeyChange.Keep);
         await data.Settings.SaveAsync(AiTestDatabase.Admin, draft, ct);
-        Assert.Equal("environment-secret", (await data.Resolver.ResolveAsync(QaSeed.Org, ct)).ApiKey);
+        Assert.Equal("environment-secret", (await data.Resolver.ResolveMetadataAsync(QaSeed.Org, ct)).ApiKey);
         foreach (var operation in new Func<AiSettingsWrite, Task>[] {
             d => data.Settings.SaveAsync(AiTestDatabase.Admin, d, ct),
             async d => await data.Settings.ListModelsAsync(AiTestDatabase.Admin, d, ct),
             async d => await data.Settings.TestAsync(AiTestDatabase.Admin, d, ct) })
             Assert.Equal("invalid_input", (await Assert.ThrowsAsync<AtharError>(() => operation(draft with { ExpectedRevision = 1, BaseUrl = gateway.BaseUrl + "/different" }))).Code);
         Assert.Empty(gateway.Requests);
-        var brokenResolver = new AiSettingsResolver(data, data.Configuration, new EphemeralDataProtectionProvider());
+        var brokenProtection = new EphemeralDataProtectionProvider();
+        var brokenResolver = new AiSettingsResolver(data, data.Configuration, brokenProtection
+            );
         var broken = new AiSettingsService(data, brokenResolver);
         var read = await broken.ReadAsync(AiTestDatabase.Admin, ct);
         Assert.True(read.KeyUnreadable);
@@ -179,9 +181,9 @@ public sealed class AiSettingsTests(AtharApp app)
         }
         Assert.Equal("invalid_input", (await Assert.ThrowsAsync<AtharError>(() => broken.SaveAsync(AiTestDatabase.Admin, draft with { ExpectedRevision = 1 }, ct))).Code);
         await broken.SaveAsync(AiTestDatabase.Admin, draft with { ExpectedRevision = 1, KeyChange = ApiKeyChange.Clear }, ct);
-        Assert.Null((await brokenResolver.ResolveAsync(QaSeed.Org, ct)).ApiKey); // never falls through to deployment key
+        Assert.Null((await brokenResolver.ResolveMetadataAsync(QaSeed.Org, ct)).ApiKey); // never falls through to deployment key
         await broken.SaveAsync(AiTestDatabase.Admin, draft with { ExpectedRevision = 2, KeyChange = ApiKeyChange.Replace, NewApiKey = "replacement" }, ct);
-        Assert.Equal("replacement", (await brokenResolver.ResolveAsync(QaSeed.Org, ct)).ApiKey);
+        Assert.Equal("replacement", (await brokenResolver.ResolveMetadataAsync(QaSeed.Org, ct)).ApiKey);
         var wrongOrg = data.Resolver.Resolve(QaSeed.OtherOrg, new AiSettings { UsesEnvironment = false,
             BaseUrl = gateway.BaseUrl, EmbeddingModel = gateway.EmbeddingModel, QueryModel = gateway.QueryModel,
             ProtectedApiKey = data.Resolver.Protect(QaSeed.Org, "bound-to-org") });

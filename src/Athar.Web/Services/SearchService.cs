@@ -13,6 +13,8 @@ public sealed record SearchResult(bool Degraded, IReadOnlyList<SearchHit> Hits);
 // Nullable members default to null so the generated output schema marks them optional.
 public sealed record SearchHit(string Kind, Guid Id, string Title, string Snippet, string Url, double Score, Guid? SpaceId = null, string? Scope = null)
 {
+    /// <summary>Where a registered evidence reader says its hit comes from (its own citation record); null for pages, memories and sources.</summary>
+    public object? DocumentCitation { get; init; }
     /// <summary>A source document's hit, linked per kind: GitHub at the synced commit (T070), a URL to the page itself, a document to its project (T142).</summary>
     public static SearchHit Source(SourceKind kind, string repo, string? title, string path, string? commit, Guid projectId, Guid id, string snippet, double score) => kind switch
     {
@@ -20,6 +22,12 @@ public sealed record SearchHit(string Kind, Guid Id, string Title, string Snippe
         SourceKind.Url => new("source", id, title ?? repo, snippet, repo, score, Scope: "project"),
         _ => new("source", id, title ?? path, snippet, $"/projects/{projectId}", score, Scope: "project"),
     };
+}
+
+/// <summary>One query's embedding, made once under a snapshot and shared by every ranking of that query. Null vector: text ranking only.</summary>
+public sealed record CapturedQueryEmbedding(AiSnapshot Snapshot, float[]? Vector)
+{
+    public override string ToString() => nameof(CapturedQueryEmbedding);
 }
 
 /// <summary>A chunk's rank in the fused list, with its owner.</summary>
@@ -31,12 +39,17 @@ public sealed record RankedChunk(Guid ChunkId, ChunkOwner OwnerKind, Guid OwnerI
 /// from the EF access predicates first, and the raw FTS and vector SQL takes them, with <c>org_id</c>, as parameters.
 /// Without a query embedding (Ollama down), results are FTS only and flagged <c>degraded</c>.
 /// </summary>
-public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
+public sealed partial class SearchService(AtharDbContext db, QueryEmbedder embedder, IEnumerable<IEvidenceReader>? readers = null)
 {
     /// <summary>RRF's k (Cormack et al.): dampens the weight of top ranks so both lists count.</summary>
     public const int RrfK = 60;
 
-    public Task<AiSnapshot> SnapshotAsync(Guid org, CancellationToken ct) => embedder.SnapshotAsync(org, ct);
+    public async Task<AiSnapshot> SnapshotAsync(Guid org, CancellationToken ct)
+    {
+        if (db.CurrentOrgId != org)
+            throw new InvalidOperationException("ai_operation_org_changed");
+        return await embedder.SnapshotAsync(await embedder.CaptureAsync(db, ct), ct);
+    }
 
     /// <summary>Below this many permitted rows an exact scan is cheaper and complete; above it, HNSW with iterative scans (docs/03 §4.3).</summary>
     public const int ExactBelow = 5000;
@@ -45,14 +58,26 @@ public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
     {
         if (!actor.Scopes.Contains("read")) throw new AtharError("forbidden", "The token lacks the 'read' scope.");
         db.CurrentOrgId = actor.OrgId;
-        var kinds = input.Kinds is { Length: > 0 } k ? k.Select(x => x.ToLowerInvariant()).ToHashSet() : ["page", "memory", "source"];
-        if (kinds.Except(["page", "memory", "source"]).Any()) throw new AtharError("invalid_input", "kinds must be page, memory or source");
+        if (input.Query is null || input.Query.Length > 2000 || input.Query.Contains('\0')) throw new AtharError("invalid_input", "A query of at most 2000 characters is required.");
+        string[] allowed = ["page", "memory", "source", .. EvidenceSessions.Kinds(readers)];
+        var kinds = input.Kinds is { Length: > 0 } k ? k.Select(x => x.ToLowerInvariant()).ToHashSet() : allowed.ToHashSet();
+        if (kinds.Except(allowed).Any()) throw new AtharError("invalid_input", "Invalid search kind.");
+        var operation = await embedder.CaptureAsync(db, ct);
         var limit = Math.Clamp(input.Limit, 1, 50);
 
         Guid[] pages = kinds.Contains("page") ? await VisiblePagesAsync(actor, input.SpaceIds, ct) : [];
         Guid[] memories = kinds.Contains("memory") ? await VisibleMemoriesAsync(actor, input.ProjectIds, ct) : [];
         Guid[] sources = kinds.Contains("source") ? await VisibleSourceDocsAsync(actor, input.ProjectIds, ct) : []; // Lane D (T070)
-        var (ranked, degraded) = await RankAsync(actor.OrgId, input.Query, pages, memories, limit * 4, ct, sources);
+        var evidenceQuery = new EvidenceQuery(actor, input.Query, input.ProjectIds);
+        await using var external = await OpenExternalAsync(actor, ct);
+        var hasDocuments = !string.IsNullOrWhiteSpace(input.Query) && await external.HasAsync(evidenceQuery, kinds, ct);
+        await using var snapshot = await embedder.SnapshotAsync(operation, ct);
+        var captured = snapshot is null ? null
+            : await CaptureQueryAsync(actor, input.Query, pages, memories, sources, hasDocuments && external.AcceptsEmbedding(snapshot), snapshot, ct);
+        var (ranked, degraded) = captured is null ? (new List<RankedChunk>(), false)
+            : await RankAsync(actor.OrgId, input.Query, pages, memories, limit * 4, ct, sources, snapshot, actor, captured);
+        var documents = hasDocuments ? await external.RankAsync(evidenceQuery, captured?.Vector, snapshot?.EmbeddingIdentity, limit * 4, ct) : EvidenceSessions.Empty;
+        degraded |= documents.Degraded;
 
         // Collapse to owners (best chunk wins), then hydrate titles and snippets.
         var best = ranked.GroupBy(r => (r.OwnerKind, r.OwnerId)).Select(g => g.MaxBy(r => r.Score)!)
@@ -79,7 +104,45 @@ public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
                     Scope: memoryRows[b.OwnerId].Scope.ToString().ToLowerInvariant()),
             };
         }).ToList();
+        hits.AddRange(EvidenceSessions.Hits(documents.Evidence));
+        hits = hits.OrderByDescending(h => h.Score).ThenBy(h => h.Kind).ThenBy(h => h.Id).Take(limit).ToList();
+        await RequireCurrentAsync(actor, pageIds, memoryIds, docIds, ct);
+        await external.RequireCurrentAsync(evidenceQuery, documents.Evidence, ct);
+        await operation.CheckAsync(ct);
         return new(degraded, hits);
+    }
+
+    /// <summary>The registered evidence readers, opened on this service's context for the caller.</summary>
+    public Task<EvidenceSessions> OpenExternalAsync(Actor actor, CancellationToken ct) => EvidenceSessions.OpenAsync(readers, db, actor, ct);
+    /// <summary>
+    /// Embeds the query once, and only when something can be ranked by it: the caller's own chunks, or (<paramref name="external"/>)
+    /// a reader's rows that this snapshot's vectors fit. The caller's access is confirmed before and after the model call.
+    /// </summary>
+    internal async Task<CapturedQueryEmbedding> CaptureQueryAsync(Actor actor, string query, Guid[] pages, Guid[] memories,
+        Guid[] sources, bool external, AiSnapshot snapshot, CancellationToken ct)
+    {
+        await snapshot.CheckAsync(ct);
+        await RequireCurrentAsync(actor, pages, memories, sources, ct);
+        var own = await db.Chunks.AnyAsync(c => c.OwnerKind == ChunkOwner.Page && pages.Contains(c.OwnerId)
+            || c.OwnerKind == ChunkOwner.Memory && memories.Contains(c.OwnerId)
+            || c.OwnerKind == ChunkOwner.SourceDocument && sources.Contains(c.OwnerId), ct);
+        var vector = string.IsNullOrWhiteSpace(query) || (!own && !external) ? null : await embedder.EmbedAsync(snapshot, query, ct);
+        await snapshot.CheckAsync(ct);
+        await RequireCurrentAsync(actor, pages, memories, sources, ct);
+        await snapshot.CheckAsync(ct);
+        return new(snapshot, vector);
+    }
+
+    /// <summary>Throws <c>forbidden</c> unless the caller is still an active member who may read every listed owner.</summary>
+    public async Task RequireCurrentAsync(Actor actor, Guid[] pages, Guid[] memories, Guid[] sources, CancellationToken ct)
+    {
+        var caller = await db.ActorAsync(actor.UserId, actor.CredentialId, ct);
+        if (db.CurrentOrgId != actor.OrgId || caller is null || caller.External != actor.Caller.External
+            || !await db.OrgMembers.AnyAsync(m => m.UserId == actor.UserId, ct)
+            || !pages.ToHashSet().IsSubsetOf(await VisiblePagesAsync(actor, null, ct))
+            || !memories.ToHashSet().IsSubsetOf(await VisibleMemoriesAsync(actor, null, ct))
+            || !sources.ToHashSet().IsSubsetOf(await VisibleSourceDocsAsync(actor, null, ct)))
+            throw new AtharError("forbidden", "Read access changed. Search again.");
     }
 
     /// <summary>Pages the caller may read now (access, AI policy, disclosure), not trashed, optionally in some spaces.</summary>
@@ -114,14 +177,20 @@ public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
     /// The fused chunk ranking over the given visible owners (shared with recall). <paramref name="k"/> candidates come from
     /// each list; collapse and top-up are the caller's.
     /// </summary>
-    public async Task<(List<RankedChunk> Ranked, bool Degraded)> RankAsync(Guid org, string query, Guid[] pages, Guid[] memories, int k, CancellationToken ct, Guid[]? sources = null, AiSnapshot? snapshot = null)
+    public async Task<(List<RankedChunk> Ranked, bool Degraded)> RankAsync(Guid org, string query, Guid[] pages, Guid[] memories, int k, CancellationToken ct, Guid[]? sources = null, AiSnapshot? snapshot = null, Actor? actor = null
+        , CapturedQueryEmbedding? captured = null
+        )
     {
         sources ??= [];
-        if (pages.Length + memories.Length + sources.Length == 0 || string.IsNullOrWhiteSpace(query)) return ([], false);
+        await using var ownedSnapshot = snapshot is null ? await SnapshotAsync(org, ct) : null;
+        snapshot ??= ownedSnapshot!;
+        await snapshot.CheckAsync(ct);
+        if (pages.Length + memories.Length + sources.Length == 0 || string.IsNullOrWhiteSpace(query)) { await snapshot.CheckAsync(ct); return ([], false); }
         var fts = await FtsAsync(org, query, pages, memories, k, ct, sources);
-        snapshot ??= await SnapshotAsync(org, ct);
-        var vector = await embedder.EmbedAsync(snapshot, query, ct);
-        if (vector is null) return (Fuse(fts), true);
+        if (captured is not null && !ReferenceEquals(captured.Snapshot, snapshot)) throw new ArgumentException("query_snapshot_changed");
+        var vector = captured is null ? await embedder.EmbedAsync(snapshot, query, ct) : captured.Vector;
+        if (actor is not null) await RequireCurrentAsync(actor, pages, memories, sources, ct);
+        if (vector is null) { await snapshot.CheckAsync(ct); return (Fuse(fts), true); }
         var exact = pages.Length + memories.Length + sources.Length < ExactBelow;
         List<RankedChunk> nearest;
         try { nearest = await NearestAsync(org, new Vector(vector), pages, memories, k, exact, ct, sources, snapshot.EmbeddingIdentity); }
@@ -133,6 +202,7 @@ public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
             NpgsqlConnection.ClearAllPools();
             nearest = await NearestAsync(org, new Vector(vector), pages, memories, k, exact, ct, sources, snapshot.EmbeddingIdentity);
         }
+        await snapshot.CheckAsync(ct);
         return (Fuse(fts, nearest), nearest.Count == 0);
     }
 
@@ -186,7 +256,11 @@ public sealed class SearchService(AtharDbContext db, QueryEmbedder embedder)
     public async Task<List<RankedChunk>> NearestAsync(Guid org, Vector v, Guid[] pages, Guid[] memories, int k, bool exact, CancellationToken ct, Guid[]? sources = null, string? modelId = null)
     {
         sources ??= [];
-        modelId ??= (await SnapshotAsync(org, ct)).EmbeddingIdentity;
+        await using var ownedSnapshot = modelId is null ? await SnapshotAsync(org, ct) : null;
+        modelId ??= ownedSnapshot!.EmbeddingIdentity;
+        if (VectorIndexes.For(modelId) is { } index)
+            return [.. (await index.NearestAsync(db, org, modelId, v, pages, memories, sources, k, exact, ct))
+                .Select(r => new RankedChunk(r.ChunkId, Enum.Parse<ChunkOwner>(r.OwnerKind.Replace("_", ""), true), r.OwnerId, r.Score))];
         // SET LOCAL needs a transaction; join the caller's if there is one.
         await using var tx = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(ct) : null;
         List<Row> rows;

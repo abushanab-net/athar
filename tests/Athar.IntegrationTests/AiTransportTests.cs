@@ -7,7 +7,7 @@ namespace Athar.IntegrationTests;
 public sealed class AiTransportTests
 {
     private static AiSnapshot Snapshot(FakeAiGateway fake, string? model = null) => new(fake.BaseUrl, model ?? fake.EmbeddingModel,
-        fake.QueryModel, fake.VisionModel, null, false, false, "test-id", "retrieve team notes");
+        fake.QueryModel, fake.VisionModel, null, false, false, "test-id", "retrieve team notes") { Admission = _ => Task.CompletedTask, CallAdmission = AiCallLease.UnrestrictedAsync };
 
     [Theory]
     [InlineData("http://169.254.169.254/latest")]

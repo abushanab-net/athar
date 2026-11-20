@@ -25,7 +25,8 @@ public sealed class ExtractAttachmentJob(AttachmentStore store, TimeProvider clo
     public async Task RunAsync(Job job, AtharDbContext db, CancellationToken ct)
     {
         var p = JsonSerializer.Deserialize<AttachmentRules.ExtractPayload>(job.Payload, IndexJobs.Json)!;
-        var attachment = await db.Attachments.SingleOrDefaultAsync(a => a.Id == p.AttachmentId, ct);
+        var attachment = await db.Attachments.SingleOrDefaultAsync(a => a.Id == p.AttachmentId
+            && db.Pages.Any(page => page.Id == a.PageId), ct);
         if (attachment is not { ExtractStatus: ExtractStatus.Pending }) return; // gone, or already done
         var vision = AttachmentRules.Vision(attachment.MimeSniffed);
         void Finish(ExtractStatus status)
@@ -41,7 +42,10 @@ public sealed class ExtractAttachmentJob(AttachmentStore store, TimeProvider clo
         string? text, error;
         if (vision)
         {
-            var settings = ai is null ? null : await ai.ResolveAsync(job.OrgId, ct);
+            if (ai is null) AiOperationPolicy.Require(null);
+            var operation = ai is null ? null : await ai.CaptureAsync(db, ct);
+            if (operation is not null) AiOperationPolicy.Require(operation);
+            await using var settings = ai is null ? null : await ai.ResolveAsync(operation!, AiPurpose.Vision, ct);
             if (settings is null || !settings.Gateway || string.IsNullOrWhiteSpace(settings.VisionModel)
                 || attachment.Size > AiGatewayClient.MaxImageBytes || !await db.Spaces.AnyAsync(s => s.Id == page.SpaceId && s.AiPolicy.Read, ct))
             { Finish(ExtractStatus.Skipped); return; }
@@ -80,6 +84,7 @@ public sealed class ExtractAttachmentJob(AttachmentStore store, TimeProvider clo
         }
         page = await db.Pages.AsNoTracking().SingleOrDefaultAsync(x => x.Id == attachment.PageId && x.DeletedAt == null, ct);
         if (page is null) { Finish(ExtractStatus.Skipped); return; }
+        if (db.ModelOperation is { } admission) await admission.CheckAsync(ct);
         attachment.TextContent = text.Length > AttachmentRules.MaxTextChars ? text[..AttachmentRules.MaxTextChars] : text;
         Finish(ExtractStatus.Done);
         if (vision && string.IsNullOrWhiteSpace(text)) return;

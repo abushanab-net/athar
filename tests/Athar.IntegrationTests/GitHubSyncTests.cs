@@ -115,7 +115,10 @@ public class GitHubSyncTests(AtharApp athar)
     /// <summary>Whether search (sources only) returns a hit containing <paramref name="word"/>.</summary>
     private static async Task<bool> Finds(HttpClient http, string word, CancellationToken ct)
     {
-        var result = await http.GetFromJsonAsync<JsonElement>($"/api/v1/search?q={word}&kinds=source", ct);
+        // A sync that removes a document while a search is ranking it makes that search answer 403 (search again), never a stale hit.
+        HttpResponseMessage response;
+        while ((response = await http.GetAsync($"/api/v1/search?q={word}&kinds=source", ct)).StatusCode == System.Net.HttpStatusCode.Forbidden) await Task.Delay(200, ct);
+        var result = await response.EnsureSuccessStatusCode().Content.ReadFromJsonAsync<JsonElement>(ct);
         return result.GetProperty("hits").EnumerateArray().Any(h => h.GetProperty("snippet").GetString()!.Contains(word) || h.GetProperty("title").GetString()!.Contains(word));
     }
 

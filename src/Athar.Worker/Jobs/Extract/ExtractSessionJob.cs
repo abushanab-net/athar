@@ -40,11 +40,15 @@ public sealed class ExtractSessionJob(ICandidateExtractor? extractor, IEmbedder?
         if (session is null || session.ExtractedUpto >= p.AckedIndex) return; // done already, or by a later job
         if (await db.ActorAsync(session.UserId, session.CredentialId, ct) is null) return; // deactivated, or credential revoked
 
-        var operation = clients is null ? (Embedder: embedder!, Extractor: extractor!) : await clients.ResolveAsync(job.OrgId, ct);
+        var operation = clients is null ? (Embedder: embedder!, Extractor: extractor!) : await clients.ResolveAsync(db, ct);
+        await using var ownedEmbedding = clients is null ? null : operation.Embedder;
+        await using var ownedExtraction = clients is null ? null : operation.Extractor;
         var records = await db.SessionRecords.Where(r => r.SessionId == session.Id && r.RecordIndex > session.ExtractedUpto && r.RecordIndex <= p.AckedIndex)
             .OrderBy(r => r.RecordIndex).Select(r => r.RedactedRecord).ToListAsync(ct);
         var found = records.Count == 0 ? [] : await operation.Extractor.ExtractAsync(Transcript(records), ct);
+        if (await db.ActorAsync(session.UserId, session.CredentialId, ct) is null) return;
 
+        if (db.ModelOperation is { } admission) await admission.CheckAsync(ct);
         var owner = await OwnerAsync(db, session.UserId, ct);
         // The session's project: as recorded, else the owner's one member project linked to its repo (FR-PJ-02).
         var remote = ProjectRules.NormalizeRemote(session.RepoRemote);
@@ -60,6 +64,7 @@ public sealed class ExtractSessionJob(ICandidateExtractor? extractor, IEmbedder?
         int candidates = 0, evidence = 0, autoAccepted = 0;
         foreach (var c in found)
         {
+            if (await db.ActorAsync(session.UserId, session.CredentialId, ct) is null) throw new AiProviderException("processing_access_revoked");
             if (string.IsNullOrWhiteSpace(c.Title) || string.IsNullOrWhiteSpace(c.BodyMd) || !Enum.TryParse<MemoryType>(c.Type, true, out var type)) continue;
             var suggested = Enum.TryParse<Scope>(c.Scope, true, out var s) && Enum.IsDefined(s) ? s : Scope.Personal;
             // The model can't name owners: a project is the session's, a team only when the owner has exactly one.
@@ -121,6 +126,17 @@ public sealed class ExtractSessionJob(ICandidateExtractor? extractor, IEmbedder?
             autoAccepted++;
         }
 
+        var currentOwner = await OwnerAsync(db, session.UserId, ct);
+        if (await db.ActorAsync(session.UserId, session.CredentialId, ct) is null || currentOwner.IsKnowledgeOwner != owner.IsKnowledgeOwner
+            || !currentOwner.TeamIds.ToHashSet().SetEquals(owner.TeamIds) || !currentOwner.ProjectIds.ToHashSet().SetEquals(owner.ProjectIds)
+            || !currentOwner.AdminProjectIds.ToHashSet().SetEquals(owner.AdminProjectIds)) throw new AiProviderException("processing_access_revoked");
+        // The memories shown as similar must still be visible to the owner when the candidates are saved.
+        var similarIds = db.ChangeTracker.Entries<CaptureCandidate>().Where(e => e.State == EntityState.Added)
+            .SelectMany(e => e.Entity.SimilarIds).Distinct().ToArray();
+        var currentVisible = await db.Memories.Where(MemoryRules.Visible(currentOwner)).Where(m => m.Status == MemoryStatus.Active && similarIds.Contains(m.Id))
+            .Select(m => m.Id).ToArrayAsync(ct);
+        if (!similarIds.ToHashSet().IsSubsetOf(currentVisible)) throw new AiProviderException("processing_access_revoked");
+        if (db.ModelOperation is { } finalAdmission) await finalAdmission.CheckAsync(ct);
         session.ExtractedUpto = p.AckedIndex;
         db.Audit(session.OrgId, session.UserId, "session.extract", "session", session.Id,
             after: new { upto = p.AckedIndex, candidates, evidence, auto_accepted = autoAccepted }, credentialId: session.CredentialId);
@@ -130,6 +146,7 @@ public sealed class ExtractSessionJob(ICandidateExtractor? extractor, IEmbedder?
     private async Task<Guid[]> SimilarAsync(AtharDbContext db, Guid org, string text, Guid[] visible, IEmbedder embedder, CancellationToken ct)
     {
         var v = new Vector((await embedder.EmbedAsync([text], ct))[0]);
+        if (VectorIndexes.For(embedder.ModelId) is { } index) return await index.SimilarAsync(db, org, embedder.ModelId, v, visible, SimilarAt, ct);
         var rows = await db.Database.SqlQuery<Guid>($"""
             SELECT c.owner_id AS "Value"
             FROM chunk_embeddings e JOIN chunks c ON c.org_id = e.org_id AND c.id = e.chunk_id

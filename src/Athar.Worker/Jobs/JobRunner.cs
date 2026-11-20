@@ -53,6 +53,7 @@ public readonly record struct JobClaim(Guid Id, Guid LeaseId);
 public sealed class JobRunner(IServiceScopeFactory scopes, IEnumerable<IJob> jobs, TimeProvider clock, ILogger<JobRunner> log) : BackgroundService
 {
     public const int MaxAttempts = 6;
+    public static readonly TimeSpan AdmissionRetry = TimeSpan.FromMinutes(1);
     /// <summary>docs/03 §2: one inference queue with bounded concurrency 2.</summary>
     public const int Concurrency = 2;
     public static readonly TimeSpan DefaultLease = TimeSpan.FromMinutes(5);
@@ -148,11 +149,22 @@ public sealed class JobRunner(IServiceScopeFactory scopes, IEnumerable<IJob> job
             locked.Status = JobStatus.Done;
             locked.LeaseId = null;
             locked.LeaseUntil = null;
+            if (db.ModelOperation is { } admission) await admission.CheckAsync(ct);
             await db.SaveChangesAsync(ct);
             if (handler is IJobCommitCheck final) await final.CheckCommitAsync(job, prepared, db, lost.Token);
+            if (db.ModelOperation is { } finalAdmission) await finalAdmission.CheckAsync(ct);
             await tx.CommitAsync(ct);
+            if (db.ModelOperation is { } returnAdmission) await returnAdmission.CheckAsync(ct);
             return true;
         }
+        catch (Exception e) when (e is IAiAdmissionFailure failure && !ct.IsCancellationRequested)
+        {
+            // Never leave a refused job to lease expiry (endless re-claims, each spending budget): transient refusals wait
+            // without using an attempt; work that would be refused again counts towards dead.
+            await FailAsync(claim, failure.Retryable ? new JobDeferred(e.Message, AdmissionRetry) : e, ct);
+            throw;
+        }
+        catch (Exception e) when (e is IAiAdmissionFailure) { throw; }
         catch (Exception e) when (!ct.IsCancellationRequested)
         {
             // The database was reset (`db reset` recreates pgvector's type with a new OID): reload the type cache.
@@ -184,6 +196,7 @@ public sealed class JobRunner(IServiceScopeFactory scopes, IEnumerable<IJob> job
             }
         }
         catch (OperationCanceledException) { } // the job finished
+        catch (Exception e) when (e is IAiAdmissionFailure) { await lost.CancelAsync(); throw; }
         catch (Exception e) { log.LogWarning(e, "Job {Id} lease renewal failed; retrying on the next tick", claim.Id); }
     }
 

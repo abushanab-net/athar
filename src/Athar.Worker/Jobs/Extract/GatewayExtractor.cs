@@ -6,12 +6,17 @@ namespace Athar.Worker.Jobs.Extract;
 
 public sealed class GatewayExtractor(AiSnapshot snapshot, ILogger<GatewayExtractor> log) : ICandidateExtractor
 {
+    public ValueTask DisposeAsync() => snapshot.DisposeAsync();
     public GatewayExtractor(AiOptions options, ILogger<GatewayExtractor> log) : this(new AiSnapshot(options.BaseUrl,
         options.EmbeddingModel, options.QueryModel ?? options.ChatModel, options.VisionModel, options.ApiKey, false, true,
-        AiModels.EmbeddingId(options), options.QueryInstruction), log) { }
+        AiModels.EmbeddingId(options), options.QueryInstruction)
+        { Admission = AiOperationPolicy.Unadmitted }
+        , log) { }
 
     public async Task<IReadOnlyList<ExtractedCandidate>> ExtractAsync(string transcript, CancellationToken ct)
     {
+        if (snapshot.Admission is null) AiOperationPolicy.Require(null);
+        await snapshot.CheckAsync(ct);
         try
         {
             var text = await new AiGatewayClient(snapshot).ChatAsync(snapshot.QueryModel,
@@ -23,6 +28,7 @@ public sealed class GatewayExtractor(AiSnapshot snapshot, ILogger<GatewayExtract
                 throw new AiProviderException("invalid_response");
             var kept = parsed.Where(c => ExtractionPrompt.InSessionLanguage(c, transcript)).ToList();
             if (kept.Count < parsed.Length) log.LogWarning("Dropped {Count} candidate(s) written in another language", parsed.Length - kept.Count);
+            await snapshot.CheckAsync(ct);
             return kept;
         }
         catch (JsonException) { throw new AiProviderException("invalid_response"); }

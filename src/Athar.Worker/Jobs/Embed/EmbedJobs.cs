@@ -100,18 +100,22 @@ public sealed class ReembedSweep(IServiceScopeFactory scopes, IEmbedder? embedde
         }
     }
 
-    public async Task<int> SweepAsync(CancellationToken ct)
+    public Task<int> SweepAsync(CancellationToken ct) => SweepAsync(null, ct);
+    public Task<int> SweepOrganizationAsync(Guid org, CancellationToken ct) => SweepAsync(org, ct);
+    private async Task<int> SweepAsync(Guid? onlyOrg, CancellationToken ct)
     {
         await using var scope = scopes.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AtharDbContext>();
         var count = 0;
-        var organizations = await db.Organizations.AsNoTracking().Select(o => o.Id).ToListAsync(ct);
+        var organizations = await db.Organizations.AsNoTracking().Where(o => onlyOrg == null || o.Id == onlyOrg).Select(o => o.Id).ToListAsync(ct);
         foreach (var org in organizations)
         {
             try
             {
+                db.ModelOperation = null;
                 db.CurrentOrgId = org;
-                var model = resolver is null ? embedder!.ModelId : (await resolver.ResolveAsync(org, ct)).EmbeddingIdentity;
+                await using var snapshot = resolver is null ? null : await resolver.ResolveAsync(db, AiPurpose.Embedding, ct);
+                var model = snapshot?.EmbeddingIdentity ?? embedder!.ModelId;
                 var owners = await db.Chunks.Where(c => !db.ChunkEmbeddings.Any(e => e.ChunkId == c.Id && e.ModelId == model))
                     .Select(c => new { c.OwnerKind, c.OwnerId, c.OwnerRevision }).Distinct().ToListAsync(ct);
                 foreach (var batch in owners.Chunk(500))
@@ -127,12 +131,13 @@ public sealed class ReembedSweep(IServiceScopeFactory scopes, IEmbedder? embedde
                         else if (existing.Status == JobStatus.Done)
                             (existing.Status, existing.RunAfter, existing.Attempts, existing.LastError) = (JobStatus.Ready, job.RunAfter, 0, null);
                     }
+                    if (snapshot is not null) await snapshot.CheckAsync(ct);
                     await db.SaveChangesAsync(ct);
                     db.ChangeTracker.Clear();
                 }
                 count += owners.Count;
             }
-            catch (Exception) when (!ct.IsCancellationRequested)
+            catch (Exception e) when (!ct.IsCancellationRequested && e is not IAiAdmissionFailure)
             {
                 db.ChangeTracker.Clear();
                 log.LogWarning("Re-embed sweep could not resolve organization {Org}.", org);
@@ -155,7 +160,8 @@ public sealed class EmbedVectorsJob(IEmbedder? embedder, AiOperationClients? cli
     public async Task RunAsync(Job job, AtharDbContext db, CancellationToken ct)
     {
         var p = JsonSerializer.Deserialize<IndexJobs.VectorsPayload>(job.Payload, IndexJobs.Json)!;
-        var active = clients is null ? embedder! : (await clients.ResolveAsync(job.OrgId, ct)).Embedder;
+        var active = clients is null ? embedder! : await clients.ResolveEmbedderAsync(db, ct);
+        await using var ownedEmbedding = clients is null ? null : active;
         if (p.EmbeddingIdentity is { } target && target != active.ModelId) return;
         var kind = Enum.Parse<ChunkOwner>(p.OwnerKind, ignoreCase: true);
         var chunks = await db.Chunks.Where(c => c.OwnerKind == kind && c.OwnerId == p.OwnerId).OrderBy(c => c.Idx).ToListAsync(ct);
@@ -169,6 +175,7 @@ public sealed class EmbedVectorsJob(IEmbedder? embedder, AiOperationClients? cli
         foreach (var batch in missing.Chunk(32))
         {
             var vectors = await active.EmbedAsync([.. batch.Select(Chunker.EmbeddingText)], ct);
+            if (db.ModelOperation is { } admission) await admission.CheckAsync(ct);
             db.ChunkEmbeddings.AddRange(batch.Zip(vectors, (c, v) => new ChunkEmbedding { ChunkId = c.Id, ModelId = active.ModelId, Embedding = v }));
         }
     }

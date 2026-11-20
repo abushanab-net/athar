@@ -12,3 +12,10 @@ public sealed class AiSettings : OrgEntity
     public string? VisionModel { get; set; }
     public string? ProtectedApiKey { get; set; }
 }
+
+/// <summary>An operation admission failure must escape provider and degraded-result handlers.</summary>
+public interface IAiAdmissionFailure
+{
+    /// <summary>False when retrying the same work would be refused again (for example an over-limit response).</summary>
+    bool Retryable => true;
+}

@@ -15,12 +15,23 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Athar.IntegrationTests;
 
 /// <summary>Isolated real Postgres database seeded through the existing QA profile, never shared worker state.</summary>
-public sealed class AiTestDatabase(AtharApp app) : IDbContextFactory<AtharDbContext>, IAsyncDisposable
+public class AiTestDatabase(AtharApp app) : IDbContextFactory<AtharDbContext>, IAsyncDisposable
 {
     public string Name { get; } = "athar_ai_" + Guid.NewGuid().ToString("N");
-    public IConfiguration Configuration { get; set; } = new ConfigurationBuilder().Build();
+    private readonly IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
+    public virtual IConfiguration Configuration
+    {
+        get => configuration;
+        set
+        {
+            var incoming = value.AsEnumerable().ToDictionary(p => p.Key, p => p.Value);
+            foreach (var key in configuration.AsEnumerable().Select(p => p.Key).ToArray()) configuration[key] = null;
+            foreach (var pair in incoming) configuration[pair.Key] = pair.Value;
+        }
+    }
     public IDataProtectionProvider Protection { get; } = new EphemeralDataProtectionProvider();
-    public AiSettingsResolver Resolver => new(this, Configuration, Protection);
+    public virtual AiSettingsResolver Resolver => new(this, Configuration, Protection
+        );
     public AiSettingsService Settings => new(this, Resolver);
     public QueryEmbedder Embedder => new(Configuration, NullLogger<QueryEmbedder>.Instance, Resolver);
     public QueryAnswerService Answers => new(this, Resolver, Embedder);
@@ -31,16 +42,21 @@ public sealed class AiTestDatabase(AtharApp app) : IDbContextFactory<AtharDbCont
     public static Actor Owner => Person(QaSeed.Owner);
     public static AiSettingsWrite Draft(FakeAiGateway gateway, long revision = 0, ApiKeyChange key = ApiKeyChange.Clear, string? secret = null) =>
         new(revision, gateway.BaseUrl, gateway.EmbeddingModel, gateway.QueryModel, gateway.VisionModel, key, secret);
-    public AtharDbContext CreateDbContext() => app.Db(QaSeed.Org, Name);
+    public string? ApplicationName { get; set; }
+    private string OwnedConnection => new Npgsql.NpgsqlConnectionStringBuilder(app.ConnectionString(Name)) { ApplicationName = ApplicationName ?? "" }.ConnectionString;
+    public AtharDbContext CreateDbContext()
+    {
+        var options = new DbContextOptionsBuilder<AtharDbContext>(); options.UseAthar(OwnedConnection, new SeedOptions("qa"));
+        return new(options.Options) { CurrentOrgId = QaSeed.Org };
+    }
     public Task<AtharDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default) => Task.FromResult(CreateDbContext());
-    public async Task InitializeAsync(CancellationToken ct)
+    public virtual async Task InitializeAsync(CancellationToken ct)
     {
         await using var db = CreateDbContext();
         await db.Database.MigrateAsync(ct);
     }
-    public async ValueTask DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
-        await using var db = CreateDbContext();
-        await db.Database.EnsureDeletedAsync();
+        await using var db = CreateDbContext(); await db.Database.EnsureDeletedAsync();
     }
 }

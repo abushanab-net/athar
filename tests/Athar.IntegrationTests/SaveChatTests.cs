@@ -91,14 +91,18 @@ public class SaveChatTests(AtharApp athar)
     // ponytail: the same runner as CaptureTests.RunAsync; share it if a third test class needs one.
     private async Task RunAsync(Job job, ICandidateExtractor extractor, CancellationToken ct)
     {
-        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ConnectionStrings:ollama"] = await athar.App.GetConnectionStringAsync("ollama", ct),
         }).Build();
         await using var db = athar.Db(QaSeed.Org);
         var embedder = new OllamaEmbedder(config, NullLogger<OllamaEmbedder>.Instance);
-        await embedder.EnsureReadyAsync(ct);
-        await new ExtractSessionJob(extractor, embedder).RunAsync(job, db, ct);
+        var operation = Athar.Data.AiOperationPolicy.Create(db);
+        db.ModelOperation = operation;
+        await embedder.EnsureReadyAsync(operation, ct); // the worker's job would defer until then
+        var admitted = embedder.ForOperation(operation);
+        await new ExtractSessionJob(extractor, admitted).RunAsync(job, db, ct);
         await db.SaveChangesAsync(ct);
     }
 }

@@ -22,10 +22,10 @@ public sealed class MemoryTools(MemoryService memories, ProjectService projects,
         Run(a => memories.RememberAsync(a, new(title, body_md, type, scope, op_id, owner_id, links), ct));
 
     [McpServerTool(Name = "search", UseStructuredContent = true, ReadOnly = true)]
-    [Description("Search pages and memories you can read (keywords and meaning, Arabic and English). Ranked hits.")]
+    [Description("Search what you can read: pages, memories, synced sources and anything else this server publishes (keywords and meaning, Arabic and English). Ranked hits; a hit may carry a source-version citation.")]
     public Task<SearchResult> Search(
         string query,
-        [Description("page and/or memory; both when omitted")] string[]? kinds = null,
+        [Description("page, memory, source, or another kind this server offers (for example document); all when omitted")] string[]? kinds = null,
         Guid[]? space_ids = null,
         Guid[]? project_ids = null,
         int limit = 10,
@@ -33,7 +33,7 @@ public sealed class MemoryTools(MemoryService memories, ProjectService projects,
         Run(a => search.SearchAsync(a, new(query, kinds, space_ids, project_ids, limit), ct));
 
     [McpServerTool(Name = "recall", UseStructuredContent = true, ReadOnly = true)]
-    [Description("Find memories relevant to a query, one group per project.")]
+    [Description("Find memories relevant to a query, one group per project. A server that publishes documents adds a separate documents collection to each group: limit applies to each collection, and a memory types filter excludes documents.")]
     public Task<RecallResult> Recall(
         string query,
         [Description("The repo you're in; recall then groups results per project linked to it")] string? repo_remote = null,
