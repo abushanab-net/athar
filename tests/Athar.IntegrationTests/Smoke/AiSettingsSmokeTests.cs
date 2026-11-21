@@ -256,6 +256,10 @@ public class AiSettingsSmokeTests(AtharApp athar, Xunit.Abstractions.ITestOutput
         if (!page.Url.Contains("/admin/ai-models")) await page.GotoAsync("/admin/ai-models");
         var reset = page.GetByRole(AriaRole.Button, new() { Name = "إعادة الإعدادات الافتراضية للنشر" });
         await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "فهرس البحث" })).ToBeVisibleAsync();
+        // The heading renders before the saved settings load. Counting the reset button at once could find none while
+        // an override was still on its way, skip the reset, and leave the next assertion waiting for a state that never came.
+        var defaults = page.GetByText("تُستخدم الإعدادات الافتراضية للنشر.");
+        await Expect(reset.Or(defaults).First).ToBeVisibleAsync();
         if (await reset.CountAsync() == 0) return;
         await Ui.UntilAsync(() => reset.First.ClickAsync(), page.GetByRole(AriaRole.Dialog));
         await page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "إعادة الإعدادات الافتراضية للنشر" }).ClickAsync();
